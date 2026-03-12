@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -21,8 +23,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'role',
+        'is_active',
     ];
 
     /**
@@ -48,6 +53,32 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'role' => UserRole::class,
+            'is_active' => 'boolean',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    public function isGuru(): bool
+    {
+        return $this->role === UserRole::Guru;
+    }
+
+    public function isSiswa(): bool
+    {
+        return $this->role === UserRole::Siswa;
+    }
+
+    public function dashboardRoute(): string
+    {
+        return match ($this->role) {
+            UserRole::Admin => '/admin/dashboard',
+            UserRole::Guru => '/guru/dashboard',
+            UserRole::Siswa => '/siswa/dashboard',
+        };
     }
 }

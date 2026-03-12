@@ -1,8 +1,18 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-vue-next';
+import { Link, usePage } from '@inertiajs/vue3';
+import {
+    BookOpen,
+    ClipboardList,
+    FileText,
+    GraduationCap,
+    LayoutGrid,
+    Library,
+    School,
+    Settings,
+    Users,
+} from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
-import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -14,29 +24,100 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { NavItem, UserRole } from '@/types';
 
-const mainNavItems: NavItem[] = [
+const page = usePage();
+const userRole = computed(() => (page.props.auth as { user: { role: UserRole } }).user.role);
+
+const adminNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: '/admin/dashboard',
         icon: LayoutGrid,
     },
-];
-
-const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
+        title: 'Manajemen Pengguna',
+        href: '/admin/users',
+        icon: Users,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
+        title: 'Tahun Ajaran',
+        href: '/admin/academic-years',
+        icon: School,
+    },
+    {
+        title: 'Jurusan',
+        href: '/admin/departments',
+        icon: Library,
+    },
+    {
+        title: 'Kelas',
+        href: '/admin/classrooms',
+        icon: GraduationCap,
+    },
+    {
+        title: 'Mata Pelajaran',
+        href: '/admin/subjects',
         icon: BookOpen,
     },
 ];
+
+const guruNavItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: '/guru/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Bank Soal',
+        href: '/guru/bank-soal',
+        icon: Library,
+    },
+    {
+        title: 'Ujian',
+        href: '/guru/ujian',
+        icon: ClipboardList,
+    },
+    {
+        title: 'Penilaian',
+        href: '/guru/grading',
+        icon: FileText,
+    },
+];
+
+const siswaNavItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: '/siswa/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Ujian',
+        href: '/siswa/ujian',
+        icon: ClipboardList,
+    },
+    {
+        title: 'Nilai',
+        href: '/siswa/nilai',
+        icon: FileText,
+    },
+];
+
+const navItemsByRole: Record<UserRole, NavItem[]> = {
+    admin: adminNavItems,
+    guru: guruNavItems,
+    siswa: siswaNavItems,
+};
+
+const navItems = computed(() => navItemsByRole[userRole.value] ?? []);
+const dashboardHref = computed(() => {
+    const roleRoutes: Record<UserRole, string> = {
+        admin: '/admin/dashboard',
+        guru: '/guru/dashboard',
+        siswa: '/siswa/dashboard',
+    };
+    return roleRoutes[userRole.value] ?? '/dashboard';
+});
 </script>
 
 <template>
@@ -45,7 +126,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <Link :href="dashboardHref">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
@@ -54,11 +135,10 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="navItems" />
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
             <NavUser />
         </SidebarFooter>
     </Sidebar>
