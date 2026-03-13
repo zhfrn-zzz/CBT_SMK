@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -80,5 +81,34 @@ class User extends Authenticatable
             UserRole::Guru => '/guru/dashboard',
             UserRole::Siswa => '/siswa/dashboard',
         };
+    }
+
+    /**
+     * Kelas yang diikuti siswa.
+     */
+    public function classrooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Classroom::class, 'classroom_student')
+            ->withTimestamps();
+    }
+
+    /**
+     * Mata pelajaran yang diajar guru (via pivot classroom_subject_teacher).
+     */
+    public function teachingSubjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'classroom_subject_teacher')
+            ->withPivot('classroom_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Kelas yang diajar guru (via pivot classroom_subject_teacher).
+     */
+    public function teachingClassrooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Classroom::class, 'classroom_subject_teacher')
+            ->withPivot('subject_id')
+            ->withTimestamps();
     }
 }

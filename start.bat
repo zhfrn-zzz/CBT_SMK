@@ -1,0 +1,16 @@
+@echo off
+echo Starting SMK LMS Development Server...
+
+echo [1/4] Starting Redis (WSL)...
+wsl -e sudo service redis-server start
+
+echo [2/4] Starting Laravel server...
+start "Laravel" cmd /k "php artisan serve"
+
+echo [3/4] Starting Vite dev server...
+start "Vite" cmd /k "npm run dev"
+
+echo [4/4] Starting Queue worker...
+start "Queue" cmd /k "php artisan queue:work redis"
+
+echo All services started! Open http://localhost:8000
