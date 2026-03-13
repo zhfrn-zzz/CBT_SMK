@@ -8,6 +8,7 @@ use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -110,5 +111,13 @@ class User extends Authenticatable
         return $this->belongsToMany(Classroom::class, 'classroom_subject_teacher')
             ->withPivot('subject_id')
             ->withTimestamps();
+    }
+
+    /**
+     * Bank soal milik guru.
+     */
+    public function questionBanks(): HasMany
+    {
+        return $this->hasMany(QuestionBank::class);
     }
 }

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\GradeLevel;
+use App\Enums\QuestionType;
 use App\Enums\Semester;
 use App\Enums\UserRole;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\Department;
+use App\Models\QuestionBank;
 use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -181,5 +183,72 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
+
+        // ===== 9. Bank Soal + Contoh Soal =====
+        $bankAsj = QuestionBank::create([
+            'name' => 'UTS ASJ Kelas XI Semester 1',
+            'subject_id' => $asj->id,
+            'user_id' => $teachers[0]->id,
+            'description' => 'Bank soal untuk Ujian Tengah Semester ASJ kelas XI',
+        ]);
+
+        // Soal PG
+        $q1 = $bankAsj->questions()->create([
+            'type' => QuestionType::PilihanGanda,
+            'content' => '<p>Apa kepanjangan dari <strong>DNS</strong>?</p>',
+            'points' => 1,
+            'explanation' => 'DNS adalah singkatan dari Domain Name System.',
+            'order' => 1,
+        ]);
+        $q1->options()->createMany([
+            ['label' => 'A', 'content' => 'Domain Name System', 'is_correct' => true, 'order' => 0],
+            ['label' => 'B', 'content' => 'Digital Network Service', 'is_correct' => false, 'order' => 1],
+            ['label' => 'C', 'content' => 'Data Network System', 'is_correct' => false, 'order' => 2],
+            ['label' => 'D', 'content' => 'Domain Network Service', 'is_correct' => false, 'order' => 3],
+        ]);
+
+        // Soal B/S
+        $q2 = $bankAsj->questions()->create([
+            'type' => QuestionType::BenarSalah,
+            'content' => '<p>DHCP digunakan untuk memberikan IP address secara otomatis kepada client.</p>',
+            'points' => 1,
+            'explanation' => 'DHCP (Dynamic Host Configuration Protocol) memang berfungsi memberikan IP address otomatis.',
+            'order' => 2,
+        ]);
+        $q2->options()->createMany([
+            ['label' => 'A', 'content' => 'Benar', 'is_correct' => true, 'order' => 0],
+            ['label' => 'B', 'content' => 'Salah', 'is_correct' => false, 'order' => 1],
+        ]);
+
+        // Soal Esai
+        $bankAsj->questions()->create([
+            'type' => QuestionType::Esai,
+            'content' => '<p>Jelaskan perbedaan antara <em>static routing</em> dan <em>dynamic routing</em>! Berikan masing-masing satu contoh protokol yang digunakan.</p>',
+            'points' => 5,
+            'explanation' => 'Static routing dikonfigurasi manual oleh admin, contoh: route add. Dynamic routing menggunakan protokol untuk pertukaran informasi routing, contoh: OSPF, RIP.',
+            'order' => 3,
+        ]);
+
+        // Bank soal ke-2 untuk Matematika
+        $bankMtk = QuestionBank::create([
+            'name' => 'Latihan Matematika Bab 1',
+            'subject_id' => $matematika->id,
+            'user_id' => $teachers[1]->id,
+            'description' => 'Latihan soal Matematika bab 1 - Logika Matematika',
+        ]);
+
+        $q4 = $bankMtk->questions()->create([
+            'type' => QuestionType::PilihanGanda,
+            'content' => '<p>Negasi dari pernyataan "Semua siswa rajin belajar" adalah...</p>',
+            'points' => 1,
+            'explanation' => 'Negasi dari "semua" adalah "ada yang tidak".',
+            'order' => 1,
+        ]);
+        $q4->options()->createMany([
+            ['label' => 'A', 'content' => 'Semua siswa tidak rajin belajar', 'is_correct' => false, 'order' => 0],
+            ['label' => 'B', 'content' => 'Ada siswa yang tidak rajin belajar', 'is_correct' => true, 'order' => 1],
+            ['label' => 'C', 'content' => 'Tidak ada siswa yang rajin belajar', 'is_correct' => false, 'order' => 2],
+            ['label' => 'D', 'content' => 'Beberapa siswa rajin belajar', 'is_correct' => false, 'order' => 3],
+        ]);
     }
 }

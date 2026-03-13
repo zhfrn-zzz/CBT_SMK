@@ -8,6 +8,9 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
+use App\Http\Controllers\Guru\QuestionBankController;
+use App\Http\Controllers\Guru\QuestionController;
+use App\Http\Controllers\Guru\QuestionImportController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -42,6 +45,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Guru routes
     Route::middleware('role:guru')->prefix('guru')->name('guru.')->group(function () {
         Route::inertia('dashboard', 'Guru/Dashboard')->name('dashboard');
+
+        // Bank Soal
+        Route::resource('bank-soal', QuestionBankController::class)
+            ->parameters(['bank-soal' => 'bankSoal']);
+
+        // Soal dalam bank soal (nested)
+        Route::get('bank-soal/{bankSoal}/soal/create', [QuestionController::class, 'create'])->name('bank-soal.soal.create');
+        Route::post('bank-soal/{bankSoal}/soal', [QuestionController::class, 'store'])->name('bank-soal.soal.store');
+        Route::get('bank-soal/{bankSoal}/soal/{soal}/edit', [QuestionController::class, 'edit'])->name('bank-soal.soal.edit');
+        Route::put('bank-soal/{bankSoal}/soal/{soal}', [QuestionController::class, 'update'])->name('bank-soal.soal.update');
+        Route::delete('bank-soal/{bankSoal}/soal/{soal}', [QuestionController::class, 'destroy'])->name('bank-soal.soal.destroy');
+
+        // Image upload for Tiptap editor
+        Route::post('soal/upload-image', [QuestionController::class, 'uploadImage'])->name('soal.upload-image');
+
+        // Import soal
+        Route::get('bank-soal/{bankSoal}/soal/template-download', [QuestionImportController::class, 'template'])->name('bank-soal.soal.template');
+        Route::post('bank-soal/{bankSoal}/soal/import', [QuestionImportController::class, 'import'])->name('bank-soal.soal.import');
     });
 
     // Siswa routes
