@@ -118,12 +118,17 @@ class QuestionController extends Controller
     {
         $request->validate([
             'image' => ['required', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
+        ], [
+            'image.required' => 'File gambar wajib diunggah.',
+            'image.image' => 'File harus berupa gambar.',
+            'image.mimes' => 'Format gambar harus JPG, PNG, GIF, atau WebP.',
+            'image.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
 
         $path = $request->file('image')->store('questions/content', 'public');
 
         return response()->json([
-            'url' => Storage::disk('public')->url($path),
+            'url' => '/storage/'.$path,
         ]);
     }
 

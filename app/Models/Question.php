@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 
 class Question extends Model
 {
@@ -41,7 +40,7 @@ class Question extends Model
     protected function mediaUrl(): Attribute
     {
         return Attribute::get(fn () => $this->media_path
-            ? Storage::disk('public')->url($this->media_path)
+            ? '/storage/'.$this->media_path
             : null
         );
     }
