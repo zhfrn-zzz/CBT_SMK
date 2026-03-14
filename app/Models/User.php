@@ -120,4 +120,30 @@ class User extends Authenticatable
     {
         return $this->hasMany(QuestionBank::class);
     }
+
+    /**
+     * Sesi ujian milik guru.
+     */
+    public function examSessions(): HasMany
+    {
+        return $this->hasMany(ExamSession::class);
+    }
+
+    /**
+     * Attempt ujian milik siswa.
+     */
+    public function examAttempts(): HasMany
+    {
+        return $this->hasMany(ExamAttempt::class);
+    }
+
+    /**
+     * Cek apakah siswa punya attempt aktif.
+     */
+    public function activeExamAttempt(): ?ExamAttempt
+    {
+        return $this->examAttempts()
+            ->where('status', \App\Enums\ExamAttemptStatus::InProgress)
+            ->first();
+    }
 }

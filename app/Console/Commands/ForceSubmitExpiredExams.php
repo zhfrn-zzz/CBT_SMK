@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Enums\ExamAttemptStatus;
+use App\Models\ExamAttempt;
+use App\Services\Exam\ExamAttemptService;
+use Illuminate\Console\Command;
+
+class ForceSubmitExpiredExams extends Command
+{
+    protected $signature = 'exam:force-submit-expired';
+
+    protected $description = 'Force submit expired exam attempts';
+
+    public function handle(ExamAttemptService $attemptService): int
+    {
+        $expired = ExamAttempt::where('status', ExamAttemptStatus::InProgress)
+            ->with('examSession')
+            ->get()
+            ->filter(fn (ExamAttempt $a) => $a->isExpired());
+
+        $count = 0;
+        foreach ($expired as $attempt) {
+            $attemptService->submitExam($attempt, true);
+            $count++;
+        }
+
+        $this->info("Force submitted {$count} expired exam(s).");
+
+        return self::SUCCESS;
+    }
+}

@@ -8,9 +8,11 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
+use App\Http\Controllers\Guru\ExamSessionController;
 use App\Http\Controllers\Guru\QuestionBankController;
 use App\Http\Controllers\Guru\QuestionController;
 use App\Http\Controllers\Guru\QuestionImportController;
+use App\Http\Controllers\Siswa\ExamController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -63,11 +65,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Import soal
         Route::get('bank-soal/{bankSoal}/soal/template-download', [QuestionImportController::class, 'template'])->name('bank-soal.soal.template');
         Route::post('bank-soal/{bankSoal}/soal/import', [QuestionImportController::class, 'import'])->name('bank-soal.soal.import');
+
+        // Ujian / Exam Sessions
+        Route::resource('ujian', ExamSessionController::class)
+            ->parameters(['ujian' => 'ujian']);
+        Route::patch('ujian/{ujian}/status', [ExamSessionController::class, 'updateStatus'])->name('ujian.update-status');
     });
 
     // Siswa routes
     Route::middleware('role:siswa')->prefix('siswa')->name('siswa.')->group(function () {
         Route::inertia('dashboard', 'Siswa/Dashboard')->name('dashboard');
+
+        // Ujian
+        Route::get('ujian', [ExamController::class, 'index'])->name('ujian.index');
+        Route::get('ujian/{ujian}/verify-token', [ExamController::class, 'showVerifyToken'])->name('ujian.verify-token');
+        Route::post('ujian/{ujian}/verify-token', [ExamController::class, 'verifyToken']);
+        Route::get('ujian/{ujian}/start', [ExamController::class, 'start'])->name('ujian.start');
+        Route::get('ujian/{ujian}/exam', [ExamController::class, 'exam'])->name('ujian.exam');
+        Route::post('ujian/{ujian}/save-answers', [ExamController::class, 'saveAnswers'])->name('ujian.save-answers');
+        Route::post('ujian/{ujian}/submit', [ExamController::class, 'submit'])->name('ujian.submit');
+    });
+
+    // API-style routes (for fire-and-forget from exam interface)
+    Route::middleware('auth')->prefix('api/exam')->group(function () {
+        Route::post('log-activity', [ExamController::class, 'logActivity'])->name('api.exam.log-activity');
     });
 });
 

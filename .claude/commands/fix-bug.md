@@ -1,0 +1,1 @@
+Baca error yang diberikan. Identifikasi root cause. Fix masalahnya. Pastikan npm run build dan vue-tsc --noEmit tetap pass setelah fix.
