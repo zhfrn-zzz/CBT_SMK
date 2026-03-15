@@ -49,6 +49,7 @@ class ExamResultController extends Controller
                     'pass_status' => $passStatus,
                     'is_fully_graded' => $attempt->is_fully_graded,
                     'submitted_at' => $attempt->submitted_at?->toISOString(),
+                    'is_remedial' => $session->isRemedial(),
                 ];
             });
 

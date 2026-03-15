@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Guru;
 use App\Enums\ExamAttemptStatus;
 use App\Enums\QuestionType;
 use App\Http\Controllers\Controller;
+use App\Models\ExamActivityLog;
 use App\Models\ExamAttempt;
 use App\Models\ExamSession;
 use App\Models\StudentAnswer;
@@ -67,11 +68,12 @@ class GradingController extends Controller
     {
         $this->authorize('view', $examSession);
 
-        $examSession->load(['subject', 'classrooms']);
+        $examSession->load(['subject', 'classrooms', 'remedialExamSessions']);
 
         $attempts = $examSession->attempts()
             ->whereIn('status', [ExamAttemptStatus::Submitted, ExamAttemptStatus::Graded])
             ->with('user')
+            ->withCount('activityLogs as violation_count')
             ->orderBy('id')
             ->get()
             ->map(function (ExamAttempt $attempt) use ($examSession) {
@@ -95,17 +97,28 @@ class GradingController extends Controller
                     'is_force_submitted' => $attempt->is_force_submitted,
                     'status' => $attempt->status->value,
                     'pass_status' => $passStatus,
+                    'violation_count' => $attempt->violation_count ?? 0,
                 ];
             });
 
         $statistics = $this->gradingService->getExamStatistics($examSession);
         $progress = $this->gradingService->getGradingProgress($examSession);
 
+        // Get remedial info
+        $remedialExams = $examSession->remedialExamSessions->map(fn (ExamSession $r) => [
+            'id' => $r->id,
+            'name' => $r->name,
+            'status' => $r->status->value,
+            'remedial_policy' => $r->remedial_policy,
+        ]);
+
         return Inertia::render('Guru/Penilaian/Show', [
             'examSession' => $examSession,
             'attempts' => $attempts,
             'statistics' => $statistics,
             'progress' => $progress,
+            'remedialExams' => $remedialExams,
+            'isRemedial' => $examSession->isRemedial(),
         ]);
     }
 
@@ -231,6 +244,59 @@ class GradingController extends Controller
         $examSession->update(['is_results_published' => false]);
 
         return back()->with('success', 'Publikasi hasil ujian dibatalkan.');
+    }
+
+    /**
+     * Show activity logs for a specific attempt.
+     */
+    public function activityLog(ExamSession $examSession, ExamAttempt $attempt): Response
+    {
+        $this->authorize('view', $examSession);
+
+        $attempt->load('user');
+
+        $logs = ExamActivityLog::where('exam_attempt_id', $attempt->id)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (ExamActivityLog $log) => [
+                'id' => $log->id,
+                'event_type' => $log->event_type->value,
+                'event_label' => $log->event_type->label(),
+                'description' => $log->description,
+                'created_at' => $log->created_at->toISOString(),
+            ]);
+
+        $summary = [
+            'total' => $logs->count(),
+            'tab_switches' => $logs->where('event_type', 'tab_switch')->count(),
+            'fullscreen_exits' => $logs->where('event_type', 'fullscreen_exit')->count(),
+            'copy_attempts' => $logs->where('event_type', 'copy_attempt')->count(),
+            'right_clicks' => $logs->where('event_type', 'right_click')->count(),
+        ];
+
+        return Inertia::render('Guru/Penilaian/ActivityLog', [
+            'examSession' => [
+                'id' => $examSession->id,
+                'name' => $examSession->name,
+                'subject' => $examSession->subject->name,
+                'max_tab_switches' => $examSession->max_tab_switches,
+            ],
+            'attempt' => [
+                'id' => $attempt->id,
+                'user' => [
+                    'id' => $attempt->user->id,
+                    'name' => $attempt->user->name,
+                    'username' => $attempt->user->username,
+                ],
+                'started_at' => $attempt->started_at->toISOString(),
+                'submitted_at' => $attempt->submitted_at?->toISOString(),
+                'is_force_submitted' => $attempt->is_force_submitted,
+                'ip_address' => $attempt->ip_address,
+                'user_agent' => $attempt->user_agent,
+            ],
+            'logs' => $logs,
+            'summary' => $summary,
+        ]);
     }
 
     /**

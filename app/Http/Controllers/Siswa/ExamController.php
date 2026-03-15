@@ -59,6 +59,7 @@ class ExamController extends Controller
                     'attempt_status_label' => $attempt?->status->label(),
                     'score' => $attempt?->score,
                     'is_published' => $session->is_published,
+                    'is_remedial' => $session->isRemedial(),
                 ];
             });
 
@@ -134,6 +135,13 @@ class ExamController extends Controller
 
         if ($existingAttempt) {
             if ($existingAttempt->status === ExamAttemptStatus::InProgress) {
+                // Device lock check on resume
+                $lockError = $this->checkDeviceLock($ujian, $existingAttempt, $request);
+                if ($lockError) {
+                    return redirect()->route('siswa.ujian.index')
+                        ->with('error', $lockError);
+                }
+
                 // Resume
                 $payload = $this->attemptService->buildExamPayload($existingAttempt);
 
@@ -155,6 +163,7 @@ class ExamController extends Controller
             $ujian,
             $student,
             $request->ip() ?? '0.0.0.0',
+            $request->userAgent(),
         );
 
         event(new StudentStartedExam($attempt));
@@ -185,6 +194,13 @@ class ExamController extends Controller
 
             return redirect()->route('siswa.ujian.index')
                 ->with('info', 'Waktu ujian telah habis. Jawaban Anda telah dikumpulkan.');
+        }
+
+        // Device lock check
+        $lockError = $this->checkDeviceLock($ujian, $attempt, $request);
+        if ($lockError) {
+            return redirect()->route('siswa.ujian.index')
+                ->with('error', $lockError);
         }
 
         $payload = $this->attemptService->buildExamPayload($attempt);
@@ -261,7 +277,7 @@ class ExamController extends Controller
     }
 
     /**
-     * Log anti-cheat activity.
+     * Log anti-cheat activity + enforce tab switch limit.
      */
     public function logActivity(Request $request): JsonResponse
     {
@@ -298,6 +314,57 @@ class ExamController extends Controller
             $totalViolations,
         ));
 
-        return response()->json(['logged' => true]);
+        // Check tab switch limit enforcement
+        $response = ['logged' => true];
+        if ($request->input('event_type') === 'tab_switch') {
+            $maxSwitches = $attempt->examSession->max_tab_switches;
+            if ($maxSwitches !== null) {
+                $tabSwitchCount = ExamActivityLog::where('exam_attempt_id', $attempt->id)
+                    ->where('event_type', 'tab_switch')
+                    ->count();
+
+                $response['tab_switch_count'] = $tabSwitchCount;
+                $response['max_tab_switches'] = $maxSwitches;
+
+                if ($tabSwitchCount >= $maxSwitches) {
+                    // Auto-submit on limit reached
+                    $this->attemptService->submitExam($attempt, true);
+                    $attempt->refresh();
+                    event(new StudentSubmittedExam($attempt));
+                    $response['auto_submitted'] = true;
+                } elseif ($tabSwitchCount >= $maxSwitches - 1) {
+                    $response['warning_level'] = 'final';
+                } else {
+                    $response['warning_level'] = 'standard';
+                }
+            }
+        }
+
+        return response()->json($response);
+    }
+
+    /**
+     * Check device lock: validate IP and user agent match the original attempt.
+     */
+    private function checkDeviceLock(ExamSession $session, ExamAttempt $attempt, Request $request): ?string
+    {
+        if (! $session->is_device_lock_enabled) {
+            return null;
+        }
+
+        $currentIp = $request->ip();
+        $currentAgent = $request->userAgent();
+
+        // Check IP match
+        if ($attempt->ip_address && $currentIp !== $attempt->ip_address) {
+            return 'Akses ditolak: Anda harus menggunakan perangkat/jaringan yang sama saat memulai ujian. IP berbeda terdeteksi.';
+        }
+
+        // Check user agent match (basic browser fingerprint)
+        if ($attempt->user_agent && $currentAgent && $attempt->user_agent !== substr($currentAgent, 0, 500)) {
+            return 'Akses ditolak: Anda harus menggunakan browser yang sama saat memulai ujian. Browser berbeda terdeteksi.';
+        }
+
+        return null;
     }
 }

@@ -23,6 +23,7 @@ class ExamAttempt extends Model
         'is_force_submitted',
         'ip_address',
         'device_fingerprint',
+        'user_agent',
         'score',
         'is_fully_graded',
         'status',

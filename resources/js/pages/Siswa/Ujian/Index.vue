@@ -89,9 +89,12 @@ function isExamActive(exam: SiswaExamListItem): boolean {
                             <CardHeader class="pb-3">
                                 <div class="flex items-start justify-between">
                                     <CardTitle class="text-base">{{ exam.name }}</CardTitle>
-                                    <Badge :variant="isExamActive(exam) ? 'default' : 'outline'">
-                                        {{ isExamActive(exam) ? 'Aktif' : 'Dijadwalkan' }}
-                                    </Badge>
+                                    <div class="flex gap-1">
+                                        <Badge v-if="exam.is_remedial" variant="destructive">Remedial</Badge>
+                                        <Badge :variant="isExamActive(exam) ? 'default' : 'outline'">
+                                            {{ isExamActive(exam) ? 'Aktif' : 'Dijadwalkan' }}
+                                        </Badge>
+                                    </div>
                                 </div>
                             </CardHeader>
                             <CardContent class="space-y-3">
@@ -162,10 +165,13 @@ function isExamActive(exam: SiswaExamListItem): boolean {
                             <CardHeader class="pb-3">
                                 <div class="flex items-start justify-between">
                                     <CardTitle class="text-base">{{ exam.name }}</CardTitle>
-                                    <Badge variant="secondary">
-                                        <CheckCircle2 class="mr-1 size-3" />
-                                        {{ exam.attempt_status_label }}
-                                    </Badge>
+                                    <div class="flex gap-1">
+                                        <Badge v-if="exam.is_remedial" variant="destructive">Remedial</Badge>
+                                        <Badge variant="secondary">
+                                            <CheckCircle2 class="mr-1 size-3" />
+                                            {{ exam.attempt_status_label }}
+                                        </Badge>
+                                    </div>
                                 </div>
                             </CardHeader>
                             <CardContent class="space-y-3">

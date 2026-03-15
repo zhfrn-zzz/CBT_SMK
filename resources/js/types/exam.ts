@@ -131,6 +131,8 @@ export const examStatusColors: Record<ExamStatus, string> = {
     archived: 'destructive',
 };
 
+export type RemedialPolicy = 'highest' | 'capped_at_kkm';
+
 export type ExamSession = {
     id: number;
     name: string;
@@ -146,10 +148,13 @@ export type ExamSession = {
     is_randomize_options: boolean;
     is_published: boolean;
     is_results_published: boolean;
+    is_device_lock_enabled: boolean;
     pool_count: number | null;
     kkm: number | null;
     max_tab_switches: number | null;
     status: ExamStatus;
+    original_exam_session_id: number | null;
+    remedial_policy: RemedialPolicy | null;
     created_at: string;
     updated_at: string;
     subject?: Subject;
@@ -158,6 +163,8 @@ export type ExamSession = {
     classrooms?: import('./academic').Classroom[];
     attempts_count?: number;
     attempts?: ExamAttempt[];
+    original_exam_session?: ExamSession;
+    remedial_exam_sessions?: ExamSession[];
 };
 
 export type ExamSessionForm = {
@@ -170,6 +177,7 @@ export type ExamSessionForm = {
     ends_at: string;
     is_randomize_questions: boolean;
     is_randomize_options: boolean;
+    is_device_lock_enabled: boolean;
     pool_count: number | string;
     kkm: number | string;
     max_tab_switches: number | string;
@@ -265,6 +273,7 @@ export type SiswaExamListItem = {
     attempt_status_label: string | null;
     score: number | null;
     is_published: boolean;
+    is_remedial: boolean;
 };
 
 // Proctor Dashboard types

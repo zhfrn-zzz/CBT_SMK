@@ -19,7 +19,7 @@ import NavigationPanel from '@/components/Exam/NavigationPanel.vue';
 import { useExamState } from '@/composables/useExamState';
 import { useExamTimer } from '@/composables/useExamTimer';
 import { useAutoSave } from '@/composables/useAutoSave';
-import { ChevronLeft, ChevronRight, Clock, Save, Send } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Clock, Save, Send, AlertTriangle } from 'lucide-vue-next';
 import type { ExamPayload } from '@/types';
 import axios from 'axios';
 
@@ -60,6 +60,12 @@ const autoSave = useAutoSave({
 });
 
 const isSubmitting = ref(false);
+
+// Tab switch warning state
+const showTabWarning = ref(false);
+const tabWarningLevel = ref<'standard' | 'final'>('standard');
+const tabWarningCount = ref(0);
+const tabWarningMax = ref<number | null>(props.exam.max_tab_switches);
 
 // Start timer and auto-save
 onMounted(() => {
@@ -123,6 +129,29 @@ function logActivity(eventType: string, description: string) {
         attempt_id: state.attemptId,
         event_type: eventType,
         description,
+    }).then((response) => {
+        const data = response.data;
+
+        // Handle auto-submitted by server (tab switch limit reached)
+        if (data.auto_submitted) {
+            handleAutoSubmit();
+            return;
+        }
+
+        // Handle tab switch warnings
+        if (eventType === 'tab_switch' && data.max_tab_switches !== undefined) {
+            tabWarningCount.value = data.tab_switch_count;
+            tabWarningMax.value = data.max_tab_switches;
+            state.tabSwitchCount = data.tab_switch_count;
+
+            if (data.warning_level === 'final') {
+                tabWarningLevel.value = 'final';
+                showTabWarning.value = true;
+            } else if (data.warning_level === 'standard') {
+                tabWarningLevel.value = 'standard';
+                showTabWarning.value = true;
+            }
+        }
     }).catch(() => {
         // fire and forget
     });
@@ -354,5 +383,44 @@ function handleToggleFlag() {
         >
             {{ autoSave.saveError.value }}
         </div>
+
+        <!-- Tab Switch Warning Dialog -->
+        <AlertDialog :open="showTabWarning" @update:open="showTabWarning = $event">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle class="flex items-center gap-2">
+                        <AlertTriangle
+                            class="size-5"
+                            :class="tabWarningLevel === 'final' ? 'text-red-600' : 'text-yellow-600'"
+                        />
+                        <span :class="tabWarningLevel === 'final' ? 'text-red-600' : 'text-yellow-600'">
+                            {{ tabWarningLevel === 'final' ? 'Peringatan Terakhir!' : 'Peringatan Pindah Tab' }}
+                        </span>
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        <div class="space-y-3 text-sm">
+                            <p v-if="tabWarningLevel === 'final'" class="font-semibold text-red-600">
+                                Ini adalah peringatan terakhir! Jika Anda pindah tab sekali lagi,
+                                ujian akan otomatis dikumpulkan.
+                            </p>
+                            <p v-else>
+                                Anda terdeteksi pindah tab/aplikasi. Hal ini tercatat sebagai pelanggaran.
+                            </p>
+                            <p class="font-medium">
+                                Pelanggaran: {{ tabWarningCount }} / {{ tabWarningMax }}
+                            </p>
+                            <p class="text-muted-foreground">
+                                Tetap pada halaman ujian untuk menghindari pengumpulan otomatis.
+                            </p>
+                        </div>
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogAction @click="showTabWarning = false">
+                        Saya Mengerti
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </div>
 </template>

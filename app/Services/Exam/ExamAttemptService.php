@@ -33,14 +33,15 @@ class ExamAttemptService
     /**
      * Start exam: create attempt + generate question set.
      */
-    public function startExam(ExamSession $examSession, User $student, string $ipAddress): ExamAttempt
+    public function startExam(ExamSession $examSession, User $student, string $ipAddress, ?string $userAgent = null): ExamAttempt
     {
-        return DB::transaction(function () use ($examSession, $student, $ipAddress) {
+        return DB::transaction(function () use ($examSession, $student, $ipAddress, $userAgent) {
             $attempt = ExamAttempt::create([
                 'exam_session_id' => $examSession->id,
                 'user_id' => $student->id,
                 'started_at' => now(),
                 'ip_address' => $ipAddress,
+                'user_agent' => $userAgent ? substr($userAgent, 0, 500) : null,
                 'status' => ExamAttemptStatus::InProgress,
             ]);
 

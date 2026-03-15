@@ -33,6 +33,7 @@ class ExamSessionRequest extends FormRequest
             'pool_count' => ['nullable', 'integer', 'min:1'],
             'kkm' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'max_tab_switches' => ['nullable', 'integer', 'min:0'],
+            'is_device_lock_enabled' => ['boolean'],
             'status' => ['sometimes', Rule::enum(ExamStatus::class)],
             'classroom_ids' => ['required', 'array', 'min:1'],
             'classroom_ids.*' => ['exists:classrooms,id'],

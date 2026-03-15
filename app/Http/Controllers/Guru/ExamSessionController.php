@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Guru;
 
+use App\Enums\ExamAttemptStatus;
 use App\Enums\ExamStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Guru\ExamSessionRequest;
@@ -161,6 +162,95 @@ class ExamSessionController extends Controller
 
         return redirect()->route('guru.ujian.index')
             ->with('success', 'Sesi ujian berhasil dihapus.');
+    }
+
+    /**
+     * Show create remedial exam form, pre-filled from original exam.
+     */
+    public function createRemedial(Request $request, ExamSession $ujian): Response
+    {
+        $this->authorize('view', $ujian);
+
+        $ujian->load(['subject', 'classrooms', 'questionBank']);
+
+        // Get students who need remedial (score < KKM)
+        $kkm = (float) ($ujian->kkm ?? 0);
+        $remedialStudents = [];
+
+        if ($kkm > 0) {
+            $remedialStudents = $ujian->attempts()
+                ->whereIn('status', [ExamAttemptStatus::Submitted, ExamAttemptStatus::Graded])
+                ->where(function ($q) use ($kkm) {
+                    $q->where('score', '<', $kkm)->orWhereNull('score');
+                })
+                ->with('user:id,name,username')
+                ->get()
+                ->map(fn ($a) => [
+                    'id' => $a->user->id,
+                    'name' => $a->user->name,
+                    'username' => $a->user->username,
+                    'score' => $a->score !== null ? (float) $a->score : null,
+                ])
+                ->toArray();
+        }
+
+        return Inertia::render('Guru/Ujian/CreateRemedial', [
+            'originalExam' => [
+                'id' => $ujian->id,
+                'name' => $ujian->name,
+                'subject' => $ujian->subject->name,
+                'subject_id' => $ujian->subject_id,
+                'question_bank_id' => $ujian->question_bank_id,
+                'question_bank_name' => $ujian->questionBank?->name,
+                'duration_minutes' => $ujian->duration_minutes,
+                'kkm' => $kkm,
+                'classroom_ids' => $ujian->classrooms->pluck('id')->toArray(),
+            ],
+            'remedialStudents' => $remedialStudents,
+            'subjects' => $this->getSubjectsForGuru($request->user()),
+            'questionBanks' => $this->getQuestionBanksForGuru($request->user()),
+            'academicYears' => AcademicYear::select('id', 'name', 'semester', 'is_active')
+                ->orderByDesc('is_active')
+                ->orderByDesc('starts_at')
+                ->get(),
+            'classrooms' => Classroom::with('department')
+                ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
+                ->orderBy('name')
+                ->get()
+                ->map(fn (Classroom $c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'department' => $c->department?->name,
+                ]),
+        ]);
+    }
+
+    /**
+     * Store a new remedial exam session.
+     */
+    public function storeRemedial(ExamSessionRequest $request, ExamSession $ujian): RedirectResponse
+    {
+        $this->authorize('view', $ujian);
+
+        $request->validate([
+            'remedial_policy' => ['required', 'string', 'in:highest,capped_at_kkm'],
+        ]);
+
+        $data = $request->validated();
+
+        $examSession = ExamSession::create([
+            ...\Illuminate\Support\Arr::except($data, ['classroom_ids', 'remedial_policy']),
+            'user_id' => $request->user()->id,
+            'token' => $this->sessionService->generateToken(),
+            'status' => ExamStatus::Scheduled,
+            'original_exam_session_id' => $ujian->id,
+            'remedial_policy' => $request->input('remedial_policy'),
+        ]);
+
+        $examSession->classrooms()->sync($data['classroom_ids']);
+
+        return redirect()->route('guru.ujian.show', $examSession)
+            ->with('success', 'Ujian remedial berhasil dibuat.');
     }
 
     /**

@@ -32,7 +32,10 @@ class ExamSession extends Model
         'pool_count',
         'kkm',
         'max_tab_switches',
+        'is_device_lock_enabled',
         'status',
+        'original_exam_session_id',
+        'remedial_policy',
     ];
 
     protected function casts(): array
@@ -45,10 +48,12 @@ class ExamSession extends Model
             'is_randomize_options' => 'boolean',
             'is_published' => 'boolean',
             'is_results_published' => 'boolean',
+            'is_device_lock_enabled' => 'boolean',
             'pool_count' => 'integer',
             'kkm' => 'decimal:2',
             'max_tab_switches' => 'integer',
             'duration_minutes' => 'integer',
+            'original_exam_session_id' => 'integer',
         ];
     }
 
@@ -89,6 +94,21 @@ class ExamSession extends Model
     public function attempts(): HasMany
     {
         return $this->hasMany(ExamAttempt::class);
+    }
+
+    public function originalExamSession(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'original_exam_session_id');
+    }
+
+    public function remedialExamSessions(): HasMany
+    {
+        return $this->hasMany(self::class, 'original_exam_session_id');
+    }
+
+    public function isRemedial(): bool
+    {
+        return $this->original_exam_session_id !== null;
     }
 
     public function isActive(): bool

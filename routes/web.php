@@ -76,11 +76,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('ujian', ExamSessionController::class)
             ->parameters(['ujian' => 'ujian']);
         Route::patch('ujian/{ujian}/status', [ExamSessionController::class, 'updateStatus'])->name('ujian.update-status');
+        Route::get('ujian/{ujian}/remedial', [ExamSessionController::class, 'createRemedial'])->name('ujian.create-remedial');
+        Route::post('ujian/{ujian}/remedial', [ExamSessionController::class, 'storeRemedial'])->name('ujian.store-remedial');
 
         // Penilaian / Grading
         Route::get('grading', [GradingController::class, 'index'])->name('grading.index');
         Route::get('grading/{examSession}', [GradingController::class, 'show'])->name('grading.show');
         Route::get('grading/{examSession}/attempt/{attempt}', [GradingController::class, 'manualGrading'])->name('grading.manual');
+        Route::get('grading/{examSession}/attempt/{attempt}/activity-log', [GradingController::class, 'activityLog'])->name('grading.activity-log');
         Route::post('grading/{examSession}/answer/{answer}', [GradingController::class, 'saveGrade'])->name('grading.save-grade');
         Route::patch('grading/{examSession}/publish', [GradingController::class, 'publishResults'])->name('grading.publish');
         Route::patch('grading/{examSession}/unpublish', [GradingController::class, 'unpublishResults'])->name('grading.unpublish');
