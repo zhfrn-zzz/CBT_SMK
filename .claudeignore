@@ -1,0 +1,16 @@
+node_modules/
+vendor/
+dist/
+build/
+storage/
+bootstrap/cache/
+public/build/
+*.lock
+*.min.js
+*.min.css
+*.map
+coverage/
+.git/
+__pycache__/
+*.log
+public/hot

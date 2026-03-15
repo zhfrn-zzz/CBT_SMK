@@ -122,6 +122,7 @@ export type ExamSession = {
     is_randomize_questions: boolean;
     is_randomize_options: boolean;
     is_published: boolean;
+    is_results_published: boolean;
     pool_count: number | null;
     kkm: number | null;
     max_tab_switches: number | null;

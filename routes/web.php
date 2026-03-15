@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AcademicYearController;
 use App\Http\Controllers\Admin\ClassroomController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
+use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
 use App\Http\Controllers\Guru\ExamSessionController;
+use App\Http\Controllers\Guru\GradingController;
 use App\Http\Controllers\Guru\QuestionBankController;
 use App\Http\Controllers\Guru\QuestionController;
 use App\Http\Controllers\Guru\QuestionImportController;
+use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\ExamController;
+use App\Http\Controllers\Siswa\ExamResultController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -25,7 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::inertia('dashboard', 'Admin/Dashboard')->name('dashboard');
+        Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
 
         // User management
         Route::resource('users', UserController::class)->except(['show']);
@@ -46,7 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Guru routes
     Route::middleware('role:guru')->prefix('guru')->name('guru.')->group(function () {
-        Route::inertia('dashboard', 'Guru/Dashboard')->name('dashboard');
+        Route::get('dashboard', GuruDashboardController::class)->name('dashboard');
 
         // Bank Soal
         Route::resource('bank-soal', QuestionBankController::class)
@@ -70,11 +75,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('ujian', ExamSessionController::class)
             ->parameters(['ujian' => 'ujian']);
         Route::patch('ujian/{ujian}/status', [ExamSessionController::class, 'updateStatus'])->name('ujian.update-status');
+
+        // Penilaian / Grading
+        Route::get('grading', [GradingController::class, 'index'])->name('grading.index');
+        Route::get('grading/{examSession}', [GradingController::class, 'show'])->name('grading.show');
+        Route::get('grading/{examSession}/attempt/{attempt}', [GradingController::class, 'manualGrading'])->name('grading.manual');
+        Route::post('grading/{examSession}/answer/{answer}', [GradingController::class, 'saveGrade'])->name('grading.save-grade');
+        Route::patch('grading/{examSession}/publish', [GradingController::class, 'publishResults'])->name('grading.publish');
+        Route::patch('grading/{examSession}/unpublish', [GradingController::class, 'unpublishResults'])->name('grading.unpublish');
+        Route::get('grading/{examSession}/export', [GradingController::class, 'exportResults'])->name('grading.export');
     });
 
     // Siswa routes
     Route::middleware('role:siswa')->prefix('siswa')->name('siswa.')->group(function () {
-        Route::inertia('dashboard', 'Siswa/Dashboard')->name('dashboard');
+        Route::get('dashboard', SiswaDashboardController::class)->name('dashboard');
 
         // Ujian
         Route::get('ujian', [ExamController::class, 'index'])->name('ujian.index');
@@ -84,6 +98,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('ujian/{ujian}/exam', [ExamController::class, 'exam'])->name('ujian.exam');
         Route::post('ujian/{ujian}/save-answers', [ExamController::class, 'saveAnswers'])->name('ujian.save-answers');
         Route::post('ujian/{ujian}/submit', [ExamController::class, 'submit'])->name('ujian.submit');
+
+        // Nilai / Results
+        Route::get('nilai', [ExamResultController::class, 'index'])->name('nilai.index');
+        Route::get('nilai/{attempt}', [ExamResultController::class, 'show'])->name('nilai.show');
     });
 
     // API-style routes (for fire-and-forget from exam interface)
