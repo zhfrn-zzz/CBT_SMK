@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Imports;
 
 use App\Enums\UserRole;
+use App\Models\AcademicYear;
+use App\Models\Classroom;
+use App\Models\Department;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +22,14 @@ class StudentImport implements ToCollection, WithHeadingRow, WithValidation
 
     public function collection(Collection $rows): void
     {
+        $activeYear = AcademicYear::active()->first();
+
+        // Pre-load departments and classrooms for lookup
+        $departments = Department::all()->keyBy(fn ($d) => Str::lower($d->code));
+        $classrooms = $activeYear
+            ? Classroom::where('academic_year_id', $activeYear->id)->get()
+            : collect();
+
         foreach ($rows as $row) {
             $password = $row['password'] ?? Str::random(8);
 
@@ -30,6 +41,21 @@ class StudentImport implements ToCollection, WithHeadingRow, WithValidation
                 'role' => UserRole::Siswa,
                 'is_active' => true,
             ]);
+
+            // Auto-assign to classroom if jurusan & kelas provided
+            if (! empty($row['jurusan']) && ! empty($row['kelas']) && $activeYear) {
+                $dept = $departments->get(Str::lower((string) $row['jurusan']));
+                if ($dept) {
+                    $classroom = $classrooms
+                        ->where('department_id', $dept->id)
+                        ->where('name', (string) $row['kelas'])
+                        ->first();
+
+                    if ($classroom) {
+                        $user->classrooms()->syncWithoutDetaching([$classroom->id]);
+                    }
+                }
+            }
 
             $this->results[] = [
                 'name' => $user->name,
@@ -46,6 +72,8 @@ class StudentImport implements ToCollection, WithHeadingRow, WithValidation
             'nama' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email'],
             'password' => ['nullable', 'string'],
+            'jurusan' => ['nullable', 'string'],
+            'kelas' => ['nullable', 'string'],
         ];
     }
 

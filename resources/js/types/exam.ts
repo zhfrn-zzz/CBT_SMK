@@ -236,3 +236,75 @@ export type SiswaExamListItem = {
     score: number | null;
     is_published: boolean;
 };
+
+// Proctor Dashboard types
+export type ProctorStudentStatus = 'not_started' | 'in_progress' | 'submitted' | 'graded';
+
+export type ProctorStudent = {
+    id: number;
+    name: string;
+    username: string;
+    attempt_id: number | null;
+    status: ProctorStudentStatus;
+    status_label: string;
+    started_at: string | null;
+    submitted_at: string | null;
+    is_force_submitted: boolean;
+    answered_count: number;
+    total_questions: number;
+    remaining_seconds: number;
+    violation_count: number;
+    score: number | null;
+    ip_address: string | null;
+};
+
+export type ProctorExamSession = {
+    id: number;
+    name: string;
+    subject: string;
+    status: ExamStatus;
+    duration_minutes: number;
+    starts_at: string;
+    ends_at: string;
+    token: string;
+    total_questions: number;
+    max_tab_switches: number | null;
+};
+
+export type ProctorSummary = {
+    total: number;
+    not_started: number;
+    in_progress: number;
+    submitted: number;
+    graded: number;
+};
+
+// Broadcasting event payloads
+export type StudentStartedEvent = {
+    attempt_id: number;
+    user_id: number;
+    user_name: string;
+    started_at: string;
+};
+
+export type StudentSubmittedEvent = {
+    attempt_id: number;
+    user_id: number;
+    user_name: string;
+    submitted_at: string | null;
+    is_force_submitted: boolean;
+    score: number | null;
+};
+
+export type AnswerProgressEvent = {
+    user_id: number;
+    answered_count: number;
+    total_questions: number;
+};
+
+export type TabSwitchEvent = {
+    user_id: number;
+    user_name: string;
+    event_type: string;
+    total_violations: number;
+};

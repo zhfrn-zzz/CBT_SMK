@@ -9,6 +9,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -111,6 +112,14 @@ class User extends Authenticatable
         return $this->belongsToMany(Classroom::class, 'classroom_subject_teacher')
             ->withPivot('subject_id')
             ->withTimestamps();
+    }
+
+    /**
+     * Penugasan mengajar guru (classroom + subject pairs).
+     */
+    public function teachingAssignments(): HasMany
+    {
+        return $this->hasMany(TeachingAssignment::class);
     }
 
     /**

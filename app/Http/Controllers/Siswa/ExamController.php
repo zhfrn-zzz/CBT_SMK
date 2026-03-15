@@ -6,6 +6,10 @@ namespace App\Http\Controllers\Siswa;
 
 use App\Enums\ExamAttemptStatus;
 use App\Enums\ExamStatus;
+use App\Events\AnswerProgressUpdated;
+use App\Events\StudentStartedExam;
+use App\Events\StudentSubmittedExam;
+use App\Events\TabSwitchDetected;
 use App\Http\Controllers\Controller;
 use App\Models\ExamActivityLog;
 use App\Models\ExamAttempt;
@@ -153,6 +157,8 @@ class ExamController extends Controller
             $request->ip() ?? '0.0.0.0',
         );
 
+        event(new StudentStartedExam($attempt));
+
         $payload = $this->attemptService->buildExamPayload($attempt);
 
         return Inertia::render('Siswa/Ujian/ExamInterface', $payload);
@@ -217,6 +223,16 @@ class ExamController extends Controller
             $request->input('flags', []),
         );
 
+        $answeredCount = count(array_filter($request->input('answers'), fn ($v) => $v !== null && $v !== ''));
+        $totalQuestions = $attempt->attemptQuestions()->count();
+
+        event(new AnswerProgressUpdated(
+            $ujian->id,
+            $request->user()->id,
+            $answeredCount,
+            $totalQuestions,
+        ));
+
         return response()->json($result);
     }
 
@@ -236,6 +252,9 @@ class ExamController extends Controller
         }
 
         $this->attemptService->submitExam($attempt);
+
+        $attempt->refresh();
+        event(new StudentSubmittedExam($attempt));
 
         return redirect()->route('siswa.ujian.index')
             ->with('success', 'Jawaban berhasil dikumpulkan.');
@@ -267,6 +286,17 @@ class ExamController extends Controller
             'description' => $request->input('description'),
             'created_at' => now(),
         ]);
+
+        $attempt->load('examSession');
+        $totalViolations = ExamActivityLog::where('exam_attempt_id', $attempt->id)->count();
+
+        event(new TabSwitchDetected(
+            $attempt->examSession->id,
+            $request->user()->id,
+            $request->user()->name,
+            $request->input('event_type'),
+            $totalViolations,
+        ));
 
         return response()->json(['logged' => true]);
     }

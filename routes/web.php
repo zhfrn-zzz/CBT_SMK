@@ -13,6 +13,7 @@ use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
 use App\Http\Controllers\Guru\ExamSessionController;
 use App\Http\Controllers\Guru\GradingController;
 use App\Http\Controllers\Guru\QuestionBankController;
+use App\Http\Controllers\Guru\ProctorController;
 use App\Http\Controllers\Guru\QuestionController;
 use App\Http\Controllers\Guru\QuestionImportController;
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
@@ -84,6 +85,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('grading/{examSession}/publish', [GradingController::class, 'publishResults'])->name('grading.publish');
         Route::patch('grading/{examSession}/unpublish', [GradingController::class, 'unpublishResults'])->name('grading.unpublish');
         Route::get('grading/{examSession}/export', [GradingController::class, 'exportResults'])->name('grading.export');
+
+        // Proctor Dashboard
+        Route::get('ujian/{ujian}/proctor', [ProctorController::class, 'show'])->name('ujian.proctor');
+        Route::post('ujian/{ujian}/proctor/extend-time', [ProctorController::class, 'extendTime'])->name('ujian.proctor.extend-time');
+        Route::post('ujian/{ujian}/proctor/terminate', [ProctorController::class, 'terminate'])->name('ujian.proctor.terminate');
+        Route::post('ujian/{ujian}/proctor/invalidate-question', [ProctorController::class, 'invalidateQuestion'])->name('ujian.proctor.invalidate-question');
     });
 
     // Siswa routes

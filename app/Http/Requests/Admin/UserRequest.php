@@ -34,6 +34,14 @@ class UserRequest extends FormRequest
             $rules['password'] = ['nullable', 'string', Password::defaults()];
         }
 
+        // Siswa: optional classroom assignment
+        $rules['classroom_id'] = ['nullable', 'integer', 'exists:classrooms,id'];
+
+        // Guru: optional teaching assignments
+        $rules['teachings'] = ['nullable', 'array'];
+        $rules['teachings.*.classroom_id'] = ['required_with:teachings', 'integer', 'exists:classrooms,id'];
+        $rules['teachings.*.subject_id'] = ['required_with:teachings', 'integer', 'exists:subjects,id'];
+
         return $rules;
     }
 

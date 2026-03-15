@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import InputError from '@/components/InputError.vue';
@@ -16,10 +17,16 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import type { BreadcrumbItem } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Trash2 } from 'lucide-vue-next';
+import type { AcademicYear, Classroom, Department, Subject, BreadcrumbItem } from '@/types';
 
-defineProps<{
+const props = defineProps<{
     roles: { value: string; label: string }[];
+    academicYears: AcademicYear[];
+    departments: Department[];
+    classrooms: Classroom[];
+    subjects: Subject[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -35,11 +42,70 @@ const form = useForm({
     password: '',
     role: 'siswa',
     is_active: true,
+    classroom_id: null as number | null,
+    teachings: [] as { classroom_id: number | null; subject_id: number | null }[],
 });
 
 const importForm = useForm({
     file: null as File | null,
 });
+
+// Siswa: cascading dropdown state
+const selectedAcademicYearId = ref<number | null>(null);
+const selectedDepartmentId = ref<number | null>(null);
+
+const filteredClassroomsForSiswa = computed(() => {
+    return props.classrooms.filter((c) => {
+        if (selectedAcademicYearId.value && c.academic_year_id !== selectedAcademicYearId.value) return false;
+        if (selectedDepartmentId.value && c.department_id !== selectedDepartmentId.value) return false;
+        return true;
+    });
+});
+
+// Reset downstream when upstream changes
+watch(selectedAcademicYearId, () => {
+    selectedDepartmentId.value = null;
+    form.classroom_id = null;
+});
+
+watch(selectedDepartmentId, () => {
+    form.classroom_id = null;
+});
+
+// Reset assignment fields when role changes
+watch(() => form.role, () => {
+    form.classroom_id = null;
+    form.teachings = [];
+    selectedAcademicYearId.value = null;
+    selectedDepartmentId.value = null;
+});
+
+// Guru: teaching assignment helpers
+const guruSelectedAcademicYearId = ref<number | null>(null);
+const guruSelectedDepartmentId = ref<number | null>(null);
+
+const filteredClassroomsForGuru = computed(() => {
+    return props.classrooms.filter((c) => {
+        if (guruSelectedAcademicYearId.value && c.academic_year_id !== guruSelectedAcademicYearId.value) return false;
+        if (guruSelectedDepartmentId.value && c.department_id !== guruSelectedDepartmentId.value) return false;
+        return true;
+    });
+});
+
+const filteredSubjectsForGuru = computed(() => {
+    if (!guruSelectedDepartmentId.value) return props.subjects;
+    return props.subjects.filter(
+        (s) => !s.department_id || s.department_id === guruSelectedDepartmentId.value,
+    );
+});
+
+function addTeaching() {
+    form.teachings.push({ classroom_id: null, subject_id: null });
+}
+
+function removeTeaching(index: number) {
+    form.teachings.splice(index, 1);
+}
 
 function submit() {
     form.post('/admin/users');
@@ -117,6 +183,172 @@ function handleFileChange(e: Event) {
                                 <Label for="is_active">Aktif</Label>
                             </div>
 
+                            <!-- Siswa: Cascading Dropdown (Tahun Ajaran → Jurusan → Kelas) -->
+                            <template v-if="form.role === 'siswa'">
+                                <Separator />
+                                <p class="text-sm font-medium">Penempatan Kelas</p>
+
+                                <div class="space-y-2">
+                                    <Label>Tahun Ajaran</Label>
+                                    <Select v-model="selectedAcademicYearId">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Pilih tahun ajaran" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="ay in academicYears"
+                                                :key="ay.id"
+                                                :value="ay.id"
+                                            >
+                                                {{ ay.name }} ({{ ay.semester }})
+                                                <Badge v-if="ay.is_active" variant="default" class="ml-1 text-xs">Aktif</Badge>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label>Jurusan</Label>
+                                    <Select v-model="selectedDepartmentId" :disabled="!selectedAcademicYearId">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Pilih jurusan" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="dept in departments"
+                                                :key="dept.id"
+                                                :value="dept.id"
+                                            >
+                                                {{ dept.name }} ({{ dept.code }})
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label>Kelas</Label>
+                                    <Select v-model="form.classroom_id" :disabled="!selectedDepartmentId">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Pilih kelas" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="cls in filteredClassroomsForSiswa"
+                                                :key="cls.id"
+                                                :value="cls.id"
+                                            >
+                                                {{ cls.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError :message="form.errors.classroom_id" />
+                                </div>
+                            </template>
+
+                            <!-- Guru: Mengajar Section -->
+                            <template v-if="form.role === 'guru'">
+                                <Separator />
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-medium">Penugasan Mengajar</p>
+                                    <Button type="button" variant="outline" size="sm" @click="addTeaching">
+                                        <Plus class="mr-1 size-4" />
+                                        Tambah
+                                    </Button>
+                                </div>
+
+                                <!-- Filter helpers for guru -->
+                                <div v-if="form.teachings.length > 0" class="grid grid-cols-2 gap-2">
+                                    <div class="space-y-1">
+                                        <Label class="text-xs text-muted-foreground">Filter Tahun Ajaran</Label>
+                                        <Select v-model="guruSelectedAcademicYearId">
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Semua" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem
+                                                    v-for="ay in academicYears"
+                                                    :key="ay.id"
+                                                    :value="ay.id"
+                                                >
+                                                    {{ ay.name }} ({{ ay.semester }})
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <Label class="text-xs text-muted-foreground">Filter Jurusan</Label>
+                                        <Select v-model="guruSelectedDepartmentId">
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Semua" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem
+                                                    v-for="dept in departments"
+                                                    :key="dept.id"
+                                                    :value="dept.id"
+                                                >
+                                                    {{ dept.name }}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                <div
+                                    v-for="(teaching, index) in form.teachings"
+                                    :key="index"
+                                    class="flex items-end gap-2 rounded-md border p-3"
+                                >
+                                    <div class="flex-1 space-y-1">
+                                        <Label class="text-xs">Kelas</Label>
+                                        <Select v-model="teaching.classroom_id">
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih kelas" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem
+                                                    v-for="cls in filteredClassroomsForGuru"
+                                                    :key="cls.id"
+                                                    :value="cls.id"
+                                                >
+                                                    {{ cls.name }}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="flex-1 space-y-1">
+                                        <Label class="text-xs">Mata Pelajaran</Label>
+                                        <Select v-model="teaching.subject_id">
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih mapel" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem
+                                                    v-for="subj in filteredSubjectsForGuru"
+                                                    :key="subj.id"
+                                                    :value="subj.id"
+                                                >
+                                                    {{ subj.name }} ({{ subj.code }})
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        @click="removeTeaching(index)"
+                                    >
+                                        <Trash2 class="size-4 text-destructive" />
+                                    </Button>
+                                </div>
+                                <InputError :message="form.errors.teachings" />
+
+                                <p v-if="form.teachings.length === 0" class="text-xs text-muted-foreground">
+                                    Belum ada penugasan. Klik "Tambah" untuk menambahkan kelas dan mata pelajaran.
+                                </p>
+                            </template>
+
                             <div class="flex gap-2 pt-2">
                                 <Button type="submit" :disabled="form.processing">
                                     Simpan
@@ -138,7 +370,13 @@ function handleFileChange(e: Event) {
                         <div class="space-y-4">
                             <p class="text-sm text-muted-foreground">
                                 Upload file Excel (.xlsx, .xls) atau CSV dengan kolom:
-                                <strong>nis</strong>, <strong>nama</strong>, <strong>email</strong> (opsional), <strong>password</strong> (opsional).
+                                <strong>nis</strong>, <strong>nama</strong>, <strong>email</strong> (opsional),
+                                <strong>password</strong> (opsional), <strong>jurusan</strong> (kode jurusan, opsional),
+                                <strong>kelas</strong> (nama kelas, opsional).
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Jika kolom <strong>jurusan</strong> dan <strong>kelas</strong> diisi, siswa akan otomatis ditempatkan
+                                ke kelas yang sesuai pada tahun ajaran aktif.
                             </p>
 
                             <Separator />

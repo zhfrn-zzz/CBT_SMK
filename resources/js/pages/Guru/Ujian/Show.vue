@@ -29,7 +29,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { BookOpen, Calendar, Clock, Copy, Hash, Pencil, Users } from 'lucide-vue-next';
+import { BookOpen, Calendar, Clock, Copy, Hash, MonitorCheck, Pencil, Users } from 'lucide-vue-next';
 import type { BreadcrumbItem, ExamSession, ExamStatus } from '@/types';
 
 const props = defineProps<{
@@ -103,6 +103,12 @@ function copyToken() {
                     </div>
                 </div>
                 <div class="flex gap-2">
+                    <Button v-if="examSession.status === 'active'" size="sm" as-child>
+                        <a :href="`/guru/ujian/${examSession.id}/proctor`">
+                            <MonitorCheck class="size-4" />
+                            Proctor
+                        </a>
+                    </Button>
                     <Button variant="outline" size="sm" as-child>
                         <a :href="`/guru/ujian/${examSession.id}/edit`">
                             <Pencil class="size-4" />

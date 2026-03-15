@@ -11,6 +11,9 @@ enum ExamActivityEventType: string
     case FocusLost = 'focus_lost';
     case CopyAttempt = 'copy_attempt';
     case RightClick = 'right_click';
+    case ProctorExtendTime = 'proctor_extend_time';
+    case ProctorTerminate = 'proctor_terminate';
+    case ProctorInvalidateQuestion = 'proctor_invalidate_question';
 
     public function label(): string
     {
@@ -20,6 +23,9 @@ enum ExamActivityEventType: string
             self::FocusLost => 'Kehilangan Fokus',
             self::CopyAttempt => 'Percobaan Copy',
             self::RightClick => 'Klik Kanan',
+            self::ProctorExtendTime => 'Perpanjangan Waktu (Pengawas)',
+            self::ProctorTerminate => 'Terminasi (Pengawas)',
+            self::ProctorInvalidateQuestion => 'Pembatalan Soal (Pengawas)',
         };
     }
 }
