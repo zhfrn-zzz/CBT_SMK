@@ -54,4 +54,14 @@ class Question extends Model
     {
         return $this->hasMany(QuestionOption::class)->orderBy('order');
     }
+
+    public function matchingPairs(): HasMany
+    {
+        return $this->hasMany(QuestionMatchingPair::class)->orderBy('order');
+    }
+
+    public function keywords(): HasMany
+    {
+        return $this->hasMany(QuestionKeyword::class);
+    }
 }

@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import QuestionForm from '@/components/Exam/QuestionForm.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { BreadcrumbItem, QuestionType, QuestionOptionForm } from '@/types';
+import type { BreadcrumbItem, QuestionType, QuestionOptionForm, MatchingPairForm } from '@/types';
 
 const props = defineProps<{
     questionBank: { id: number; name: string };
@@ -23,6 +23,8 @@ const form = useForm<{
     points: number;
     explanation: string;
     options: QuestionOptionForm[];
+    keywords: string[];
+    matching_pairs: MatchingPairForm[];
 }>({
     type: 'pilihan_ganda',
     content: '',
@@ -34,6 +36,8 @@ const form = useForm<{
         { label: 'C', content: '', is_correct: false },
         { label: 'D', content: '', is_correct: false },
     ],
+    keywords: [],
+    matching_pairs: [],
 });
 
 function submit() {

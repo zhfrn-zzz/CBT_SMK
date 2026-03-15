@@ -32,6 +32,20 @@ export type QuestionOption = {
     updated_at: string;
 };
 
+export type QuestionKeyword = {
+    id: number;
+    question_id: number;
+    keyword: string;
+};
+
+export type QuestionMatchingPair = {
+    id: number;
+    question_id: number;
+    premise: string;
+    response: string;
+    order: number;
+};
+
 export type Question = {
     id: number;
     question_bank_id: number;
@@ -45,6 +59,8 @@ export type Question = {
     created_at: string;
     updated_at: string;
     options?: QuestionOption[];
+    keywords?: QuestionKeyword[];
+    matching_pairs?: QuestionMatchingPair[];
     media_url?: string | null;
 };
 
@@ -69,12 +85,19 @@ export type QuestionOptionForm = {
     is_correct: boolean;
 };
 
+export type MatchingPairForm = {
+    premise: string;
+    response: string;
+};
+
 export type QuestionForm = {
     type: QuestionType;
     content: string;
     points: number;
     explanation: string;
     options: QuestionOptionForm[];
+    keywords: string[];
+    matching_pairs: MatchingPairForm[];
 };
 
 export type QuestionImportPreview = {
@@ -188,6 +211,8 @@ export type ExamQuestion = {
     media_url: string | null;
     points: number;
     options: ExamQuestionOption[] | null;
+    matching_premises: ExamMatchingItem[] | null;
+    matching_responses: ExamMatchingItem[] | null;
 };
 
 export type ExamQuestionOption = {
@@ -195,6 +220,11 @@ export type ExamQuestionOption = {
     label: string;
     content: string;
     media_url: string | null;
+};
+
+export type ExamMatchingItem = {
+    id: number;
+    content: string;
 };
 
 export type ExamPayload = {

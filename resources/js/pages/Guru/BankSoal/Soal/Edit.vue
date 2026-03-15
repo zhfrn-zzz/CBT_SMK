@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import QuestionForm from '@/components/Exam/QuestionForm.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { BreadcrumbItem, Question, QuestionType, QuestionOptionForm } from '@/types';
+import type { BreadcrumbItem, Question, QuestionType, QuestionOptionForm, MatchingPairForm } from '@/types';
 
 const props = defineProps<{
     questionBank: { id: number; name: string };
@@ -24,6 +24,8 @@ const form = useForm<{
     points: number;
     explanation: string;
     options: QuestionOptionForm[];
+    keywords: string[];
+    matching_pairs: MatchingPairForm[];
 }>({
     type: props.question.type,
     content: props.question.content,
@@ -33,6 +35,11 @@ const form = useForm<{
         label: opt.label,
         content: opt.content,
         is_correct: opt.is_correct,
+    })) ?? [],
+    keywords: props.question.keywords?.map((k) => k.keyword) ?? [],
+    matching_pairs: props.question.matching_pairs?.map((p) => ({
+        premise: p.premise,
+        response: p.response,
     })) ?? [],
 });
 

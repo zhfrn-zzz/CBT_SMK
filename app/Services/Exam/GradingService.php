@@ -49,7 +49,7 @@ class GradingService
                 $totalScore += (float) $answer->score;
             } else {
                 // Check if it's a type that needs manual grading
-                if (in_array($answer->question->type, [QuestionType::Esai, QuestionType::IsianSingkat])) {
+                if ($answer->question->type === QuestionType::Esai) {
                     $allGraded = false;
                 }
             }
@@ -78,10 +78,7 @@ class GradingService
 
         // Count ungraded essay answers
         $ungradedEssays = StudentAnswer::whereIn('exam_attempt_id', $attempts->pluck('id'))
-            ->whereHas('question', fn ($q) => $q->whereIn('type', [
-                QuestionType::Esai,
-                QuestionType::IsianSingkat,
-            ]))
+            ->whereHas('question', fn ($q) => $q->where('type', QuestionType::Esai))
             ->whereNull('score')
             ->count();
 

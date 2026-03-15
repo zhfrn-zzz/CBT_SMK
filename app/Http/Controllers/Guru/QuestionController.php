@@ -47,7 +47,7 @@ class QuestionController extends Controller
                 $question->update(['media_path' => $path]);
             }
 
-            $this->saveOptions($question, $request->validated('options', []));
+            $this->saveTypeSpecificData($question, $request);
         });
 
         return redirect()->route('guru.bank-soal.show', $bankSoal)
@@ -58,7 +58,7 @@ class QuestionController extends Controller
     {
         $this->authorize('update', $bankSoal);
 
-        $soal->load('options');
+        $soal->load(['options', 'keywords', 'matchingPairs']);
 
         return Inertia::render('Guru/BankSoal/Soal/Edit', [
             'questionBank' => $bankSoal->only('id', 'name'),
@@ -91,9 +91,12 @@ class QuestionController extends Controller
                 $soal->update(['media_path' => null]);
             }
 
-            // Replace options
+            // Clear all type-specific data before re-saving
             $soal->options()->delete();
-            $this->saveOptions($soal, $request->validated('options', []));
+            $soal->keywords()->delete();
+            $soal->matchingPairs()->delete();
+
+            $this->saveTypeSpecificData($soal, $request);
         });
 
         return redirect()->route('guru.bank-soal.show', $bankSoal)
@@ -130,6 +133,34 @@ class QuestionController extends Controller
         return response()->json([
             'url' => '/storage/'.$path,
         ]);
+    }
+
+    private function saveTypeSpecificData(Question $question, QuestionRequest $request): void
+    {
+        $type = $request->validated('type');
+
+        // Save options (PG, B/S, Multiple Answer, Ordering)
+        if (in_array($type, ['pilihan_ganda', 'benar_salah', 'multiple_answer', 'ordering'])) {
+            $this->saveOptions($question, $request->validated('options', []));
+        }
+
+        // Save keywords (Isian Singkat)
+        if ($type === 'isian_singkat') {
+            foreach ($request->validated('keywords', []) as $keyword) {
+                $question->keywords()->create(['keyword' => $keyword]);
+            }
+        }
+
+        // Save matching pairs (Menjodohkan)
+        if ($type === 'menjodohkan') {
+            foreach ($request->validated('matching_pairs', []) as $index => $pair) {
+                $question->matchingPairs()->create([
+                    'premise' => $pair['premise'],
+                    'response' => $pair['response'],
+                    'order' => $index,
+                ]);
+            }
+        }
     }
 
     private function saveOptions(Question $question, array $options): void

@@ -71,6 +71,7 @@ class ExamAttemptService
         $attempt->load([
             'examSession.subject',
             'attemptQuestions.question.options',
+            'attemptQuestions.question.matchingPairs',
             'answers',
         ]);
 
@@ -115,6 +116,29 @@ class ExamAttemptService
                             : null,
                     ])->toArray();
                 }
+
+                // For ordering type, shuffle the options for display
+                if ($question->type === QuestionType::Ordering && ! $labels) {
+                    shuffle($options);
+                }
+            }
+
+            // Build matching pairs data
+            $matchingPremises = null;
+            $matchingResponses = null;
+            if ($question->type === QuestionType::Menjodohkan && $question->matchingPairs->isNotEmpty()) {
+                $matchingPremises = $question->matchingPairs->map(fn ($pair) => [
+                    'id' => $pair->id,
+                    'content' => $pair->premise,
+                ])->values()->toArray();
+
+                // Shuffle responses
+                $responses = $question->matchingPairs->map(fn ($pair) => [
+                    'id' => $pair->id,
+                    'content' => $pair->response,
+                ])->values()->toArray();
+                shuffle($responses);
+                $matchingResponses = $responses;
             }
 
             return [
@@ -125,6 +149,8 @@ class ExamAttemptService
                 'media_url' => $question->media_url,
                 'points' => (float) $question->points,
                 'options' => $options,
+                'matching_premises' => $matchingPremises,
+                'matching_responses' => $matchingResponses,
             ];
         })->sortBy('order')->values()->toArray();
 
@@ -259,7 +285,7 @@ class ExamAttemptService
                 }
             }
 
-            // Auto-grade PG and Benar/Salah
+            // Auto-grade all auto-gradable types
             $this->autoGrade($attempt);
 
             // Update attempt status
@@ -275,35 +301,30 @@ class ExamAttemptService
     }
 
     /**
-     * Auto-grade: PG (pilihan_ganda) dan Benar/Salah.
+     * Auto-grade all auto-gradable question types.
      */
     private function autoGrade(ExamAttempt $attempt): void
     {
-        $answers = $attempt->answers()->with('question.options')->get();
+        $answers = $attempt->answers()->with(['question.options', 'question.matchingPairs', 'question.keywords'])->get();
         $allAutoGraded = true;
 
         foreach ($answers as $studentAnswer) {
             $question = $studentAnswer->question;
 
-            if (in_array($question->type, [QuestionType::PilihanGanda, QuestionType::BenarSalah])) {
-                $correctOption = $question->options->firstWhere('is_correct', true);
+            match ($question->type) {
+                QuestionType::PilihanGanda,
+                QuestionType::BenarSalah => $this->gradeSingleChoice($studentAnswer),
 
-                if ($correctOption && $studentAnswer->answer !== null) {
-                    $isCorrect = $studentAnswer->answer === $correctOption->label;
-                    $studentAnswer->update([
-                        'is_correct' => $isCorrect,
-                        'score' => $isCorrect ? $question->points : 0,
-                    ]);
-                } else {
-                    $studentAnswer->update([
-                        'is_correct' => false,
-                        'score' => 0,
-                    ]);
-                }
-            } else {
-                // Esai, isian singkat, etc. — belum auto-grade
-                $allAutoGraded = false;
-            }
+                QuestionType::MultipleAnswer => $this->gradeMultipleAnswer($studentAnswer),
+
+                QuestionType::IsianSingkat => $this->gradeIsianSingkat($studentAnswer),
+
+                QuestionType::Menjodohkan => $this->gradeMenjodohkan($studentAnswer),
+
+                QuestionType::Ordering => $this->gradeOrdering($studentAnswer),
+
+                QuestionType::Esai => $allAutoGraded = false,
+            };
         }
 
         // Calculate total score if all auto-graded
@@ -320,6 +341,171 @@ class ExamAttemptService
                 'is_fully_graded' => true,
             ]);
         }
+    }
+
+    /**
+     * Grade PG / Benar-Salah (single correct answer).
+     */
+    private function gradeSingleChoice(StudentAnswer $studentAnswer): void
+    {
+        $question = $studentAnswer->question;
+        $correctOption = $question->options->firstWhere('is_correct', true);
+
+        if ($correctOption && $studentAnswer->answer !== null) {
+            $isCorrect = $studentAnswer->answer === $correctOption->label;
+            $studentAnswer->update([
+                'is_correct' => $isCorrect,
+                'score' => $isCorrect ? $question->points : 0,
+            ]);
+        } else {
+            $studentAnswer->update([
+                'is_correct' => false,
+                'score' => 0,
+            ]);
+        }
+    }
+
+    /**
+     * Grade Multiple Answer (multiple correct options).
+     * Full score if all correct selected AND no incorrect selected.
+     */
+    private function gradeMultipleAnswer(StudentAnswer $studentAnswer): void
+    {
+        $question = $studentAnswer->question;
+
+        if ($studentAnswer->answer === null) {
+            $studentAnswer->update(['is_correct' => false, 'score' => 0]);
+
+            return;
+        }
+
+        $selectedLabels = json_decode($studentAnswer->answer, true);
+        if (! is_array($selectedLabels)) {
+            $studentAnswer->update(['is_correct' => false, 'score' => 0]);
+
+            return;
+        }
+
+        $correctLabels = $question->options
+            ->where('is_correct', true)
+            ->pluck('label')
+            ->sort()
+            ->values()
+            ->toArray();
+
+        $selectedSorted = collect($selectedLabels)->sort()->values()->toArray();
+
+        $isCorrect = $selectedSorted === $correctLabels;
+
+        $studentAnswer->update([
+            'is_correct' => $isCorrect,
+            'score' => $isCorrect ? $question->points : 0,
+        ]);
+    }
+
+    /**
+     * Grade Isian Singkat (short answer with keyword matching).
+     * Case-insensitive match against any stored keyword.
+     */
+    private function gradeIsianSingkat(StudentAnswer $studentAnswer): void
+    {
+        $question = $studentAnswer->question;
+
+        if ($studentAnswer->answer === null || trim($studentAnswer->answer) === '') {
+            $studentAnswer->update(['is_correct' => false, 'score' => 0]);
+
+            return;
+        }
+
+        $studentAnswerNormalized = mb_strtolower(trim($studentAnswer->answer));
+
+        $isCorrect = $question->keywords->contains(function ($keyword) use ($studentAnswerNormalized) {
+            return mb_strtolower(trim($keyword->keyword)) === $studentAnswerNormalized;
+        });
+
+        $studentAnswer->update([
+            'is_correct' => $isCorrect,
+            'score' => $isCorrect ? $question->points : 0,
+        ]);
+    }
+
+    /**
+     * Grade Menjodohkan (matching).
+     * Score = (correct matches / total pairs) * points.
+     */
+    private function gradeMenjodohkan(StudentAnswer $studentAnswer): void
+    {
+        $question = $studentAnswer->question;
+        $pairs = $question->matchingPairs;
+
+        if ($studentAnswer->answer === null || $pairs->isEmpty()) {
+            $studentAnswer->update(['is_correct' => false, 'score' => 0]);
+
+            return;
+        }
+
+        $studentMatches = json_decode($studentAnswer->answer, true);
+        if (! is_array($studentMatches)) {
+            $studentAnswer->update(['is_correct' => false, 'score' => 0]);
+
+            return;
+        }
+
+        $totalPairs = $pairs->count();
+        $correctCount = 0;
+
+        // Each pair's premise ID should be matched to the same pair's ID (correct response)
+        foreach ($pairs as $pair) {
+            $premiseId = (string) $pair->id;
+            if (isset($studentMatches[$premiseId]) && (int) $studentMatches[$premiseId] === $pair->id) {
+                $correctCount++;
+            }
+        }
+
+        $ratio = $totalPairs > 0 ? $correctCount / $totalPairs : 0;
+        $score = round((float) $question->points * $ratio, 2);
+        $isCorrect = $correctCount === $totalPairs;
+
+        $studentAnswer->update([
+            'is_correct' => $isCorrect,
+            'score' => $score,
+        ]);
+    }
+
+    /**
+     * Grade Ordering (sequence).
+     * Full score if order matches exactly.
+     */
+    private function gradeOrdering(StudentAnswer $studentAnswer): void
+    {
+        $question = $studentAnswer->question;
+
+        if ($studentAnswer->answer === null) {
+            $studentAnswer->update(['is_correct' => false, 'score' => 0]);
+
+            return;
+        }
+
+        $studentOrder = json_decode($studentAnswer->answer, true);
+        if (! is_array($studentOrder)) {
+            $studentAnswer->update(['is_correct' => false, 'score' => 0]);
+
+            return;
+        }
+
+        // Correct order: options sorted by their `order` field
+        $correctOrder = $question->options
+            ->sortBy('order')
+            ->pluck('id')
+            ->toArray();
+
+        $studentOrderInts = array_map('intval', $studentOrder);
+        $isCorrect = $studentOrderInts === $correctOrder;
+
+        $studentAnswer->update([
+            'is_correct' => $isCorrect,
+            'score' => $isCorrect ? $question->points : 0,
+        ]);
     }
 
     /**

@@ -49,4 +49,32 @@ class QuestionFactory extends Factory
             'points' => 10,
         ]);
     }
+
+    public function isianSingkat(): static
+    {
+        return $this->state(fn () => [
+            'type' => QuestionType::IsianSingkat,
+        ]);
+    }
+
+    public function menjodohkan(): static
+    {
+        return $this->state(fn () => [
+            'type' => QuestionType::Menjodohkan,
+        ]);
+    }
+
+    public function ordering(): static
+    {
+        return $this->state(fn () => [
+            'type' => QuestionType::Ordering,
+        ]);
+    }
+
+    public function multipleAnswer(): static
+    {
+        return $this->state(fn () => [
+            'type' => QuestionType::MultipleAnswer,
+        ]);
+    }
 }

@@ -26,12 +26,25 @@ class QuestionRequest extends FormRequest
             'explanation' => ['nullable', 'string'],
         ];
 
-        // Options required for PG and Benar/Salah
-        if (in_array($type, ['pilihan_ganda', 'benar_salah', 'multiple_answer'])) {
+        // Options required for PG, Benar/Salah, Multiple Answer, and Ordering
+        if (in_array($type, ['pilihan_ganda', 'benar_salah', 'multiple_answer', 'ordering'])) {
             $rules['options'] = ['required', 'array', 'min:2'];
             $rules['options.*.label'] = ['required', 'string', 'max:10'];
             $rules['options.*.content'] = ['required', 'string'];
             $rules['options.*.is_correct'] = ['required', 'boolean'];
+        }
+
+        // Keywords required for Isian Singkat
+        if ($type === 'isian_singkat') {
+            $rules['keywords'] = ['required', 'array', 'min:1'];
+            $rules['keywords.*'] = ['required', 'string', 'max:255'];
+        }
+
+        // Matching pairs required for Menjodohkan
+        if ($type === 'menjodohkan') {
+            $rules['matching_pairs'] = ['required', 'array', 'min:2'];
+            $rules['matching_pairs.*.premise'] = ['required', 'string'];
+            $rules['matching_pairs.*.response'] = ['required', 'string'];
         }
 
         return $rules;
@@ -47,6 +60,13 @@ class QuestionRequest extends FormRequest
             'options.required' => 'Pilihan jawaban wajib diisi.',
             'options.min' => 'Minimal 2 pilihan jawaban.',
             'options.*.content.required' => 'Konten pilihan jawaban wajib diisi.',
+            'keywords.required' => 'Kata kunci jawaban wajib diisi.',
+            'keywords.min' => 'Minimal 1 kata kunci jawaban.',
+            'keywords.*.required' => 'Kata kunci tidak boleh kosong.',
+            'matching_pairs.required' => 'Pasangan soal wajib diisi.',
+            'matching_pairs.min' => 'Minimal 2 pasangan.',
+            'matching_pairs.*.premise.required' => 'Pernyataan (premise) wajib diisi.',
+            'matching_pairs.*.response.required' => 'Jawaban pasangan wajib diisi.',
         ];
     }
 
