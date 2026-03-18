@@ -1,0 +1,1 @@
+Review kode yang dimodifikasi di branch saat ini: (1) git diff develop --name-only untuk lihat changed files, (2) cek N+1 query problems, (3) cek security vulnerabilities, (4) cek TypeScript type safety, (5) jalankan php artisan test, (6) report findings.

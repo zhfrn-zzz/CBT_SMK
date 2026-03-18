@@ -1,1 +1,1 @@
-Jalankan test untuk fitur yang baru saja dikerjakan. Gunakan php artisan test untuk backend dan npx vitest untuk frontend. Laporkan hasilnya.
+Jalankan php artisan test. Jika ada failure, fix dan jalankan ulang sampai 0 failures. Jangan ubah hal lain selain yang berkaitan dengan fix.

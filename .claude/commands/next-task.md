@@ -1,0 +1,1 @@
+Baca plan.md section 4, identifikasi task berikutnya yang belum diimplementasi berdasarkan kode yang sudah ada. Kerjakan task tersebut lengkap dengan Feature Tests. Jalankan php artisan test dan npm run build untuk verifikasi. Report summary di akhir.
