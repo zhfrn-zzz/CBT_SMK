@@ -8,7 +8,11 @@ use App\Enums\ExamAttemptStatus;
 use App\Enums\ExamStatus;
 use App\Enums\QuestionType;
 use App\Http\Controllers\Controller;
+use App\Models\Announcement;
+use App\Models\AssignmentSubmission;
+use App\Models\Attendance;
 use App\Models\ExamSession;
+use App\Models\Material;
 use App\Models\StudentAnswer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -59,13 +63,42 @@ class DashboardController extends Controller
                 'starts_at' => $s->starts_at->toISOString(),
             ]);
 
+        // Phase 3: LMS stats
+        $guruAssignmentIds = \App\Models\Assignment::where('user_id', $guru->id)->pluck('id');
+        $pendingSubmissions = AssignmentSubmission::whereIn('assignment_id', $guruAssignmentIds)
+            ->whereNull('graded_at')
+            ->count();
+
+        $todayAttendanceSessions = Attendance::where('user_id', $guru->id)
+            ->where('meeting_date', today())
+            ->where('is_open', true)
+            ->with(['classroom', 'subject'])
+            ->get();
+
+        $recentMaterials = Material::where('user_id', $guru->id)
+            ->with(['subject', 'classroom'])
+            ->latest()
+            ->take(3)
+            ->get();
+
+        $recentAnnouncements = Announcement::where('user_id', $guru->id)
+            ->latest()
+            ->take(3)
+            ->get();
+
         return Inertia::render('Guru/Dashboard', [
             'stats' => [
                 'class_count' => $classCount,
                 'upcoming_exams' => $upcomingExams,
                 'ungraded_essays' => $ungradedEssays,
+                'pending_submissions' => $pendingSubmissions,
             ],
             'recentExams' => $recentExams,
+            'lmsStats' => [
+                'today_attendance_sessions' => $todayAttendanceSessions,
+                'recent_materials' => $recentMaterials,
+                'recent_announcements' => $recentAnnouncements,
+            ],
         ]);
     }
 }

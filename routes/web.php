@@ -9,16 +9,26 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
+use App\Http\Controllers\Guru\AnnouncementController as GuruAnnouncementController;
+use App\Http\Controllers\Guru\AssignmentController as GuruAssignmentController;
+use App\Http\Controllers\Guru\AttendanceController as GuruAttendanceController;
 use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
+use App\Http\Controllers\Guru\DiscussionController as GuruDiscussionController;
 use App\Http\Controllers\Guru\ExamSessionController;
 use App\Http\Controllers\Guru\GradingController;
-use App\Http\Controllers\Guru\QuestionBankController;
+use App\Http\Controllers\Guru\MaterialController as GuruMaterialController;
 use App\Http\Controllers\Guru\ProctorController;
+use App\Http\Controllers\Guru\QuestionBankController;
 use App\Http\Controllers\Guru\QuestionController;
 use App\Http\Controllers\Guru\QuestionImportController;
+use App\Http\Controllers\Siswa\AnnouncementController as SiswaAnnouncementController;
+use App\Http\Controllers\Siswa\AssignmentController as SiswaAssignmentController;
+use App\Http\Controllers\Siswa\AttendanceController as SiswaAttendanceController;
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
+use App\Http\Controllers\Siswa\DiscussionController as SiswaDiscussionController;
 use App\Http\Controllers\Siswa\ExamController;
 use App\Http\Controllers\Siswa\ExamResultController;
+use App\Http\Controllers\Siswa\MaterialController as SiswaMaterialController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -94,6 +104,44 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('ujian/{ujian}/proctor/extend-time', [ProctorController::class, 'extendTime'])->name('ujian.proctor.extend-time');
         Route::post('ujian/{ujian}/proctor/terminate', [ProctorController::class, 'terminate'])->name('ujian.proctor.terminate');
         Route::post('ujian/{ujian}/proctor/invalidate-question', [ProctorController::class, 'invalidateQuestion'])->name('ujian.proctor.invalidate-question');
+
+        // === Phase 3: LMS ===
+        // Materi
+        Route::resource('materi', GuruMaterialController::class)
+            ->parameters(['materi' => 'material']);
+        Route::get('materi/{material}/download', [GuruMaterialController::class, 'download'])->name('materi.download');
+        Route::post('materi/reorder', [GuruMaterialController::class, 'reorder'])->name('materi.reorder');
+
+        // Tugas
+        Route::resource('tugas', GuruAssignmentController::class)
+            ->parameters(['tugas' => 'assignment']);
+        Route::get('tugas/{assignment}/download', [GuruAssignmentController::class, 'download'])->name('tugas.download');
+        Route::put('tugas/submissions/{submission}/grade', [GuruAssignmentController::class, 'grade'])->name('tugas.grade');
+        Route::get('tugas/submissions/{submission}/download', [GuruAssignmentController::class, 'downloadSubmission'])->name('tugas.download-submission');
+
+        // Forum
+        Route::resource('forum', GuruDiscussionController::class)
+            ->parameters(['forum' => 'thread'])
+            ->only(['index', 'show', 'store', 'destroy']);
+        Route::post('forum/{thread}/reply', [GuruDiscussionController::class, 'reply'])->name('forum.reply');
+        Route::delete('forum/reply/{reply}', [GuruDiscussionController::class, 'deleteReply'])->name('forum.delete-reply');
+        Route::post('forum/{thread}/toggle-pin', [GuruDiscussionController::class, 'togglePin'])->name('forum.toggle-pin');
+        Route::post('forum/{thread}/toggle-lock', [GuruDiscussionController::class, 'toggleLock'])->name('forum.toggle-lock');
+
+        // Pengumuman
+        Route::resource('pengumuman', GuruAnnouncementController::class)
+            ->parameters(['pengumuman' => 'announcement']);
+        Route::post('pengumuman/{announcement}/toggle-pin', [GuruAnnouncementController::class, 'togglePin'])->name('pengumuman.toggle-pin');
+
+        // Presensi
+        Route::resource('presensi', GuruAttendanceController::class)
+            ->parameters(['presensi' => 'attendance'])
+            ->only(['index', 'create', 'store', 'show']);
+        Route::post('presensi/{attendance}/close', [GuruAttendanceController::class, 'close'])->name('presensi.close');
+        Route::post('presensi/{attendance}/regenerate-code', [GuruAttendanceController::class, 'regenerateCode'])->name('presensi.regenerate-code');
+        Route::put('presensi/{attendance}/status', [GuruAttendanceController::class, 'updateStatus'])->name('presensi.update-status');
+        Route::get('presensi-recap', [GuruAttendanceController::class, 'recap'])->name('presensi.recap');
+        Route::get('presensi-recap/export', [GuruAttendanceController::class, 'exportRecap'])->name('presensi.export-recap');
     });
 
     // Siswa routes
@@ -112,6 +160,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Nilai / Results
         Route::get('nilai', [ExamResultController::class, 'index'])->name('nilai.index');
         Route::get('nilai/{attempt}', [ExamResultController::class, 'show'])->name('nilai.show');
+
+        // === Phase 3: LMS ===
+        // Materi
+        Route::get('materi', [SiswaMaterialController::class, 'index'])->name('materi.index');
+        Route::get('materi/{material}', [SiswaMaterialController::class, 'show'])->name('materi.show');
+        Route::get('materi/{material}/download', [SiswaMaterialController::class, 'download'])->name('materi.download');
+        Route::post('materi/{material}/complete', [SiswaMaterialController::class, 'complete'])->name('materi.complete');
+
+        // Tugas
+        Route::get('tugas', [SiswaAssignmentController::class, 'index'])->name('tugas.index');
+        Route::get('tugas/{assignment}', [SiswaAssignmentController::class, 'show'])->name('tugas.show');
+        Route::post('tugas/{assignment}/submit', [SiswaAssignmentController::class, 'submit'])->name('tugas.submit');
+        Route::get('tugas/{assignment}/download', [SiswaAssignmentController::class, 'download'])->name('tugas.download');
+
+        // Forum
+        Route::get('forum', [SiswaDiscussionController::class, 'index'])->name('forum.index');
+        Route::get('forum/{thread}', [SiswaDiscussionController::class, 'show'])->name('forum.show');
+        Route::post('forum', [SiswaDiscussionController::class, 'store'])->name('forum.store');
+        Route::delete('forum/{thread}', [SiswaDiscussionController::class, 'destroy'])->name('forum.destroy');
+        Route::post('forum/{thread}/reply', [SiswaDiscussionController::class, 'reply'])->name('forum.reply');
+        Route::delete('forum/reply/{reply}', [SiswaDiscussionController::class, 'deleteReply'])->name('forum.delete-reply');
+
+        // Pengumuman
+        Route::get('pengumuman', [SiswaAnnouncementController::class, 'index'])->name('pengumuman.index');
+        Route::get('pengumuman/{announcement}', [SiswaAnnouncementController::class, 'show'])->name('pengumuman.show');
+
+        // Presensi
+        Route::get('presensi', [SiswaAttendanceController::class, 'index'])->name('presensi.index');
+        Route::post('presensi/check-in', [SiswaAttendanceController::class, 'checkIn'])->name('presensi.check-in');
     });
 
     // API-style routes (for fire-and-forget from exam interface)

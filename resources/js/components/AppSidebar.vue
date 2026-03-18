@@ -7,8 +7,10 @@ import {
     GraduationCap,
     LayoutGrid,
     Library,
+    Megaphone,
+    MessageCircle,
+    NotebookPen,
     School,
-    Settings,
     Users,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -68,6 +70,7 @@ const guruNavItems: NavItem[] = [
         href: '/guru/dashboard',
         icon: LayoutGrid,
     },
+    // Ujian group
     {
         title: 'Bank Soal',
         href: '/guru/bank-soal',
@@ -83,6 +86,32 @@ const guruNavItems: NavItem[] = [
         href: '/guru/grading',
         icon: FileText,
     },
+    // Pembelajaran group
+    {
+        title: 'Materi',
+        href: '/guru/materi',
+        icon: BookOpen,
+    },
+    {
+        title: 'Tugas',
+        href: '/guru/tugas',
+        icon: NotebookPen,
+    },
+    {
+        title: 'Forum Diskusi',
+        href: '/guru/forum',
+        icon: MessageCircle,
+    },
+    {
+        title: 'Pengumuman',
+        href: '/guru/pengumuman',
+        icon: Megaphone,
+    },
+    {
+        title: 'Presensi',
+        href: '/guru/presensi',
+        icon: ClipboardList,
+    },
 ];
 
 const siswaNavItems: NavItem[] = [
@@ -91,6 +120,7 @@ const siswaNavItems: NavItem[] = [
         href: '/siswa/dashboard',
         icon: LayoutGrid,
     },
+    // Ujian group
     {
         title: 'Ujian',
         href: '/siswa/ujian',
@@ -100,6 +130,32 @@ const siswaNavItems: NavItem[] = [
         title: 'Nilai',
         href: '/siswa/nilai',
         icon: FileText,
+    },
+    // Pembelajaran group
+    {
+        title: 'Materi',
+        href: '/siswa/materi',
+        icon: BookOpen,
+    },
+    {
+        title: 'Tugas',
+        href: '/siswa/tugas',
+        icon: NotebookPen,
+    },
+    {
+        title: 'Forum Diskusi',
+        href: '/siswa/forum',
+        icon: MessageCircle,
+    },
+    {
+        title: 'Pengumuman',
+        href: '/siswa/pengumuman',
+        icon: Megaphone,
+    },
+    {
+        title: 'Presensi',
+        href: '/siswa/presensi',
+        icon: ClipboardList,
     },
 ];
 
