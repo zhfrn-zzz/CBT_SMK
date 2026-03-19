@@ -14,10 +14,13 @@ use App\Models\ExamSession;
 use App\Models\QuestionBank;
 use App\Models\Subject;
 use App\Models\User;
+use App\Notifications\UjianDijadwalkanNotification;
 use App\Services\Exam\ExamSessionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -85,13 +88,17 @@ class ExamSessionController extends Controller
         $data = $request->validated();
 
         $examSession = ExamSession::create([
-            ...\Illuminate\Support\Arr::except($data, ['classroom_ids']),
+            ...Arr::except($data, ['classroom_ids']),
             'user_id' => $request->user()->id,
             'token' => $this->sessionService->generateToken(),
             'status' => ExamStatus::Scheduled,
         ]);
 
         $examSession->classrooms()->sync($data['classroom_ids']);
+
+        if ($examSession->is_published) {
+            $this->dispatchUjianNotification($examSession);
+        }
 
         return redirect()->route('guru.ujian.show', $examSession)
             ->with('success', 'Sesi ujian berhasil dibuat.');
@@ -147,8 +154,12 @@ class ExamSessionController extends Controller
 
         $data = $request->validated();
 
-        $ujian->update(\Illuminate\Support\Arr::except($data, ['classroom_ids']));
+        $ujian->update(Arr::except($data, ['classroom_ids']));
         $ujian->classrooms()->sync($data['classroom_ids']);
+
+        if ($ujian->wasChanged('is_published') && $ujian->is_published) {
+            $this->dispatchUjianNotification($ujian);
+        }
 
         return redirect()->route('guru.ujian.show', $ujian)
             ->with('success', 'Sesi ujian berhasil diperbarui.');
@@ -239,7 +250,7 @@ class ExamSessionController extends Controller
         $data = $request->validated();
 
         $examSession = ExamSession::create([
-            ...\Illuminate\Support\Arr::except($data, ['classroom_ids', 'remedial_policy']),
+            ...Arr::except($data, ['classroom_ids', 'remedial_policy']),
             'user_id' => $request->user()->id,
             'token' => $this->sessionService->generateToken(),
             'status' => ExamStatus::Scheduled,
@@ -269,6 +280,19 @@ class ExamSessionController extends Controller
         $ujian->update(['status' => $newStatus]);
 
         return back()->with('success', 'Status ujian diperbarui.');
+    }
+
+    private function dispatchUjianNotification(ExamSession $examSession): void
+    {
+        $students = $examSession->classrooms()
+            ->with('students')
+            ->get()
+            ->flatMap(fn ($classroom) => $classroom->students)
+            ->unique('id');
+
+        if ($students->isNotEmpty()) {
+            Notification::send($students, new UjianDijadwalkanNotification($examSession));
+        }
     }
 
     private function getSubjectsForGuru(User $user): Collection

@@ -13,3 +13,9 @@ Schedule::command('exam:force-submit-expired')->everyMinute();
 
 // Persist answers from Redis to MySQL every minute
 Schedule::job(new \App\Jobs\PersistAnswersJob)->everyMinute();
+
+// Send deadline reminders daily at 07:00
+Schedule::command('notifications:send-deadline-reminders')->dailyAt('07:00');
+
+// Daily database backup at 02:00
+Schedule::command('backup:database')->dailyAt('02:00');

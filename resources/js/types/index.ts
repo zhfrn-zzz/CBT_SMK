@@ -5,3 +5,6 @@ export * from './academic';
 export * from './exam';
 export * from './grading';
 export * from './lms';
+export * from './notification';
+export * from './audit';
+export * from './audit';

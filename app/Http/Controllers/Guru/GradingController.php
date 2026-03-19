@@ -11,9 +11,11 @@ use App\Models\ExamActivityLog;
 use App\Models\ExamAttempt;
 use App\Models\ExamSession;
 use App\Models\StudentAnswer;
+use App\Notifications\NilaiDipublikasiNotification;
 use App\Services\Exam\GradingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -231,6 +233,18 @@ class GradingController extends Controller
 
         $examSession->update(['is_results_published' => true]);
 
+        // Notify students with graded attempts
+        $students = $examSession->attempts()
+            ->where('is_fully_graded', true)
+            ->with('user')
+            ->get()
+            ->map(fn ($attempt) => $attempt->user)
+            ->filter();
+
+        if ($students->isNotEmpty()) {
+            Notification::send($students, new NilaiDipublikasiNotification($examSession));
+        }
+
         return back()->with('success', 'Hasil ujian berhasil dipublikasikan.');
     }
 
@@ -307,7 +321,7 @@ class GradingController extends Controller
         $this->authorize('view', $examSession);
 
         $csv = $this->gradingService->generateExportCsv($examSession);
-        $filename = 'hasil-ujian-' . str_replace(' ', '-', strtolower($examSession->name)) . '.csv';
+        $filename = 'hasil-ujian-'.str_replace(' ', '-', strtolower($examSession->name)).'.csv';
 
         return response()->streamDownload(function () use ($csv) {
             echo $csv;

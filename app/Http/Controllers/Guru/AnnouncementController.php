@@ -8,10 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Guru\StoreAnnouncementRequest;
 use App\Http\Requests\Guru\UpdateAnnouncementRequest;
 use App\Models\Announcement;
+use App\Models\Classroom;
 use App\Models\TeachingAssignment;
+use App\Models\User;
+use App\Notifications\PengumumanBaruNotification;
 use App\Services\LMS\AnnouncementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -58,7 +62,18 @@ class AnnouncementController extends Controller
         $data['published_at'] = $data['published_at'] ?? now();
         $data['is_pinned'] = $data['is_pinned'] ?? false;
 
-        $this->service->create($data);
+        $announcement = $this->service->create($data);
+
+        // Notify students in the target classroom (or all siswa if no classroom)
+        if ($announcement->classroom_id) {
+            $students = Classroom::find($announcement->classroom_id)?->students ?? collect();
+        } else {
+            $students = User::where('role', 'siswa')->where('is_active', true)->get();
+        }
+
+        if ($students->isNotEmpty()) {
+            Notification::send($students, new PengumumanBaruNotification($announcement));
+        }
 
         return redirect()->route('guru.pengumuman.index')
             ->with('success', 'Pengumuman berhasil dibuat.');

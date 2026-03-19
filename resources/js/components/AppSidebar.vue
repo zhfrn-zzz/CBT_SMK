@@ -11,6 +11,7 @@ import {
     MessageCircle,
     NotebookPen,
     School,
+    ShieldCheck,
     Users,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -61,6 +62,11 @@ const adminNavItems: NavItem[] = [
         title: 'Mata Pelajaran',
         href: '/admin/subjects',
         icon: BookOpen,
+    },
+    {
+        title: 'Log Audit',
+        href: '/admin/audit-log',
+        icon: ShieldCheck,
     },
 ];
 

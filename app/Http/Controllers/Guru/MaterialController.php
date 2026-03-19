@@ -9,11 +9,12 @@ use App\Http\Requests\Guru\StoreMaterialRequest;
 use App\Http\Requests\Guru\UpdateMaterialRequest;
 use App\Models\Classroom;
 use App\Models\Material;
-use App\Models\Subject;
 use App\Models\TeachingAssignment;
+use App\Notifications\MateriBaruNotification;
 use App\Services\LMS\MaterialService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -79,6 +80,13 @@ class MaterialController extends Controller
         $data['is_published'] = $data['is_published'] ?? true;
 
         $material = $this->service->create($data, $request->file('file'));
+
+        if ($material->is_published && $material->classroom_id) {
+            $students = Classroom::find($material->classroom_id)?->students ?? collect();
+            if ($students->isNotEmpty()) {
+                Notification::send($students, new MateriBaruNotification($material));
+            }
+        }
 
         return redirect()->route('guru.materi.show', $material)
             ->with('success', 'Materi berhasil dibuat.');
@@ -147,8 +155,17 @@ class MaterialController extends Controller
         $this->authorize('update', $material);
 
         $data = $request->except(['file']);
+        $wasPublished = $material->is_published;
 
         $this->service->update($material, $data, $request->file('file'));
+        $material->refresh();
+
+        if (! $wasPublished && $material->is_published && $material->classroom_id) {
+            $students = Classroom::find($material->classroom_id)?->students ?? collect();
+            if ($students->isNotEmpty()) {
+                Notification::send($students, new MateriBaruNotification($material));
+            }
+        }
 
         return redirect()->route('guru.materi.show', $material)
             ->with('success', 'Materi berhasil diperbarui.');

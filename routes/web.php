@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AcademicYearController;
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
@@ -29,6 +31,7 @@ use App\Http\Controllers\Siswa\DiscussionController as SiswaDiscussionController
 use App\Http\Controllers\Siswa\ExamController;
 use App\Http\Controllers\Siswa\ExamResultController;
 use App\Http\Controllers\Siswa\MaterialController as SiswaMaterialController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -58,6 +61,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('classrooms/{classroom}/remove-student/{user}', [ClassroomController::class, 'removeStudent'])->name('classrooms.remove-student');
         Route::post('classrooms/{classroom}/assign-teacher', [ClassroomController::class, 'assignTeacher'])->name('classrooms.assign-teacher');
         Route::delete('classrooms/{classroom}/remove-teacher/{assignmentId}', [ClassroomController::class, 'removeTeacher'])->name('classrooms.remove-teacher');
+
+        Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
+        Route::post('backup', [BackupController::class, 'store'])->name('backup.store');
     });
 
     // Guru routes
@@ -194,6 +200,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // API-style routes (for fire-and-forget from exam interface)
     Route::middleware('auth')->prefix('api/exam')->group(function () {
         Route::post('log-activity', [ExamController::class, 'logActivity'])->name('api.exam.log-activity');
+    });
+
+    // Notification routes (shared across all roles)
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/list', [NotificationController::class, 'list'])->name('list');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
     });
 });
 
