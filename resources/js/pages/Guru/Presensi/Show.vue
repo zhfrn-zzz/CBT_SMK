@@ -56,7 +56,7 @@ function regenerateCode() {
 
 function saveStatus(studentId: number) {
     const status = localRecords.value[studentId];
-    if (!status) return;
+    if (!status || status === '__none__') return;
     router.put(`/guru/presensi/${props.attendance.id}/status`, {
         records: [{ user_id: studentId, status }],
     }, { preserveScroll: true });
@@ -173,7 +173,7 @@ const statusColor = (status: string) => {
                                         <SelectValue placeholder="-" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">-</SelectItem>
+                                        <SelectItem value="__none__">-</SelectItem>
                                         <SelectItem v-for="st in statuses" :key="st.value" :value="st.value">{{ st.name }}</SelectItem>
                                     </SelectContent>
                                 </Select>

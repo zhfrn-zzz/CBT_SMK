@@ -122,7 +122,7 @@ function submit() {
 
                 <div class="space-y-2">
                     <div class="flex items-center gap-2">
-                        <Checkbox id="allow_late" v-model:checked="form.allow_late_submission" />
+                        <Checkbox id="allow_late" v-model="form.allow_late_submission" />
                         <Label for="allow_late">Izinkan terlambat</Label>
                     </div>
                     <div v-if="form.allow_late_submission" class="ml-6 space-y-1">
@@ -132,7 +132,7 @@ function submit() {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <Checkbox id="is_published" v-model:checked="form.is_published" />
+                    <Checkbox id="is_published" v-model="form.is_published" />
                     <Label for="is_published">Dipublikasikan</Label>
                 </div>
 

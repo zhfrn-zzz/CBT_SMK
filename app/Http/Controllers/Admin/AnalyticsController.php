@@ -19,7 +19,7 @@ class AnalyticsController extends Controller
 
     public function index(Request $request): Response
     {
-        $academicYears = AcademicYear::orderByDesc('start_year')->get();
+        $academicYears = AcademicYear::orderByDesc('starts_at')->get();
         $selectedYearId = $request->integer('academic_year_id') ?: ($academicYears->first()?->id);
         $selectedDepartmentId = $request->integer('department_id') ?: null;
 
@@ -49,7 +49,7 @@ class AnalyticsController extends Controller
 
     public function classroomDetail(Request $request, Classroom $classroom): Response
     {
-        $academicYears = AcademicYear::orderByDesc('start_year')->get();
+        $academicYears = AcademicYear::orderByDesc('starts_at')->get();
         $selectedYearId = $request->integer('academic_year_id') ?: ($academicYears->first()?->id);
         $academicYear = $selectedYearId ? AcademicYear::find($selectedYearId) : null;
 

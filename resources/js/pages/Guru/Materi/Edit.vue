@@ -155,7 +155,7 @@ function submit() {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <Checkbox id="is_published" v-model:checked="form.is_published" />
+                    <Checkbox id="is_published" v-model="form.is_published" />
                     <Label for="is_published">Dipublikasikan</Label>
                 </div>
 

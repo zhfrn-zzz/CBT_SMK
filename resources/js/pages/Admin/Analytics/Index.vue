@@ -68,14 +68,14 @@ function applyFilter(key: string, value: string | null) {
                 </div>
                 <div class="min-w-48">
                     <Select
-                        :model-value="filters.department_id?.toString() ?? ''"
-                        @update:model-value="val => applyFilter('department_id', val || null)"
+                        :model-value="filters.department_id?.toString() ?? 'all'"
+                        @update:model-value="val => applyFilter('department_id', val === 'all' ? null : val)"
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Semua Jurusan" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">Semua Jurusan</SelectItem>
+                            <SelectItem value="all">Semua Jurusan</SelectItem>
                             <SelectItem v-for="dept in departments" :key="dept.id" :value="dept.id.toString()">
                                 {{ dept.name }}
                             </SelectItem>

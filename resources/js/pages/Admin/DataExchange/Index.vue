@@ -40,8 +40,8 @@ const fileInput = ref<HTMLInputElement | null>(null);
 
 function submitExport() {
     const params = new URLSearchParams();
-    if (exportForm.classroom_id) params.append('classroom_id', exportForm.classroom_id);
-    if (exportForm.academic_year_id) params.append('academic_year_id', exportForm.academic_year_id);
+    if (exportForm.classroom_id && exportForm.classroom_id !== 'all') params.append('classroom_id', exportForm.classroom_id);
+    if (exportForm.academic_year_id && exportForm.academic_year_id !== 'all') params.append('academic_year_id', exportForm.academic_year_id);
     window.location.href = `/admin/data-exchange/export-students/download?${params.toString()}`;
 }
 
@@ -81,7 +81,7 @@ function submitImport() {
                                     <SelectValue placeholder="Semua Kelas" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">Semua Kelas</SelectItem>
+                                    <SelectItem value="all">Semua Kelas</SelectItem>
                                     <SelectItem v-for="c in classrooms" :key="c.id" :value="c.id.toString()">
                                         {{ c.name }}
                                     </SelectItem>
@@ -95,7 +95,7 @@ function submitImport() {
                                     <SelectValue placeholder="Semua Tahun Ajaran" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">Semua Tahun Ajaran</SelectItem>
+                                    <SelectItem value="all">Semua Tahun Ajaran</SelectItem>
                                     <SelectItem v-for="ay in academicYears" :key="ay.id" :value="ay.id.toString()">
                                         {{ ay.name }}
                                     </SelectItem>

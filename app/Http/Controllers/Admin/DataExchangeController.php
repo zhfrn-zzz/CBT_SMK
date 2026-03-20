@@ -24,7 +24,7 @@ class DataExchangeController extends Controller
     public function index(Request $request): Response
     {
         $classrooms = Classroom::with(['department', 'academicYear'])->orderBy('name')->get();
-        $academicYears = AcademicYear::orderByDesc('start_year')->get();
+        $academicYears = AcademicYear::orderByDesc('starts_at')->get();
 
         return Inertia::render('Admin/DataExchange/Index', [
             'classrooms' => $classrooms,

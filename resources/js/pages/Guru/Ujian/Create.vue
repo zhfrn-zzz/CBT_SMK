@@ -58,12 +58,16 @@ const selectedBank = computed(() => {
     return props.questionBanks.find(b => b.id === Number(form.value.question_bank_id));
 });
 
-function toggleClassroom(id: number) {
-    const idx = form.value.classroom_ids.indexOf(id);
-    if (idx === -1) {
-        form.value.classroom_ids.push(id);
+function toggleClassroom(id: number, checked: boolean) {
+    if (checked) {
+        if (!form.value.classroom_ids.includes(id)) {
+            form.value.classroom_ids.push(id);
+        }
     } else {
-        form.value.classroom_ids.splice(idx, 1);
+        const idx = form.value.classroom_ids.indexOf(id);
+        if (idx !== -1) {
+            form.value.classroom_ids.splice(idx, 1);
+        }
     }
 }
 
@@ -187,17 +191,11 @@ function submit() {
                 <!-- Randomisasi -->
                 <div class="flex gap-6">
                     <label class="flex items-center gap-2">
-                        <Checkbox
-                            :checked="form.is_randomize_questions"
-                            @update:checked="form.is_randomize_questions = $event as boolean"
-                        />
+                        <Checkbox v-model="form.is_randomize_questions" />
                         <span class="text-sm">Acak urutan soal</span>
                     </label>
                     <label class="flex items-center gap-2">
-                        <Checkbox
-                            :checked="form.is_randomize_options"
-                            @update:checked="form.is_randomize_options = $event as boolean"
-                        />
+                        <Checkbox v-model="form.is_randomize_options" />
                         <span class="text-sm">Acak urutan pilihan jawaban</span>
                     </label>
                 </div>
@@ -213,8 +211,8 @@ function submit() {
                             :class="{ 'border-primary bg-primary/5': form.classroom_ids.includes(c.id) }"
                         >
                             <Checkbox
-                                :checked="form.classroom_ids.includes(c.id)"
-                                @update:checked="toggleClassroom(c.id)"
+                                :model-value="form.classroom_ids.includes(c.id)"
+                                @update:model-value="(val) => toggleClassroom(c.id, val as boolean)"
                             />
                             <div class="text-sm">
                                 <p class="font-medium">{{ c.name }}</p>

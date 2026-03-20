@@ -75,9 +75,9 @@ watch(topic, () => applyFilters());
 
 function applyFilters() {
     router.get('/guru/materi', {
-        subject_id: subjectId.value || undefined,
-        classroom_id: classroomId.value || undefined,
-        topic: topic.value || undefined,
+        subject_id: subjectId.value && subjectId.value !== 'all' ? subjectId.value : undefined,
+        classroom_id: classroomId.value && classroomId.value !== 'all' ? classroomId.value : undefined,
+        topic: topic.value && topic.value !== 'all' ? topic.value : undefined,
     }, { preserveState: true, replace: true });
 }
 
@@ -155,7 +155,7 @@ const groupedMaterials = computed(() => {
                         <SelectValue placeholder="Semua Topik" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Semua Topik</SelectItem>
+                        <SelectItem value="all">Semua Topik</SelectItem>
                         <SelectItem v-for="t in topics" :key="t" :value="t">{{ t }}</SelectItem>
                     </SelectContent>
                 </Select>

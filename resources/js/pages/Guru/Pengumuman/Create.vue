@@ -41,7 +41,10 @@ const uniqueClassrooms = computed(() => {
 });
 
 function submit() {
-    form.post('/guru/pengumuman');
+    form.transform((data) => ({
+        ...data,
+        classroom_id: data.classroom_id === 'all' ? '' : data.classroom_id,
+    })).post('/guru/pengumuman');
 }
 </script>
 
@@ -68,7 +71,7 @@ function submit() {
                     <Select v-model="form.classroom_id">
                         <SelectTrigger><SelectValue placeholder="Semua Kelas (Broadcast)" /></SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">Semua Kelas</SelectItem>
+                            <SelectItem value="all">Semua Kelas</SelectItem>
                             <SelectItem v-for="c in uniqueClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
                         </SelectContent>
                     </Select>
@@ -80,7 +83,7 @@ function submit() {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <Checkbox id="is_pinned" v-model:checked="form.is_pinned" />
+                    <Checkbox id="is_pinned" v-model="form.is_pinned" />
                     <Label for="is_pinned">Pin pengumuman</Label>
                 </div>
 

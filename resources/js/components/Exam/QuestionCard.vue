@@ -315,13 +315,13 @@ const typeLabel = computed(() => {
                         <div class="w-48">
                             <Select
                                 :model-value="getMatchingAnswer(premise.id)"
-                                @update:model-value="(v: any) => setMatchingAnswer(premise.id, String(v ?? ''))"
+                                @update:model-value="(v: any) => setMatchingAnswer(premise.id, v === '__clear__' ? '' : String(v ?? ''))"
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Pilih jawaban..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="" class="text-muted-foreground">-- Kosongkan --</SelectItem>
+                                    <SelectItem value="__clear__" class="text-muted-foreground">-- Kosongkan --</SelectItem>
                                     <SelectItem
                                         v-for="response in question.matching_responses"
                                         :key="response.id"

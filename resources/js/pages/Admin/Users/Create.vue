@@ -179,7 +179,7 @@ function handleFileChange(e: Event) {
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <Checkbox id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                                <Checkbox id="is_active" v-model="form.is_active" />
                                 <Label for="is_active">Aktif</Label>
                             </div>
 

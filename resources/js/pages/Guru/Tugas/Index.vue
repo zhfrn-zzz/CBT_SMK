@@ -55,8 +55,8 @@ const filteredClassrooms = computed(() =>
 
 watch([subjectId, classroomId], () => {
     router.get('/guru/tugas', {
-        subject_id: subjectId.value || undefined,
-        classroom_id: classroomId.value || undefined,
+        subject_id: subjectId.value && subjectId.value !== 'all' ? subjectId.value : undefined,
+        classroom_id: classroomId.value && classroomId.value !== 'all' ? classroomId.value : undefined,
     }, { preserveState: true, replace: true });
 });
 
@@ -92,14 +92,14 @@ function deleteItem(id: number) {
                 <Select v-model="subjectId">
                     <SelectTrigger class="w-[220px]"><SelectValue placeholder="Semua Mata Pelajaran" /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Semua</SelectItem>
+                        <SelectItem value="all">Semua</SelectItem>
                         <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
                     </SelectContent>
                 </Select>
                 <Select v-model="classroomId">
                     <SelectTrigger class="w-[180px]"><SelectValue placeholder="Semua Kelas" /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Semua</SelectItem>
+                        <SelectItem value="all">Semua</SelectItem>
                         <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
                     </SelectContent>
                 </Select>
