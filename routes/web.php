@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AcademicYearController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\ClassroomController;
@@ -14,15 +15,18 @@ use App\Http\Controllers\Admin\UserImportController;
 use App\Http\Controllers\Guru\AnnouncementController as GuruAnnouncementController;
 use App\Http\Controllers\Guru\AssignmentController as GuruAssignmentController;
 use App\Http\Controllers\Guru\AttendanceController as GuruAttendanceController;
+use App\Http\Controllers\Guru\CompetencyController;
 use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
 use App\Http\Controllers\Guru\DiscussionController as GuruDiscussionController;
 use App\Http\Controllers\Guru\ExamSessionController;
 use App\Http\Controllers\Guru\GradingController;
+use App\Http\Controllers\Guru\ItemAnalysisController;
 use App\Http\Controllers\Guru\MaterialController as GuruMaterialController;
 use App\Http\Controllers\Guru\ProctorController;
 use App\Http\Controllers\Guru\QuestionBankController;
 use App\Http\Controllers\Guru\QuestionController;
 use App\Http\Controllers\Guru\QuestionImportController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Siswa\AnnouncementController as SiswaAnnouncementController;
 use App\Http\Controllers\Siswa\AssignmentController as SiswaAssignmentController;
 use App\Http\Controllers\Siswa\AttendanceController as SiswaAttendanceController;
@@ -31,7 +35,6 @@ use App\Http\Controllers\Siswa\DiscussionController as SiswaDiscussionController
 use App\Http\Controllers\Siswa\ExamController;
 use App\Http\Controllers\Siswa\ExamResultController;
 use App\Http\Controllers\Siswa\MaterialController as SiswaMaterialController;
-use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -64,6 +67,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
         Route::post('backup', [BackupController::class, 'store'])->name('backup.store');
+
+        // Analytics
+        Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('analytics/classroom/{classroom}', [AnalyticsController::class, 'classroomDetail'])->name('analytics.classroom');
     });
 
     // Guru routes
@@ -104,6 +111,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('grading/{examSession}/publish', [GradingController::class, 'publishResults'])->name('grading.publish');
         Route::patch('grading/{examSession}/unpublish', [GradingController::class, 'unpublishResults'])->name('grading.unpublish');
         Route::get('grading/{examSession}/export', [GradingController::class, 'exportResults'])->name('grading.export');
+
+        // Item Analysis
+        Route::get('grading/{examSession}/item-analysis', [ItemAnalysisController::class, 'show'])->name('grading.item-analysis');
+        Route::post('grading/{examSession}/item-analysis/refresh', [ItemAnalysisController::class, 'refresh'])->name('grading.item-analysis.refresh');
+
+        // Kompetensi Dasar
+        Route::get('bank-soal/{bankSoal}/kompetensi', [CompetencyController::class, 'index'])->name('bank-soal.kompetensi.index');
+        Route::post('bank-soal/{bankSoal}/kompetensi', [CompetencyController::class, 'store'])->name('bank-soal.kompetensi.store');
+        Route::put('bank-soal/{bankSoal}/kompetensi/{competency}', [CompetencyController::class, 'update'])->name('bank-soal.kompetensi.update');
+        Route::delete('bank-soal/{bankSoal}/kompetensi/{competency}', [CompetencyController::class, 'destroy'])->name('bank-soal.kompetensi.destroy');
+        Route::post('bank-soal/{bankSoal}/soal/{soal}/tag-kompetensi', [CompetencyController::class, 'tagQuestion'])->name('bank-soal.soal.tag-kompetensi');
 
         // Proctor Dashboard
         Route::get('ujian/{ujian}/proctor', [ProctorController::class, 'show'])->name('ujian.proctor');

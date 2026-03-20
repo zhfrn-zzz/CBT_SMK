@@ -10,11 +10,12 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Question extends Model
 {
-    use HasFactory, Auditable;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'question_bank_id',
@@ -64,5 +65,10 @@ class Question extends Model
     public function keywords(): HasMany
     {
         return $this->hasMany(QuestionKeyword::class);
+    }
+
+    public function competencyStandards(): BelongsToMany
+    {
+        return $this->belongsToMany(CompetencyStandard::class, 'question_competency');
     }
 }

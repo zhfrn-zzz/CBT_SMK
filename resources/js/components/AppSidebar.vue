@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    BarChart3,
     BookOpen,
     ClipboardList,
+    Database,
     FileText,
     GraduationCap,
     LayoutGrid,
@@ -67,6 +69,16 @@ const adminNavItems: NavItem[] = [
         title: 'Log Audit',
         href: '/admin/audit-log',
         icon: ShieldCheck,
+    },
+    {
+        title: 'Analitik',
+        href: '/admin/analytics',
+        icon: BarChart3,
+    },
+    {
+        title: 'Data Exchange',
+        href: '/admin/data-exchange/export-students',
+        icon: Database,
     },
 ];
 

@@ -81,6 +81,13 @@ const progressPercent = props.progress.total_attempts > 0
                 </div>
                 <div class="flex gap-2">
                     <Button variant="outline" size="sm" as-child>
+                        <a :href="`/guru/grading/${examSession.id}/item-analysis`">
+                            <BarChart3 class="mr-1 size-4" />
+                            Analisis Soal
+                        </a>
+                    </Button>
+
+                    <Button variant="outline" size="sm" as-child>
                         <a :href="`/guru/grading/${examSession.id}/export`">
                             <Download class="mr-1 size-4" />
                             Export CSV
