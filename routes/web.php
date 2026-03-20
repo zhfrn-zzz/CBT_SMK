@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DataExchangeController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserController;
@@ -71,6 +72,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Analytics
         Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
         Route::get('analytics/classroom/{classroom}', [AnalyticsController::class, 'classroomDetail'])->name('analytics.classroom');
+
+        // Data Exchange
+        Route::get('data-exchange/export-students', [DataExchangeController::class, 'index'])->name('data-exchange.index');
+        Route::get('data-exchange/export-students/download', [DataExchangeController::class, 'exportStudents'])->name('data-exchange.export-students');
+        Route::get('data-exchange/template', [DataExchangeController::class, 'downloadTemplate'])->name('data-exchange.template');
+        Route::post('data-exchange/import', [DataExchangeController::class, 'importStudents'])->name('data-exchange.import');
+        Route::post('analytics/export-rapor', [DataExchangeController::class, 'exportRapor'])->name('analytics.export-rapor');
+        Route::get('analytics/download-export/{filename}', [DataExchangeController::class, 'downloadExport'])->name('analytics.download-export');
     });
 
     // Guru routes
@@ -99,6 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('ujian', ExamSessionController::class)
             ->parameters(['ujian' => 'ujian']);
         Route::patch('ujian/{ujian}/status', [ExamSessionController::class, 'updateStatus'])->name('ujian.update-status');
+        Route::get('ujian/{ujian}/print-pdf', [ExamSessionController::class, 'printPdf'])->name('ujian.print-pdf');
         Route::get('ujian/{ujian}/remedial', [ExamSessionController::class, 'createRemedial'])->name('ujian.create-remedial');
         Route::post('ujian/{ujian}/remedial', [ExamSessionController::class, 'storeRemedial'])->name('ujian.store-remedial');
 

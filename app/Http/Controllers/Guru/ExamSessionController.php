@@ -16,6 +16,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Notifications\UjianDijadwalkanNotification;
 use App\Services\Exam\ExamSessionService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -280,6 +281,37 @@ class ExamSessionController extends Controller
         $ujian->update(['status' => $newStatus]);
 
         return back()->with('success', 'Status ujian diperbarui.');
+    }
+
+    /**
+     * Generate printable PDF of exam questions.
+     */
+    public function printPdf(ExamSession $ujian): \Illuminate\Http\Response
+    {
+        $this->authorize('view', $ujian);
+
+        $ujian->load(['subject', 'questionBank', 'classrooms']);
+
+        $questions = $ujian->questions()
+            ->with(['options', 'matchingPairs', 'keywords'])
+            ->get();
+
+        if ($questions->isEmpty() && $ujian->questionBank) {
+            $questions = $ujian->questionBank->questions()
+                ->with(['options', 'matchingPairs', 'keywords'])
+                ->get();
+        }
+
+        $pdf = Pdf::loadView('pdf.exam-questions', [
+            'examSession' => $ujian,
+            'questions' => $questions,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = 'soal-'.str_replace(' ', '-', strtolower($ujian->name)).'.pdf';
+
+        return $pdf->download($filename);
     }
 
     private function dispatchUjianNotification(ExamSession $examSession): void
