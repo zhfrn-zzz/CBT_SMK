@@ -16,6 +16,9 @@ uses(ExamTestHelper::class);
 // ── Double submit prevention ────────────────────────────────────────
 
 test('siswa cannot submit exam twice', function () {
+    Redis::shouldReceive('get')->andReturn(null);
+    Redis::shouldReceive('del')->times(3)->andReturn(1);
+
     $env = $this->createExamEnvironment();
 
     $this->actingAs($env['siswa']);
@@ -40,6 +43,9 @@ test('siswa cannot submit exam twice', function () {
 // ── Save after submit ───────────────────────────────────────────────
 
 test('siswa cannot save answers after submitting', function () {
+    Redis::shouldReceive('get')->andReturn(null);
+    Redis::shouldReceive('del')->times(3)->andReturn(1);
+
     $env = $this->createExamEnvironment();
 
     $this->actingAs($env['siswa']);
@@ -59,6 +65,9 @@ test('siswa cannot save answers after submitting', function () {
 // ── Concurrent save is idempotent ───────────────────────────────────
 
 test('multiple save requests overwrite each other safely', function () {
+    Redis::shouldReceive('get')->andReturn(null);
+    Redis::shouldReceive('setex')->andReturn(true);
+
     $env = $this->createExamEnvironment();
 
     $this->actingAs($env['siswa']);
