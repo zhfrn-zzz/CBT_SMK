@@ -1,0 +1,1 @@
+Jalankan php artisan test. Jika ada failure, fix dan jalankan ulang sampai 0 failures. Jangan ubah hal lain selain yang berkaitan dengan fix.
