@@ -27,7 +27,12 @@ use App\Http\Controllers\Guru\ProctorController;
 use App\Http\Controllers\Guru\QuestionBankController;
 use App\Http\Controllers\Guru\QuestionController;
 use App\Http\Controllers\Guru\QuestionImportController;
+use App\Http\Controllers\Admin\ForumCategoryController;
+use App\Http\Controllers\ForumController;
+use App\Http\Controllers\Guru\CalendarController as GuruCalendarController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Siswa\CalendarController as SiswaCalendarController;
+use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\Siswa\AnnouncementController as SiswaAnnouncementController;
 use App\Http\Controllers\Siswa\AssignmentController as SiswaAssignmentController;
@@ -84,6 +89,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('data-exchange/import', [DataExchangeController::class, 'importStudents'])->middleware('throttle:bulk-import')->name('data-exchange.import');
         Route::post('analytics/export-rapor', [DataExchangeController::class, 'exportRapor'])->name('analytics.export-rapor');
         Route::get('analytics/download-export/{filename}', [DataExchangeController::class, 'downloadExport'])->name('analytics.download-export');
+
+        // Forum Categories
+        Route::resource('forum-categories', ForumCategoryController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['forum-categories' => 'category']);
+
+        // Audit Log Export
+        Route::get('audit-log/export', [\App\Http\Controllers\Admin\AuditLogController::class, 'export'])->name('audit-log.export');
+        Route::get('audit-log/download-export/{filename}', [\App\Http\Controllers\Admin\AuditLogController::class, 'downloadExport'])->name('audit-log.download-export');
     });
 
     // Guru routes
@@ -180,6 +194,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('presensi/{attendance}/status', [GuruAttendanceController::class, 'updateStatus'])->name('presensi.update-status');
         Route::get('presensi-recap', [GuruAttendanceController::class, 'recap'])->name('presensi.recap');
         Route::get('presensi-recap/export', [GuruAttendanceController::class, 'exportRecap'])->name('presensi.export-recap');
+
+        // Kalender
+        Route::get('kalender', [GuruCalendarController::class, 'index'])->name('kalender.index');
     });
 
     // Siswa routes
@@ -227,6 +244,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Presensi
         Route::get('presensi', [SiswaAttendanceController::class, 'index'])->name('presensi.index');
         Route::post('presensi/check-in', [SiswaAttendanceController::class, 'checkIn'])->name('presensi.check-in');
+
+        // Kalender
+        Route::get('kalender', [SiswaCalendarController::class, 'index'])->name('kalender.index');
     });
 
     // API-style routes (for fire-and-forget from exam interface)
@@ -242,6 +262,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
         Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
     });
+
+    // Forum routes (shared across all roles)
+    Route::prefix('forum')->name('forum.')->group(function () {
+        Route::get('/', [ForumController::class, 'index'])->name('index');
+        Route::get('/create', [ForumController::class, 'create'])->name('create');
+        Route::post('/', [ForumController::class, 'store'])->name('store');
+        Route::get('/{thread}', [ForumController::class, 'show'])->name('show');
+        Route::delete('/{thread}', [ForumController::class, 'destroy'])->name('destroy');
+        Route::post('/{thread}/reply', [ForumController::class, 'reply'])->name('reply');
+        Route::delete('/reply/{reply}', [ForumController::class, 'destroyReply'])->name('destroy-reply');
+        Route::post('/{thread}/toggle-pin', [ForumController::class, 'togglePin'])->middleware('role:admin,guru')->name('toggle-pin');
+        Route::post('/{thread}/toggle-lock', [ForumController::class, 'toggleLock'])->middleware('role:admin,guru')->name('toggle-lock');
+    });
+
+    // Calendar API (shared across guru & siswa)
+    Route::get('/api/calendar/events', [CalendarEventController::class, 'index'])->name('api.calendar.events');
 });
 
 require __DIR__.'/settings.php';

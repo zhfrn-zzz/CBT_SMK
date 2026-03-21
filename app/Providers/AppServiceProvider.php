@@ -7,6 +7,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimiting();
+        $this->registerAuditListeners();
 
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
@@ -75,5 +77,12 @@ class AppServiceProvider extends ServiceProvider
         // Bulk import: max 3 per minute per user
         RateLimiter::for('bulk-import', fn (Request $request) => Limit::perMinute(3)->by((string) $request->user()?->id)
         );
+    }
+
+    protected function registerAuditListeners(): void
+    {
+        Event::listen(\Illuminate\Auth\Events\Login::class, \App\Listeners\AuditLoginListener::class);
+        Event::listen(\Illuminate\Auth\Events\Logout::class, \App\Listeners\AuditLogoutListener::class);
+        Event::listen(\Illuminate\Auth\Events\Failed::class, \App\Listeners\AuditFailedLoginListener::class);
     }
 }

@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ExportAuditLogJob;
 use App\Models\AuditLog;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AuditLogController extends Controller
 {
@@ -48,8 +52,31 @@ class AuditLogController extends Controller
             'auditLogs' => $auditLogs,
             'users' => $users,
             'filters' => $request->only(['user_id', 'action', 'auditable_type', 'date_from', 'date_to']),
-            'actionTypes' => ['created', 'updated', 'deleted', 'login', 'export', 'import'],
+            'actionTypes' => ['created', 'updated', 'deleted', 'login', 'logout', 'failed_login', 'export', 'import'],
             'auditableTypes' => $auditableTypesMap,
+        ]);
+    }
+
+    public function export(Request $request): RedirectResponse
+    {
+        ExportAuditLogJob::dispatch(
+            $request->user()->id,
+            $request->only(['user_id', 'action', 'auditable_type', 'date_from', 'date_to']),
+        );
+
+        return back()->with('success', 'Export audit log sedang diproses. Anda akan mendapat notifikasi saat selesai.');
+    }
+
+    public function downloadExport(string $filename): BinaryFileResponse
+    {
+        $path = storage_path('app/private/exports/'.$filename);
+
+        if (! file_exists($path)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        return response()->download($path, $filename, [
+            'Content-Type' => 'text/csv',
         ]);
     }
 
@@ -67,6 +94,7 @@ class AuditLogController extends Controller
             'App\\Models\\Subject' => 'Mata Pelajaran',
             'App\\Models\\AcademicYear' => 'Tahun Ajaran',
             'App\\Models\\Department' => 'Jurusan',
+            'App\\Models\\StudentAnswer' => 'Jawaban Siswa',
         ];
     }
 }

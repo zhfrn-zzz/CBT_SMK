@@ -3,14 +3,17 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     BarChart3,
     BookOpen,
+    CalendarDays,
     ClipboardList,
     Database,
     FileText,
+    FolderOpen,
     GraduationCap,
     LayoutGrid,
     Library,
     Megaphone,
     MessageCircle,
+    MessageSquare,
     NotebookPen,
     School,
     ShieldCheck,
@@ -80,6 +83,16 @@ const adminNavItems: NavItem[] = [
         href: '/admin/data-exchange/export-students',
         icon: Database,
     },
+    {
+        title: 'Forum',
+        href: '/forum',
+        icon: MessageSquare,
+    },
+    {
+        title: 'Kategori Forum',
+        href: '/admin/forum-categories',
+        icon: FolderOpen,
+    },
 ];
 
 const guruNavItems: NavItem[] = [
@@ -121,6 +134,11 @@ const guruNavItems: NavItem[] = [
         icon: MessageCircle,
     },
     {
+        title: 'Forum Sekolah',
+        href: '/forum',
+        icon: MessageSquare,
+    },
+    {
         title: 'Pengumuman',
         href: '/guru/pengumuman',
         icon: Megaphone,
@@ -129,6 +147,11 @@ const guruNavItems: NavItem[] = [
         title: 'Presensi',
         href: '/guru/presensi',
         icon: ClipboardList,
+    },
+    {
+        title: 'Kalender',
+        href: '/guru/kalender',
+        icon: CalendarDays,
     },
 ];
 
@@ -166,6 +189,11 @@ const siswaNavItems: NavItem[] = [
         icon: MessageCircle,
     },
     {
+        title: 'Forum Sekolah',
+        href: '/forum',
+        icon: MessageSquare,
+    },
+    {
         title: 'Pengumuman',
         href: '/siswa/pengumuman',
         icon: Megaphone,
@@ -174,6 +202,11 @@ const siswaNavItems: NavItem[] = [
         title: 'Presensi',
         href: '/siswa/presensi',
         icon: ClipboardList,
+    },
+    {
+        title: 'Kalender',
+        href: '/siswa/kalender',
+        icon: CalendarDays,
     },
 ];
 

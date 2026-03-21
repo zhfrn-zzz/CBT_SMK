@@ -19,3 +19,6 @@ Schedule::command('notifications:send-deadline-reminders')->dailyAt('07:00');
 
 // Daily database backup at 02:00
 Schedule::command('backup:database')->dailyAt('02:00');
+
+// Daily audit log cleanup at 03:00
+Schedule::command('audit:cleanup')->dailyAt('03:00');
