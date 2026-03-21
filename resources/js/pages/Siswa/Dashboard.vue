@@ -17,12 +17,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Award, CalendarDays, CheckCircle } from 'lucide-vue-next';
-import type { BreadcrumbItem, RecentResult, SiswaDashboardStats } from '@/types';
+import { Award, BookOpen, CalendarDays, CheckCircle, Clock, Megaphone } from 'lucide-vue-next';
+import type { BreadcrumbItem, RecentResult, SiswaDashboardStats, SiswaTodaySection } from '@/types';
 
 defineProps<{
     stats: SiswaDashboardStats;
     recentResults: RecentResult[];
+    todaySection: SiswaTodaySection;
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -37,6 +38,47 @@ function formatDate(date: string | null) {
         year: 'numeric',
     });
 }
+
+function formatDateTime(date: string) {
+    return new Date(date).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
+
+function formatRelativeTime(date: string) {
+    const d = new Date(date);
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) return 'Baru saja';
+    if (minutes < 60) return `${minutes} menit lalu`;
+    if (hours < 24) return `${hours} jam lalu`;
+    if (days < 7) return `${days} hari lalu`;
+    return formatDate(date);
+}
+
+function formatDeadline(date: string) {
+    const d = new Date(date);
+    const now = new Date();
+    const diff = d.getTime() - now.getTime();
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(hours / 24);
+
+    if (hours < 0) return 'Sudah lewat';
+    if (hours < 24) return `${hours} jam lagi`;
+    return `${days} hari lagi`;
+}
+
+const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    scheduled: 'outline',
+    active: 'default',
+};
 </script>
 
 <template>
@@ -45,6 +87,115 @@ function formatDate(date: string | null) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <h2 class="text-xl font-semibold">Dashboard Siswa</h2>
+
+            <!-- Hari Ini Section -->
+            <div class="space-y-2">
+                <h3 class="text-lg font-medium">Hari Ini</h3>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <!-- Pengumuman Terbaru -->
+                    <Card>
+                        <CardHeader class="pb-2">
+                            <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                <Megaphone class="size-4" />
+                                Pengumuman Terbaru
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="todaySection.announcements.length > 0" class="space-y-3">
+                                <div v-for="announcement in todaySection.announcements" :key="announcement.id" class="flex items-start gap-2">
+                                    <Badge v-if="announcement.is_pinned" variant="outline" class="mt-0.5 shrink-0 text-xs">Pin</Badge>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium">{{ announcement.title }}</p>
+                                        <p class="text-xs text-muted-foreground">
+                                            {{ announcement.user?.name ?? '-' }} · {{ formatRelativeTime(announcement.published_at) }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p v-else class="text-sm text-muted-foreground">Tidak ada pengumuman terbaru</p>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Ujian Hari Ini / Minggu Ini -->
+                    <Card>
+                        <CardHeader class="pb-2">
+                            <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                <CalendarDays class="size-4" />
+                                Ujian Minggu Ini
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="todaySection.upcoming_exams.length > 0" class="space-y-3">
+                                <div v-for="exam in todaySection.upcoming_exams" :key="exam.id" class="flex items-center justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <Link href="/siswa/ujian" class="text-sm font-medium hover:underline">
+                                            {{ exam.name }}
+                                        </Link>
+                                        <p class="text-xs text-muted-foreground">
+                                            {{ exam.subject }} · {{ formatDateTime(exam.starts_at) }}
+                                        </p>
+                                    </div>
+                                    <Badge :variant="statusVariants[exam.status] ?? 'secondary'" class="shrink-0">
+                                        {{ exam.status_label }}
+                                    </Badge>
+                                </div>
+                            </div>
+                            <p v-else class="text-sm text-muted-foreground">Tidak ada ujian minggu ini</p>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Deadline Tugas -->
+                    <Card>
+                        <CardHeader class="pb-2">
+                            <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                <Clock class="size-4" />
+                                Deadline Tugas
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="todaySection.deadline_assignments.length > 0" class="space-y-3">
+                                <div v-for="assignment in todaySection.deadline_assignments" :key="assignment.id" class="flex items-center justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <Link href="/siswa/tugas" class="text-sm font-medium hover:underline">
+                                            {{ assignment.title }}
+                                        </Link>
+                                        <p class="text-xs text-muted-foreground">
+                                            {{ assignment.subject }} · {{ assignment.classroom }}
+                                        </p>
+                                    </div>
+                                    <Badge variant="destructive" class="shrink-0">
+                                        {{ formatDeadline(assignment.deadline_at) }}
+                                    </Badge>
+                                </div>
+                            </div>
+                            <p v-else class="text-sm text-muted-foreground">Tidak ada tugas yang mendekati deadline</p>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Materi Baru -->
+                    <Card>
+                        <CardHeader class="pb-2">
+                            <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                <BookOpen class="size-4" />
+                                Materi Baru
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="todaySection.new_materials.length > 0" class="space-y-3">
+                                <div v-for="material in todaySection.new_materials" :key="material.id">
+                                    <Link href="/siswa/materi" class="text-sm font-medium hover:underline">
+                                        {{ material.title }}
+                                    </Link>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ material.subject }} · {{ material.classroom }} · {{ formatRelativeTime(material.created_at) }}
+                                    </p>
+                                </div>
+                            </div>
+                            <p v-else class="text-sm text-muted-foreground">Tidak ada materi baru minggu ini</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
 
             <div class="grid auto-rows-min gap-4 md:grid-cols-3">
                 <Card>

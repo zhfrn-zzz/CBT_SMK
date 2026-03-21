@@ -14,6 +14,12 @@ enum ExamActivityEventType: string
     case ProctorExtendTime = 'proctor_extend_time';
     case ProctorTerminate = 'proctor_terminate';
     case ProctorInvalidateQuestion = 'proctor_invalidate_question';
+    case ScreenshotAttempt = 'screenshot_attempt';
+    case DevtoolsAttempt = 'devtools_attempt';
+    case DevtoolsOpen = 'devtools_open';
+    case PrintAttempt = 'print_attempt';
+    case CopyPasteAttempt = 'copy_paste_attempt';
+    case KeyboardShortcut = 'keyboard_shortcut';
 
     public function label(): string
     {
@@ -26,6 +32,12 @@ enum ExamActivityEventType: string
             self::ProctorExtendTime => 'Perpanjangan Waktu (Pengawas)',
             self::ProctorTerminate => 'Terminasi (Pengawas)',
             self::ProctorInvalidateQuestion => 'Pembatalan Soal (Pengawas)',
+            self::ScreenshotAttempt => 'Percobaan Screenshot',
+            self::DevtoolsAttempt => 'Percobaan Buka DevTools',
+            self::DevtoolsOpen => 'DevTools Terdeteksi Terbuka',
+            self::PrintAttempt => 'Percobaan Print',
+            self::CopyPasteAttempt => 'Percobaan Copy/Paste',
+            self::KeyboardShortcut => 'Shortcut Keyboard Terblokir',
         };
     }
 }

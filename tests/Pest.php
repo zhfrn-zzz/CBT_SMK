@@ -17,6 +17,12 @@ pest()->extend(TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
 
+// Exclude SingleSessionExam middleware from exam tests — session IDs differ
+// between test requests. The middleware is tested separately in SingleSessionExamTest.
+uses()->beforeEach(function () {
+    $this->withoutMiddleware(\App\Http\Middleware\SingleSessionExam::class);
+})->in('Feature/Exam');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

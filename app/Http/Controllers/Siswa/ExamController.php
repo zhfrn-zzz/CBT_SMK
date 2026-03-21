@@ -18,6 +18,7 @@ use App\Services\Exam\ExamAttemptService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -166,6 +167,9 @@ class ExamController extends Controller
             $request->userAgent(),
         );
 
+        // Lock exam to this session
+        Cache::put("exam_session:{$attempt->id}:session_id", session()->getId(), 86400);
+
         event(new StudentStartedExam($attempt));
 
         $payload = $this->attemptService->buildExamPayload($attempt);
@@ -268,6 +272,9 @@ class ExamController extends Controller
         }
 
         $this->attemptService->submitExam($attempt);
+
+        // Clear exam session lock
+        Cache::forget("exam_session:{$attempt->id}:session_id");
 
         $attempt->refresh();
         event(new StudentSubmittedExam($attempt));

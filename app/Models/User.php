@@ -7,12 +7,14 @@ namespace App\Models;
 use App\Enums\UserRole;
 use App\Traits\Auditable;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
@@ -32,7 +34,15 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'photo_path',
+        'phone',
+        'bio',
     ];
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = ['photo_url'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -60,6 +70,13 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'is_active' => 'boolean',
         ];
+    }
+
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(function () {
+            return $this->photo_path ? Storage::url($this->photo_path) : null;
+        });
     }
 
     public function isAdmin(): bool

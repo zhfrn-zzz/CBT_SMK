@@ -28,6 +28,7 @@ use App\Http\Controllers\Guru\QuestionBankController;
 use App\Http\Controllers\Guru\QuestionController;
 use App\Http\Controllers\Guru\QuestionImportController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\Siswa\AnnouncementController as SiswaAnnouncementController;
 use App\Http\Controllers\Siswa\AssignmentController as SiswaAssignmentController;
 use App\Http\Controllers\Siswa\AttendanceController as SiswaAttendanceController;
@@ -45,6 +46,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return redirect(auth()->user()->dashboardRoute());
     })->name('dashboard');
+
+    // Public profile (accessible by all authenticated users with authorization check)
+    Route::get('profile/{user}', [ProfileViewController::class, 'show'])->name('profile.show');
 
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
@@ -187,9 +191,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('ujian/{ujian}/verify-token', [ExamController::class, 'showVerifyToken'])->name('ujian.verify-token');
         Route::post('ujian/{ujian}/verify-token', [ExamController::class, 'verifyToken']);
         Route::get('ujian/{ujian}/start', [ExamController::class, 'start'])->name('ujian.start');
-        Route::get('ujian/{ujian}/exam', [ExamController::class, 'exam'])->name('ujian.exam');
-        Route::post('ujian/{ujian}/save-answers', [ExamController::class, 'saveAnswers'])->middleware('throttle:exam-save')->name('ujian.save-answers');
-        Route::post('ujian/{ujian}/submit', [ExamController::class, 'submit'])->name('ujian.submit');
+        Route::get('ujian/{ujian}/exam', [ExamController::class, 'exam'])->middleware('single-session-exam')->name('ujian.exam');
+        Route::post('ujian/{ujian}/save-answers', [ExamController::class, 'saveAnswers'])->middleware(['throttle:exam-save', 'single-session-exam'])->name('ujian.save-answers');
+        Route::post('ujian/{ujian}/submit', [ExamController::class, 'submit'])->middleware('single-session-exam')->name('ujian.submit');
 
         // Nilai / Results
         Route::get('nilai', [ExamResultController::class, 'index'])->name('nilai.index');

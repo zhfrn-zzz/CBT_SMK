@@ -102,6 +102,7 @@ export type GuruDashboardStats = {
     class_count: number;
     upcoming_exams: number;
     ungraded_essays: number;
+    pending_submissions: number;
 };
 
 export type SiswaDashboardStats = {
@@ -129,3 +130,90 @@ export type RecentResult = {
     pass_status: 'lulus' | 'remedial' | null;
     submitted_at: string | null;
 };
+
+// ─── Dashboard Today Section Types ──────────────────────────────────────────
+
+export interface DashboardAnnouncement {
+    id: number;
+    title: string;
+    content: string;
+    is_pinned: boolean;
+    published_at: string;
+    user?: { id: number; name: string } | null;
+}
+
+export interface AdminTodaySection {
+    announcements: DashboardAnnouncement[];
+    recentAuditLogs: {
+        id: number;
+        action: string;
+        description: string | null;
+        user: { id: number; name: string; role: string } | null;
+        created_at: string;
+    }[];
+    activeExamAlert: {
+        count: number;
+        names: string[];
+    };
+}
+
+export interface GuruActiveExam {
+    id: number;
+    name: string;
+    subject: string;
+    in_progress_count: number;
+}
+
+export interface GuruPendingGrading {
+    subject: string;
+    count: number;
+}
+
+export interface GuruTodayAttendance {
+    id: number;
+    classroom: string;
+    subject: string;
+    meeting_number: number;
+    is_open: boolean;
+}
+
+export interface GuruTodaySection {
+    announcements: DashboardAnnouncement[];
+    active_exams: GuruActiveExam[];
+    pending_grading: GuruPendingGrading[];
+    today_attendance: GuruTodayAttendance[];
+}
+
+export interface SiswaUpcomingExam {
+    id: number;
+    name: string;
+    subject: string;
+    starts_at: string;
+    ends_at: string | null;
+    status: string;
+    status_label: string;
+}
+
+export interface SiswaDeadlineAssignment {
+    id: number;
+    title: string;
+    subject: string;
+    classroom: string;
+    deadline_at: string;
+}
+
+export interface SiswaNewMaterial {
+    id: number;
+    title: string;
+    subject: string;
+    classroom: string;
+    type: string;
+    created_at: string;
+}
+
+export interface SiswaTodaySection {
+    announcements: DashboardAnnouncement[];
+    upcoming_exams: SiswaUpcomingExam[];
+    deadline_assignments: SiswaDeadlineAssignment[];
+    new_materials: SiswaNewMaterial[];
+}

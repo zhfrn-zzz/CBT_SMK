@@ -19,6 +19,7 @@ import NavigationPanel from '@/components/Exam/NavigationPanel.vue';
 import { useExamState } from '@/composables/useExamState';
 import { useExamTimer } from '@/composables/useExamTimer';
 import { useAutoSave } from '@/composables/useAutoSave';
+import { useExamSecurity } from '@/composables/useExamSecurity';
 import { ChevronLeft, ChevronRight, Clock, Save, Send, AlertTriangle } from 'lucide-vue-next';
 import type { ExamPayload } from '@/types';
 import axios from 'axios';
@@ -57,6 +58,12 @@ const autoSave = useAutoSave({
     onExpired: () => {
         handleAutoSubmit();
     },
+});
+
+// Security hardening
+useExamSecurity({
+    attemptId: props.attempt_id,
+    enabled: props.security_hardening ?? true,
 });
 
 const isSubmitting = ref(false);

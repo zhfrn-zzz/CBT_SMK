@@ -40,7 +40,10 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge(
+                    $request->user()->toArray(),
+                    ['avatar' => $request->user()->photo_url]
+                ) : null,
                 'unread_notifications_count' => $request->user()
                     ? Cache::remember(
                         "user:{$request->user()->id}:unread_notifications",

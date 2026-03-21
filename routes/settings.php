@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\SessionController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('settings/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::delete('settings/profile/photo', [ProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -20,6 +23,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('settings/password', [PasswordController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
+
+    Route::post('settings/logout-other-devices', [SessionController::class, 'logoutOtherDevices'])
+        ->name('session.logout-other-devices');
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
 

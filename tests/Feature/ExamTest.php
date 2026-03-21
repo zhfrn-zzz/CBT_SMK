@@ -20,6 +20,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Redis;
 
 beforeEach(function () {
+    $this->withoutMiddleware(\App\Http\Middleware\SingleSessionExam::class);
+
     $this->guru = User::factory()->guru()->create();
     $this->siswa = User::factory()->siswa()->create();
 

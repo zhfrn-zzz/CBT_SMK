@@ -202,6 +202,7 @@ class ExamAttemptService
             'started_at' => $attempt->started_at->timestamp,
             'server_time' => $now->timestamp,
             'remaining_seconds' => $remaining,
+            'security_hardening' => (bool) config('exam.security_hardening', true),
         ];
     }
 
@@ -520,5 +521,8 @@ class ExamAttemptService
         Redis::del("{$prefix}:answers");
         Redis::del("{$prefix}:flags");
         Redis::del("{$prefix}:last_save");
+
+        // Clear single-session exam lock
+        \Illuminate\Support\Facades\Cache::forget("exam_session:{$attempt->id}:session_id");
     }
 }
