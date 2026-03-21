@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DataExchangeController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\StorageController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Guru\CompetencyController;
 use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
 use App\Http\Controllers\Guru\DiscussionController as GuruDiscussionController;
 use App\Http\Controllers\Guru\ExamSessionController;
+use App\Http\Controllers\Guru\FileManagerController;
 use App\Http\Controllers\Guru\GradingController;
 use App\Http\Controllers\Guru\ItemAnalysisController;
 use App\Http\Controllers\Guru\MaterialController as GuruMaterialController;
@@ -98,6 +100,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Audit Log Export
         Route::get('audit-log/export', [\App\Http\Controllers\Admin\AuditLogController::class, 'export'])->name('audit-log.export');
         Route::get('audit-log/download-export/{filename}', [\App\Http\Controllers\Admin\AuditLogController::class, 'downloadExport'])->name('audit-log.download-export');
+
+        // Storage Management
+        Route::get('storage', [StorageController::class, 'index'])->name('storage.index');
+        Route::get('storage/scan', [StorageController::class, 'scan'])->name('storage.scan');
+        Route::post('storage/cleanup', [StorageController::class, 'cleanup'])->name('storage.cleanup');
     });
 
     // Guru routes
@@ -197,6 +204,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Kalender
         Route::get('kalender', [GuruCalendarController::class, 'index'])->name('kalender.index');
+
+        // File Manager
+        Route::get('file-manager', [FileManagerController::class, 'index'])->name('file-manager.index');
+        Route::delete('file-manager/{type}/{id}', [FileManagerController::class, 'destroy'])->name('file-manager.destroy');
     });
 
     // Siswa routes

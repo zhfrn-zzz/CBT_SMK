@@ -9,6 +9,7 @@ import {
     FileText,
     FolderOpen,
     GraduationCap,
+    HardDrive,
     LayoutGrid,
     Library,
     Megaphone,
@@ -93,6 +94,11 @@ const adminNavItems: NavItem[] = [
         href: '/admin/forum-categories',
         icon: FolderOpen,
     },
+    {
+        title: 'Manajemen Storage',
+        href: '/admin/storage',
+        icon: HardDrive,
+    },
 ];
 
 const guruNavItems: NavItem[] = [
@@ -152,6 +158,11 @@ const guruNavItems: NavItem[] = [
         title: 'Kalender',
         href: '/guru/kalender',
         icon: CalendarDays,
+    },
+    {
+        title: 'File Manager',
+        href: '/guru/file-manager',
+        icon: FolderOpen,
     },
 ];
 

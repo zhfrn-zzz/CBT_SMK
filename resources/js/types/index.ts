@@ -9,3 +9,4 @@ export * from './notification';
 export * from './audit';
 export * from './forum';
 export * from './calendar';
+export * from './storage';

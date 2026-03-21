@@ -1,4 +1,4 @@
-# Agent.md — SMK LMS + CBT System
+# AGENTS.md — SMK LMS + CBT System
 
 Sistem LMS dan CBT untuk SMK. Target: 500+ siswa ujian bersamaan pada server Intel Xeon 20 core, 16GB RAM, HDD.
 Initialized via `laravel new smk-lms --using vue` (official Laravel Vue starter kit).
