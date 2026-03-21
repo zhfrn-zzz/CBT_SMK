@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Requests\Guru;
 
 use App\Models\TeachingAssignment;
+use App\Rules\ValidMimeType;
+use App\Traits\SanitizesHtml;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreAssignmentRequest extends FormRequest
 {
+    use SanitizesHtml;
+
     public function authorize(): bool
     {
         return $this->user()->isGuru();
@@ -22,7 +26,7 @@ class StoreAssignmentRequest extends FormRequest
             'description' => ['required', 'string'],
             'subject_id' => ['required', 'exists:subjects,id'],
             'classroom_id' => ['required', 'exists:classrooms,id'],
-            'file' => ['nullable', 'file', 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,gif,zip,rar', 'max:51200'],
+            'file' => ['nullable', 'file', 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,gif,zip,rar', 'max:51200', new ValidMimeType],
             'deadline_at' => ['required', 'date', 'after:now'],
             'max_score' => ['required', 'numeric', 'min:1', 'max:100'],
             'allow_late_submission' => ['boolean'],
@@ -30,6 +34,13 @@ class StoreAssignmentRequest extends FormRequest
             'submission_type' => ['required', Rule::in(['file', 'text', 'file_or_text'])],
             'is_published' => ['boolean'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('description')) {
+            $this->merge(['description' => $this->sanitizeHtml($this->input('description'))]);
+        }
     }
 
     public function withValidator($validator): void

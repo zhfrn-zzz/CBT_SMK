@@ -38,7 +38,7 @@ use App\Http\Controllers\Siswa\ExamResultController;
 use App\Http\Controllers\Siswa\MaterialController as SiswaMaterialController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
+Route::get('/', [App\Http\Controllers\PublicHomeController::class, 'index'])->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Generic /dashboard → redirect to role-based dashboard
@@ -52,7 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // User management
         Route::resource('users', UserController::class)->except(['show']);
-        Route::post('users/import', [UserImportController::class, 'import'])->name('users.import');
+        Route::post('users/import', [UserImportController::class, 'import'])->middleware('throttle:bulk-import')->name('users.import');
 
         // Academic structure
         Route::resource('academic-years', AcademicYearController::class)->except(['show']);
@@ -77,7 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('data-exchange/export-students', [DataExchangeController::class, 'index'])->name('data-exchange.index');
         Route::get('data-exchange/export-students/download', [DataExchangeController::class, 'exportStudents'])->name('data-exchange.export-students');
         Route::get('data-exchange/template', [DataExchangeController::class, 'downloadTemplate'])->name('data-exchange.template');
-        Route::post('data-exchange/import', [DataExchangeController::class, 'importStudents'])->name('data-exchange.import');
+        Route::post('data-exchange/import', [DataExchangeController::class, 'importStudents'])->middleware('throttle:bulk-import')->name('data-exchange.import');
         Route::post('analytics/export-rapor', [DataExchangeController::class, 'exportRapor'])->name('analytics.export-rapor');
         Route::get('analytics/download-export/{filename}', [DataExchangeController::class, 'downloadExport'])->name('analytics.download-export');
     });
@@ -102,7 +102,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Import soal
         Route::get('bank-soal/{bankSoal}/soal/template-download', [QuestionImportController::class, 'template'])->name('bank-soal.soal.template');
-        Route::post('bank-soal/{bankSoal}/soal/import', [QuestionImportController::class, 'import'])->name('bank-soal.soal.import');
+        Route::post('bank-soal/{bankSoal}/soal/import', [QuestionImportController::class, 'import'])->middleware('throttle:bulk-import')->name('bank-soal.soal.import');
 
         // Ujian / Exam Sessions
         Route::resource('ujian', ExamSessionController::class)
@@ -188,7 +188,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('ujian/{ujian}/verify-token', [ExamController::class, 'verifyToken']);
         Route::get('ujian/{ujian}/start', [ExamController::class, 'start'])->name('ujian.start');
         Route::get('ujian/{ujian}/exam', [ExamController::class, 'exam'])->name('ujian.exam');
-        Route::post('ujian/{ujian}/save-answers', [ExamController::class, 'saveAnswers'])->name('ujian.save-answers');
+        Route::post('ujian/{ujian}/save-answers', [ExamController::class, 'saveAnswers'])->middleware('throttle:exam-save')->name('ujian.save-answers');
         Route::post('ujian/{ujian}/submit', [ExamController::class, 'submit'])->name('ujian.submit');
 
         // Nilai / Results
@@ -227,7 +227,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // API-style routes (for fire-and-forget from exam interface)
     Route::middleware('auth')->prefix('api/exam')->group(function () {
-        Route::post('log-activity', [ExamController::class, 'logActivity'])->name('api.exam.log-activity');
+        Route::post('log-activity', [ExamController::class, 'logActivity'])->middleware('throttle:exam-activity')->name('api.exam.log-activity');
     });
 
     // Notification routes (shared across all roles)

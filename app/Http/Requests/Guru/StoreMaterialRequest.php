@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Requests\Guru;
 
 use App\Models\TeachingAssignment;
+use App\Rules\ValidMimeType;
+use App\Traits\SanitizesHtml;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreMaterialRequest extends FormRequest
 {
+    use SanitizesHtml;
+
     public function authorize(): bool
     {
         return $this->user()->isGuru();
@@ -23,13 +27,20 @@ class StoreMaterialRequest extends FormRequest
             'subject_id' => ['required', 'exists:subjects,id'],
             'classroom_id' => ['required', 'exists:classrooms,id'],
             'type' => ['required', Rule::in(['file', 'video_link', 'text'])],
-            'file' => ['required_if:type,file', 'nullable', 'file', 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,gif', 'max:51200'],
+            'file' => ['required_if:type,file', 'nullable', 'file', 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,gif', 'max:51200', new ValidMimeType],
             'video_url' => ['required_if:type,video_link', 'nullable', 'url', 'regex:/youtube\.com|youtu\.be/'],
             'text_content' => ['required_if:type,text', 'nullable', 'string'],
             'topic' => ['nullable', 'string', 'max:255'],
             'order' => ['nullable', 'integer', 'min:0'],
             'is_published' => ['boolean'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('text_content')) {
+            $this->merge(['text_content' => $this->sanitizeHtml($this->input('text_content'))]);
+        }
     }
 
     public function withValidator($validator): void

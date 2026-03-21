@@ -126,7 +126,7 @@ test('siswa can submit tugas', function () {
     $this->assertDatabaseHas('assignment_submissions', [
         'assignment_id' => $this->assignment->id,
         'user_id' => $this->siswa->id,
-        'content' => 'Jawaban saya untuk tugas ini.',
+        'content' => '<p>Jawaban saya untuk tugas ini.</p>',
         'is_late' => false,
     ]);
 });

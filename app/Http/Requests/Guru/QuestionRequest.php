@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Requests\Guru;
 
 use App\Enums\QuestionType;
+use App\Traits\SanitizesHtml;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class QuestionRequest extends FormRequest
 {
+    use SanitizesHtml;
+
     public function authorize(): bool
     {
         return true;
@@ -48,6 +51,33 @@ class QuestionRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('content')) {
+            $this->merge(['content' => $this->sanitizeHtml($this->input('content'))]);
+        }
+        if ($this->has('explanation')) {
+            $this->merge(['explanation' => $this->sanitizeHtml($this->input('explanation'))]);
+        }
+        if ($this->has('options')) {
+            $options = collect($this->input('options'))->map(function (array $option) {
+                $option['content'] = $this->sanitizePlainText($option['content'] ?? '');
+
+                return $option;
+            })->all();
+            $this->merge(['options' => $options]);
+        }
+        if ($this->has('matching_pairs')) {
+            $pairs = collect($this->input('matching_pairs'))->map(function (array $pair) {
+                $pair['premise'] = $this->sanitizePlainText($pair['premise'] ?? '');
+                $pair['response'] = $this->sanitizePlainText($pair['response'] ?? '');
+
+                return $pair;
+            })->all();
+            $this->merge(['matching_pairs' => $pairs]);
+        }
     }
 
     public function messages(): array

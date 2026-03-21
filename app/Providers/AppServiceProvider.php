@@ -3,8 +3,12 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -15,7 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Use file cache for rate limiting so it works even when Redis is down
+        $this->app->singleton(\Illuminate\Cache\RateLimiter::class, function ($app) {
+            return new \Illuminate\Cache\RateLimiter(
+                $app->make('cache')->store('file')
+            );
+        });
     }
 
     /**
@@ -24,6 +33,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureRateLimiting();
+
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 
     /**
@@ -45,6 +59,21 @@ class AppServiceProvider extends ServiceProvider
                 ->symbols()
                 ->uncompromised()
             : null,
+        );
+    }
+
+    protected function configureRateLimiting(): void
+    {
+        // Exam save-answers: max 6 per minute per user (auto-save ~30s interval)
+        RateLimiter::for('exam-save', fn (Request $request) => Limit::perMinute(6)->by((string) $request->user()?->id)
+        );
+
+        // Exam log-activity: max 30 per minute per user
+        RateLimiter::for('exam-activity', fn (Request $request) => Limit::perMinute(30)->by((string) $request->user()?->id)
+        );
+
+        // Bulk import: max 3 per minute per user
+        RateLimiter::for('bulk-import', fn (Request $request) => Limit::perMinute(3)->by((string) $request->user()?->id)
         );
     }
 }

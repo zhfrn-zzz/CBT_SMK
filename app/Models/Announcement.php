@@ -21,6 +21,7 @@ class Announcement extends Model
         'title',
         'content',
         'is_pinned',
+        'is_public',
         'published_at',
     ];
 
@@ -28,6 +29,7 @@ class Announcement extends Model
     {
         return [
             'is_pinned' => 'boolean',
+            'is_public' => 'boolean',
             'published_at' => 'datetime',
         ];
     }
