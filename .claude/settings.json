@@ -1,6 +1,7 @@
 {
   "enabledPlugins": {
     "laravel-simplifier@laravel": true,
-    "ui-ux-pro-max@ui-ux-pro-max-skill": true
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "performance-optimization@claude-code-workflows": true
   }
 }
