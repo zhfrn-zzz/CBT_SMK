@@ -222,16 +222,27 @@ class ExamController extends Controller
             'flags' => ['sometimes', 'array'],
         ]);
 
-        $attempt = ExamAttempt::where('exam_session_id', $ujian->id)
-            ->where('user_id', $request->user()->id)
-            ->where('status', ExamAttemptStatus::InProgress)
-            ->first();
+        $userId = $request->user()->id;
+        $cacheKey = "active_attempt:{$ujian->id}:{$userId}";
+
+        $attempt = Cache::remember(
+            $cacheKey,
+            300, // 5 min TTL
+            fn () => ExamAttempt::where('exam_session_id', $ujian->id)
+                ->where('user_id', $userId)
+                ->where('status', ExamAttemptStatus::InProgress)
+                ->with('examSession')
+                ->first()
+        );
 
         if (! $attempt) {
+            Cache::forget($cacheKey);
+
             return response()->json(['error' => 'Tidak ada ujian aktif.'], 404);
         }
 
         if ($attempt->isExpired()) {
+            Cache::forget($cacheKey);
             $this->attemptService->submitExam($attempt, true);
 
             return response()->json(['error' => 'Waktu habis.', 'expired' => true], 410);
@@ -273,7 +284,8 @@ class ExamController extends Controller
 
         $this->attemptService->submitExam($attempt);
 
-        // Clear exam session lock
+        // Clear cached attempt + exam session lock
+        Cache::forget("active_attempt:{$ujian->id}:{$request->user()->id}");
         Cache::forget("exam_session:{$attempt->id}:session_id");
 
         $attempt->refresh();
