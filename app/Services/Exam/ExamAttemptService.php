@@ -256,20 +256,28 @@ class ExamAttemptService
         $redisAnswers = Redis::get($redisKey);
 
         DB::transaction(function () use ($attempt, $isForceSubmit, $redisAnswers) {
-            // Persist Redis answers to MySQL
+            // Persist Redis answers to MySQL via batch upsert
             if ($redisAnswers) {
                 $answers = json_decode($redisAnswers, true);
                 if (is_array($answers)) {
+                    $now = now()->toDateTimeString();
+                    $values = [];
+
                     foreach ($answers as $questionId => $answer) {
-                        StudentAnswer::updateOrCreate(
-                            [
-                                'exam_attempt_id' => $attempt->id,
-                                'question_id' => (int) $questionId,
-                            ],
-                            [
-                                'answer' => $answer,
-                                'answered_at' => now(),
-                            ]
+                        $values[] = [
+                            'exam_attempt_id' => $attempt->id,
+                            'question_id' => (int) $questionId,
+                            'answer' => $answer,
+                            'answered_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+
+                    if (! empty($values)) {
+                        StudentAnswer::upsert(
+                            $values,
+                            ['exam_attempt_id', 'question_id'],
+                            ['answer', 'answered_at', 'updated_at']
                         );
                     }
                 }
@@ -287,9 +295,6 @@ class ExamAttemptService
                 }
             }
 
-            // Auto-grade all auto-gradable types
-            $this->autoGrade($attempt);
-
             // Update attempt status
             $attempt->update([
                 'status' => ExamAttemptStatus::Submitted,
@@ -298,6 +303,9 @@ class ExamAttemptService
             ]);
         });
 
+        // Grade async via queue
+        \App\Jobs\GradeExamJob::dispatch($attempt);
+
         // Clear Redis keys
         $this->clearRedisKeys($attempt);
     }
@@ -305,7 +313,7 @@ class ExamAttemptService
     /**
      * Auto-grade all auto-gradable question types.
      */
-    private function autoGrade(ExamAttempt $attempt): void
+    public function autoGrade(ExamAttempt $attempt): void
     {
         $answers = $attempt->answers()->with(['question.options', 'question.matchingPairs', 'question.keywords'])->get();
         $allAutoGraded = true;

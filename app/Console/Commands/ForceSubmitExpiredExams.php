@@ -17,16 +17,18 @@ class ForceSubmitExpiredExams extends Command
 
     public function handle(ExamAttemptService $attemptService): int
     {
-        $expired = ExamAttempt::where('status', ExamAttemptStatus::InProgress)
-            ->with('examSession')
-            ->get()
-            ->filter(fn (ExamAttempt $a) => $a->isExpired());
-
         $count = 0;
-        foreach ($expired as $attempt) {
-            $attemptService->submitExam($attempt, true);
-            $count++;
-        }
+
+        ExamAttempt::where('status', ExamAttemptStatus::InProgress)
+            ->with('examSession')
+            ->chunkById(50, function ($attempts) use ($attemptService, &$count) {
+                foreach ($attempts as $attempt) {
+                    if ($attempt->isExpired()) {
+                        $attemptService->submitExam($attempt, true);
+                        $count++;
+                    }
+                }
+            });
 
         $this->info("Force submitted {$count} expired exam(s).");
 

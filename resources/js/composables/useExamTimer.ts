@@ -27,7 +27,12 @@ export function useExamTimer(initialRemainingSeconds: number) {
             if (remainingSeconds.value <= 0) {
                 stop();
                 isExpired.value = true;
-                onExpireCallback?.();
+
+                // Stagger auto-submit: random 0-30s delay to prevent thundering herd
+                const jitter = Math.floor(Math.random() * 30000);
+                setTimeout(() => {
+                    onExpireCallback?.();
+                }, jitter);
                 return;
             }
             remainingSeconds.value--;

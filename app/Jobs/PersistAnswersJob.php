@@ -60,16 +60,24 @@ class PersistAnswersJob implements ShouldQueue
             return;
         }
 
+        $now = now()->toDateTimeString();
+        $values = [];
+
         foreach ($answers as $questionId => $answer) {
-            StudentAnswer::updateOrCreate(
-                [
-                    'exam_attempt_id' => $attempt->id,
-                    'question_id' => (int) $questionId,
-                ],
-                [
-                    'answer' => $answer,
-                    'answered_at' => now(),
-                ]
+            $values[] = [
+                'exam_attempt_id' => $attempt->id,
+                'question_id' => (int) $questionId,
+                'answer' => $answer,
+                'answered_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (! empty($values)) {
+            StudentAnswer::upsert(
+                $values,
+                ['exam_attempt_id', 'question_id'],
+                ['answer', 'answered_at', 'updated_at']
             );
         }
     }
