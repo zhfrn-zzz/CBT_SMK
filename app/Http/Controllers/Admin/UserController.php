@@ -50,14 +50,19 @@ class UserController extends Controller
                     ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId));
             })
             ->with([
+                // F2.4: Select only needed columns to reduce props size
                 'classrooms' => function ($q) use ($activeYear) {
+                    $q->select('classrooms.id', 'classrooms.name', 'classrooms.department_id');
                     if ($activeYear) {
                         $q->where('academic_year_id', $activeYear->id);
                     }
-                    $q->with('department');
+                    $q->with('department:id,name');
                 },
                 'teachingAssignments' => function ($q) use ($activeYear) {
-                    $q->with(['classroom', 'subject']);
+                    $q->with([
+                        'classroom:id,name',
+                        'subject:id,name',
+                    ]);
                     if ($activeYear) {
                         $q->whereHas('classroom', fn ($cq) => $cq->where('academic_year_id', $activeYear->id));
                     }
@@ -117,11 +122,16 @@ class UserController extends Controller
 
         $departments = Department::select('id', 'name', 'code')->orderBy('name')->get();
 
+        // F2.3: Select only needed columns with safety limit
         $classrooms = Classroom::select('id', 'name', 'academic_year_id', 'department_id')
             ->orderBy('name')
+            ->limit(500)
             ->get();
 
-        $subjects = Subject::select('id', 'name', 'code', 'department_id')->orderBy('name')->get();
+        $subjects = Subject::select('id', 'name', 'code', 'department_id')
+            ->orderBy('name')
+            ->limit(500)
+            ->get();
 
         return Inertia::render('Admin/Users/Create', [
             'roles' => collect(UserRole::cases())->map(fn (UserRole $role) => [

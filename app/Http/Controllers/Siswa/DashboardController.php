@@ -95,17 +95,20 @@ class DashboardController extends Controller
                 ->take(3)
                 ->get();
 
+            // F4.1: Add with('user') to prevent N+1 on serialization
             $recentAnnouncements = Announcement::published()
                 ->forStudent($student)
                 ->pinnedFirst()
+                ->with('user:id,name')
                 ->take(3)
                 ->get();
 
-            // Check attendance today
+            // Check attendance today (F4.3: eager load classroom and subject)
             $todayAttendance = null;
             $todaySession = Attendance::whereIn('classroom_id', $classroomIds)
                 ->where('meeting_date', today())
                 ->where('is_open', true)
+                ->with(['classroom:id,name', 'subject:id,name'])
                 ->first();
 
             if ($todaySession) {

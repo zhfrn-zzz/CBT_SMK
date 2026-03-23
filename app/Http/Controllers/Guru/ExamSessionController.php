@@ -110,16 +110,25 @@ class ExamSessionController extends Controller
         $this->authorize('view', $ujian);
         $this->sessionService->syncStatus($ujian);
 
+        // F2.1: Load only question metadata (no content/options) and count attempts separately
         $ujian->load([
             'subject',
-            'questionBank.questions',
+            'questionBank.questions:id,question_bank_id',
             'classrooms.department',
             'academicYear',
-            'attempts.user',
         ]);
+        $ujian->loadCount('attempts');
+
+        // Load attempts limited to 100 most recent with minimal user fields
+        $attempts = $ujian->attempts()
+            ->with('user:id,name,username')
+            ->latest()
+            ->limit(100)
+            ->get();
 
         return Inertia::render('Guru/Ujian/Show', [
             'examSession' => $ujian,
+            'attempts' => $attempts,
         ]);
     }
 

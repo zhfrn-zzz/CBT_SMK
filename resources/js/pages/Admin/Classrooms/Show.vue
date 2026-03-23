@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,7 @@ const props = defineProps<{
     }[];
     availableTeachers: Pick<User, 'id' | 'name' | 'username'>[];
     availableSubjects: Pick<Subject, 'id' | 'name' | 'code'>[];
+    filters: { student_search: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -56,6 +58,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Kelas', href: '/admin/classrooms' },
     { title: props.classroom.name, href: `/admin/classrooms/${props.classroom.id}` },
 ];
+
+// F2.2: Server-side student search
+const studentSearch = ref(props.filters.student_search ?? '');
+
+const searchStudents = useDebounceFn((value: string) => {
+    router.get(
+        `/admin/classrooms/${props.classroom.id}`,
+        { student_search: value || undefined },
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
+}, 300);
 
 // Student assignment
 const selectedStudents = ref<string[]>([]);
@@ -124,6 +137,14 @@ function removeTeacher(assignmentId: number) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
+                        <!-- F2.2: Search available students (server-side, limit 50) -->
+                        <input
+                            v-model="studentSearch"
+                            type="text"
+                            placeholder="Cari siswa tersedia..."
+                            class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            @input="searchStudents(studentSearch)"
+                        />
                         <!-- Add students -->
                         <div class="flex gap-2">
                             <Select v-model="selectedStudents[0]">

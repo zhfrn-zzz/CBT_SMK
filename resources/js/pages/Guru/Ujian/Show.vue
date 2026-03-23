@@ -34,6 +34,7 @@ import type { BreadcrumbItem, ExamSession, ExamStatus } from '@/types';
 
 const props = defineProps<{
     examSession: ExamSession;
+    attempts: import('@/types').ExamAttempt[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -203,7 +204,7 @@ function copyToken() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p class="text-2xl font-bold">{{ examSession.attempts?.length ?? 0 }}</p>
+                        <p class="text-2xl font-bold">{{ examSession.attempts_count ?? 0 }}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -273,9 +274,14 @@ function copyToken() {
             </Card>
 
             <!-- Daftar Peserta / Attempts -->
-            <Card v-if="examSession.attempts && examSession.attempts.length > 0">
+            <Card v-if="attempts && attempts.length > 0">
                 <CardHeader>
-                    <CardTitle class="text-sm font-medium">Daftar Peserta</CardTitle>
+                    <CardTitle class="text-sm font-medium">
+                        Daftar Peserta
+                        <span v-if="examSession.attempts_count && examSession.attempts_count > attempts.length" class="text-xs font-normal text-muted-foreground ml-1">
+                            (menampilkan {{ attempts.length }} dari {{ examSession.attempts_count }})
+                        </span>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -289,7 +295,7 @@ function copyToken() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="attempt in examSession.attempts" :key="attempt.id">
+                            <TableRow v-for="attempt in attempts" :key="attempt.id">
                                 <TableCell class="font-medium">{{ attempt.user?.name }}</TableCell>
                                 <TableCell>{{ formatDate(attempt.started_at) }}</TableCell>
                                 <TableCell>{{ attempt.submitted_at ? formatDate(attempt.submitted_at) : '-' }}</TableCell>

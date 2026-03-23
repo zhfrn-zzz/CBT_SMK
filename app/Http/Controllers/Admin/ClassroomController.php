@@ -15,6 +15,7 @@ use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -90,23 +91,28 @@ class ClassroomController extends Controller
     /**
      * Show classroom detail with student list + assignment forms.
      */
-    public function show(Classroom $classroom): Response
+    public function show(Request $request, Classroom $classroom): Response
     {
         $classroom->load(['academicYear', 'department', 'students']);
 
         // Get students already in this classroom
         $assignedStudentIds = $classroom->students->pluck('id');
 
-        // Available students (siswa role, not already in this classroom)
+        // F2.2: Available students with limit + server-side search
         $availableStudents = User::where('role', UserRole::Siswa)
             ->where('is_active', true)
             ->whereNotIn('id', $assignedStudentIds)
+            ->when($request->input('student_search'), function ($q, $s) {
+                $q->where(fn ($q) => $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('username', 'like', "%{$s}%"));
+            })
             ->select('id', 'name', 'username')
             ->orderBy('name')
+            ->limit(50)
             ->get();
 
         // Teaching assignments for this classroom
-        $teachingAssignments = \Illuminate\Support\Facades\DB::table('classroom_subject_teacher')
+        $teachingAssignments = DB::table('classroom_subject_teacher')
             ->where('classroom_id', $classroom->id)
             ->join('users', 'classroom_subject_teacher.user_id', '=', 'users.id')
             ->join('subjects', 'classroom_subject_teacher.subject_id', '=', 'subjects.id')
@@ -120,11 +126,12 @@ class ClassroomController extends Controller
             )
             ->get();
 
-        // Available teachers
+        // Available teachers (F2.2: limit to 100)
         $availableTeachers = User::where('role', UserRole::Guru)
             ->where('is_active', true)
             ->select('id', 'name', 'username')
             ->orderBy('name')
+            ->limit(100)
             ->get();
 
         // Available subjects
@@ -138,6 +145,7 @@ class ClassroomController extends Controller
             'teachingAssignments' => $teachingAssignments,
             'availableTeachers' => $availableTeachers,
             'availableSubjects' => $availableSubjects,
+            'filters' => ['student_search' => $request->input('student_search', '')],
         ]);
     }
 
@@ -177,7 +185,7 @@ class ClassroomController extends Controller
         ]);
 
         // Check duplicate
-        $exists = \Illuminate\Support\Facades\DB::table('classroom_subject_teacher')
+        $exists = DB::table('classroom_subject_teacher')
             ->where('classroom_id', $classroom->id)
             ->where('subject_id', $request->input('subject_id'))
             ->where('user_id', $request->input('user_id'))
@@ -187,7 +195,7 @@ class ClassroomController extends Controller
             return back()->with('error', 'Guru sudah ditugaskan untuk mata pelajaran ini di kelas ini.');
         }
 
-        \Illuminate\Support\Facades\DB::table('classroom_subject_teacher')->insert([
+        DB::table('classroom_subject_teacher')->insert([
             'classroom_id' => $classroom->id,
             'subject_id' => $request->input('subject_id'),
             'user_id' => $request->input('user_id'),
@@ -203,7 +211,7 @@ class ClassroomController extends Controller
      */
     public function removeTeacher(Classroom $classroom, int $assignmentId): RedirectResponse
     {
-        \Illuminate\Support\Facades\DB::table('classroom_subject_teacher')
+        DB::table('classroom_subject_teacher')
             ->where('id', $assignmentId)
             ->where('classroom_id', $classroom->id)
             ->delete();

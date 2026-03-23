@@ -222,6 +222,7 @@ const typeLabel = computed(() => {
             v-if="question.media_url"
             :src="question.media_url"
             alt="Media soal"
+            loading="lazy"
             class="max-h-64 rounded-md"
         />
 

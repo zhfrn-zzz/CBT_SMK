@@ -86,7 +86,9 @@ class DashboardController extends Controller
                 ->take(3)
                 ->get();
 
+            // F4.2: Add with('user') to prevent N+1 on serialization
             $recentAnnouncements = Announcement::where('user_id', $guruId)
+                ->with('user:id,name')
                 ->latest()
                 ->take(3)
                 ->get();

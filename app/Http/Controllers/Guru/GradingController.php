@@ -15,6 +15,7 @@ use App\Notifications\NilaiDipublikasiNotification;
 use App\Services\Exam\GradingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -30,32 +31,44 @@ class GradingController extends Controller
      */
     public function index(Request $request): Response
     {
-        $examSessions = ExamSession::where('user_id', $request->user()->id)
-            ->whereIn('status', ['completed', 'active'])
-            ->with(['subject', 'classrooms'])
-            ->withCount([
-                'attempts as total_attempts' => fn ($q) => $q->where('status', '!=', ExamAttemptStatus::InProgress),
-                'attempts as graded_attempts' => fn ($q) => $q->where('is_fully_graded', true),
-            ])
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+        $guruId = $request->user()->id;
+        $page = (int) $request->input('page', 1);
+        $cacheKey = "grading:guru:{$guruId}:page:{$page}";
 
-        // Add ungraded essay count for each session
-        $examSessions->getCollection()->transform(function (ExamSession $session) {
-            $attemptIds = $session->attempts()
-                ->where('status', '!=', ExamAttemptStatus::InProgress)
-                ->pluck('id');
+        // F5.3: Cache grading index with 120s TTL
+        $examSessions = Cache::remember($cacheKey, 120, function () use ($guruId) {
+            $sessions = ExamSession::where('user_id', $guruId)
+                ->whereIn('status', ['completed', 'active'])
+                ->with(['subject', 'classrooms'])
+                ->withCount([
+                    'attempts as total_attempts' => fn ($q) => $q->where('status', '!=', ExamAttemptStatus::InProgress),
+                    'attempts as graded_attempts' => fn ($q) => $q->where('is_fully_graded', true),
+                ])
+                ->latest()
+                ->paginate(15)
+                ->withQueryString();
 
-            $session->ungraded_essays = StudentAnswer::whereIn('exam_attempt_id', $attemptIds)
-                ->whereHas('question', fn ($q) => $q->whereIn('type', [
-                    QuestionType::Esai,
-                    QuestionType::IsianSingkat,
-                ]))
-                ->whereNull('score')
-                ->count();
+            // F3.3: Batch ungraded essay count — single JOIN query replaces N+1 loop
+            $sessionIds = $sessions->getCollection()->pluck('id');
 
-            return $session;
+            $ungradedCounts = StudentAnswer::query()
+                ->join('exam_attempts', 'student_answers.exam_attempt_id', '=', 'exam_attempts.id')
+                ->join('questions', 'student_answers.question_id', '=', 'questions.id')
+                ->whereIn('exam_attempts.exam_session_id', $sessionIds)
+                ->where('exam_attempts.status', '!=', ExamAttemptStatus::InProgress->value)
+                ->whereIn('questions.type', [QuestionType::Esai->value, QuestionType::IsianSingkat->value])
+                ->whereNull('student_answers.score')
+                ->selectRaw('exam_attempts.exam_session_id, COUNT(*) as ungraded_count')
+                ->groupBy('exam_attempts.exam_session_id')
+                ->pluck('ungraded_count', 'exam_session_id');
+
+            $sessions->getCollection()->transform(function (ExamSession $session) use ($ungradedCounts) {
+                $session->ungraded_essays = (int) ($ungradedCounts[$session->id] ?? 0);
+
+                return $session;
+            });
+
+            return $sessions;
         });
 
         return Inertia::render('Guru/Penilaian/Index', [

@@ -255,7 +255,11 @@ class ExamController extends Controller
         );
 
         $answeredCount = count(array_filter($request->input('answers'), fn ($v) => $v !== null && $v !== ''));
-        $totalQuestions = $attempt->attemptQuestions()->count();
+        $totalQuestions = Cache::remember(
+            "attempt:{$attempt->id}:question_count",
+            86400,
+            fn () => $attempt->attemptQuestions()->count()
+        );
 
         event(new AnswerProgressUpdated(
             $ujian->id,
@@ -323,7 +327,15 @@ class ExamController extends Controller
         ]);
 
         $attempt->load('examSession');
-        $totalViolations = ExamActivityLog::where('exam_attempt_id', $attempt->id)->count();
+
+        // F3.2: Redis atomic counter for violations (eliminates DB count per event)
+        $violationKey = "exam:attempt:{$attempt->id}:violations";
+        if (! Cache::has($violationKey)) {
+            $totalViolations = ExamActivityLog::where('exam_attempt_id', $attempt->id)->count();
+            Cache::put($violationKey, $totalViolations, 86400);
+        } else {
+            $totalViolations = (int) Cache::increment($violationKey);
+        }
 
         event(new TabSwitchDetected(
             $attempt->examSession->id,
@@ -338,9 +350,16 @@ class ExamController extends Controller
         if ($request->input('event_type') === 'tab_switch') {
             $maxSwitches = $attempt->examSession->max_tab_switches;
             if ($maxSwitches !== null) {
-                $tabSwitchCount = ExamActivityLog::where('exam_attempt_id', $attempt->id)
-                    ->where('event_type', 'tab_switch')
-                    ->count();
+                // F3.2: Redis atomic counter for tab switches
+                $tabSwitchKey = "exam:attempt:{$attempt->id}:tab_switches";
+                if (! Cache::has($tabSwitchKey)) {
+                    $tabSwitchCount = ExamActivityLog::where('exam_attempt_id', $attempt->id)
+                        ->where('event_type', 'tab_switch')
+                        ->count();
+                    Cache::put($tabSwitchKey, $tabSwitchCount, 86400);
+                } else {
+                    $tabSwitchCount = (int) Cache::increment($tabSwitchKey);
+                }
 
                 $response['tab_switch_count'] = $tabSwitchCount;
                 $response['max_tab_switches'] = $maxSwitches;

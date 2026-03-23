@@ -1,4 +1,5 @@
 import { reactive, computed, watch } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 import type { ExamPayload, ExamQuestion } from '@/types';
 
 export interface ExamState {
@@ -60,16 +61,18 @@ export function useExamState(payload: ExamPayload) {
         tabSwitchCount: 0,
     });
 
-    // Persist to localStorage on every answer change
+    // F6.1: Debounced localStorage write — prevents excessive writes on every keystroke
+    const debouncedSaveAnswers = useDebounceFn((answers: Record<string, string>) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
+        } catch {
+            // localStorage full or unavailable
+        }
+    }, 300);
+
     watch(
         () => ({ ...state.answers }),
-        (answers) => {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
-            } catch {
-                // localStorage full or unavailable
-            }
-        },
+        debouncedSaveAnswers,
         { deep: true }
     );
 

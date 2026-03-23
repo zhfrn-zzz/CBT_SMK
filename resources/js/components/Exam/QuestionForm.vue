@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import TiptapEditor from './TiptapEditor.vue';
+import { computed, defineAsyncComponent } from 'vue';
+
+// F1.1: Lazy-load TiptapEditor — saves ~121 KB gzip for pages that don't use the editor
+const TiptapEditor = defineAsyncComponent(() => import('./TiptapEditor.vue'));
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
