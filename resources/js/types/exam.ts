@@ -251,6 +251,7 @@ export type ExamPayload = {
     started_at: number;
     server_time: number;
     remaining_seconds: number;
+    tab_switch_count?: number;
     security_hardening?: boolean;
 };
 

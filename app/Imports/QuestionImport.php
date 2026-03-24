@@ -24,6 +24,8 @@ class QuestionImport implements ToCollection, WithHeadingRow
 
     public function collection(Collection $rows): void
     {
+        // Lock the question bank to prevent concurrent imports from getting duplicate order numbers
+        $this->questionBank = \App\Models\QuestionBank::lockForUpdate()->find($this->questionBank->id);
         $maxOrder = $this->questionBank->questions()->max('order') ?? 0;
 
         foreach ($rows as $index => $row) {

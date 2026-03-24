@@ -83,8 +83,36 @@ class ExamAttempt extends Model
         return max(0, (int) $remaining);
     }
 
+    /**
+     * Grace period (seconds) to allow submissions near expiration (network latency).
+     */
+    public const SUBMISSION_GRACE_PERIOD = 3;
+
+    /**
+     * Get raw remaining seconds (may be negative).
+     */
+    public function getRawRemainingSeconds(): int
+    {
+        if ($this->status !== ExamAttemptStatus::InProgress) {
+            return 0;
+        }
+
+        $elapsed = (int) $this->started_at->diffInSeconds(now());
+        $total = $this->examSession->duration_minutes * 60;
+
+        return $total - $elapsed;
+    }
+
     public function isExpired(): bool
     {
         return $this->calculateRemainingSeconds() <= 0;
+    }
+
+    /**
+     * Check expiration with grace period for late-arriving submissions.
+     */
+    public function isExpiredWithGrace(): bool
+    {
+        return ($this->getRawRemainingSeconds() + self::SUBMISSION_GRACE_PERIOD) <= 0;
     }
 }

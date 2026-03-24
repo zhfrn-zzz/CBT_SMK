@@ -20,8 +20,19 @@ class StudentImport implements ToCollection, WithHeadingRow, WithValidation
 {
     private array $results = [];
 
+    private array $seenNis = [];
+
     public function collection(Collection $rows): void
     {
+        // Pre-validate: check for within-file duplicate NIS
+        $nisList = $rows->pluck('nis')->filter()->map(fn ($v) => (string) $v);
+        $duplicates = $nisList->duplicates();
+        if ($duplicates->isNotEmpty()) {
+            throw new \RuntimeException(
+                'NIS duplikat ditemukan dalam file: ' . $duplicates->unique()->implode(', ')
+            );
+        }
+
         $activeYear = AcademicYear::active()->first();
 
         // Pre-load departments and classrooms for lookup

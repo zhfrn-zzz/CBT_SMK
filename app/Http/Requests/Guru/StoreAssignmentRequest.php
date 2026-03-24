@@ -26,7 +26,7 @@ class StoreAssignmentRequest extends FormRequest
             'description' => ['required', 'string'],
             'subject_id' => ['required', 'exists:subjects,id'],
             'classroom_id' => ['required', 'exists:classrooms,id'],
-            'file' => ['nullable', 'file', 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,gif,zip,rar', 'max:51200', new ValidMimeType],
+            'file' => ['nullable', 'file', 'min:1', 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,gif,zip,rar', 'max:51200', new ValidMimeType],
             'deadline_at' => ['required', 'date', 'after:now'],
             'max_score' => ['required', 'numeric', 'min:1', 'max:100'],
             'allow_late_submission' => ['boolean'],

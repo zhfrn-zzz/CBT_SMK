@@ -40,12 +40,24 @@ class ValidMimeType implements ValidationRule
             return;
         }
 
+        $originalName = $value->getClientOriginalName();
         $extension = strtolower($value->getClientOriginalExtension());
 
         if (in_array($extension, $this->blockedExtensions, true)) {
             $fail('Tipe file :attribute tidak diizinkan.');
 
             return;
+        }
+
+        // Block double extensions (e.g., .php.jpg, .exe.pdf)
+        $nameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
+        if (str_contains($nameWithoutExt, '.')) {
+            $innerExt = strtolower(pathinfo($nameWithoutExt, PATHINFO_EXTENSION));
+            if (in_array($innerExt, $this->blockedExtensions, true)) {
+                $fail('Tipe file :attribute mengandung ekstensi ganda yang tidak diizinkan.');
+
+                return;
+            }
         }
 
         $detectedMime = $value->getMimeType();

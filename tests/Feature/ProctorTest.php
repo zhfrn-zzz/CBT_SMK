@@ -242,7 +242,7 @@ test('guru can terminate student exam', function () {
     $response->assertSessionHas('success');
 
     $attempt->refresh();
-    expect($attempt->status)->toBe(ExamAttemptStatus::Submitted);
+    expect($attempt->status)->toBe(ExamAttemptStatus::Graded);
     expect($attempt->is_force_submitted)->toBeTrue();
 
     $this->assertDatabaseHas('exam_activity_logs', [

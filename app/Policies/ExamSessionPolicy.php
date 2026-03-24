@@ -11,16 +11,16 @@ class ExamSessionPolicy
 {
     public function view(User $user, ExamSession $examSession): bool
     {
-        return $user->id === $examSession->user_id;
+        return $user->isGuru() && $user->id === $examSession->user_id;
     }
 
     public function update(User $user, ExamSession $examSession): bool
     {
-        return $user->id === $examSession->user_id;
+        return $user->isGuru() && $user->id === $examSession->user_id;
     }
 
     public function delete(User $user, ExamSession $examSession): bool
     {
-        return $user->id === $examSession->user_id;
+        return $user->isGuru() && $user->id === $examSession->user_id;
     }
 }

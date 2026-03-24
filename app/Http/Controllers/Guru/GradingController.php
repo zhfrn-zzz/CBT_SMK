@@ -234,7 +234,15 @@ class GradingController extends Controller
         $request->validate([
             'score' => ['required', 'numeric', 'min:0'],
             'feedback' => ['nullable', 'string', 'max:1000'],
+            'confirm_overwrite' => ['sometimes', 'boolean'],
         ]);
+
+        // Warn if overwriting an existing grade (unless confirmed)
+        if ($answer->score !== null && ! $request->boolean('confirm_overwrite')) {
+            return back()->withErrors([
+                'overwrite' => 'Jawaban ini sudah memiliki nilai (' . number_format((float) $answer->score, 2) . '). Kirim ulang dengan konfirmasi untuk menimpa.',
+            ]);
+        }
 
         $this->gradingService->saveGrade(
             $answer,

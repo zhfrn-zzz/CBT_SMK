@@ -149,9 +149,7 @@ test('submitExam batch upserts Redis answers to MySQL', function () {
     app(ExamAttemptService::class)->submitExam($attempt);
 
     $attempt->refresh();
-    expect($attempt->status)->toBe(ExamAttemptStatus::Submitted);
-
-    // Verify all answers were upserted
+    expect($attempt->status)->toBe(ExamAttemptStatus::Graded);
     foreach ($pgQuestions as $q) {
         $answer = StudentAnswer::where('exam_attempt_id', $attempt->id)
             ->where('question_id', $q->id)

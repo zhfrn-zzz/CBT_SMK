@@ -70,6 +70,16 @@ class QuestionController extends Controller
     {
         $this->authorize('update', $bankSoal);
 
+        // Optimistic locking: check if question was modified since it was loaded
+        if ($request->has('_last_updated_at')) {
+            $lastUpdatedAt = $request->input('_last_updated_at');
+            if ($soal->updated_at->toISOString() !== $lastUpdatedAt) {
+                return back()->withErrors([
+                    'conflict' => 'Soal telah diubah oleh pengguna lain. Silakan muat ulang halaman dan coba lagi.',
+                ]);
+            }
+        }
+
         DB::transaction(function () use ($request, $soal) {
             $soal->update([
                 'type' => $request->validated('type'),

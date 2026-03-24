@@ -7,6 +7,7 @@ namespace App\Services\Exam;
 use App\Enums\ExamAttemptStatus;
 use App\Enums\ExamStatus;
 use App\Enums\QuestionType;
+use App\Models\ExamActivityLog;
 use App\Models\ExamAttempt;
 use App\Models\ExamSession;
 use App\Models\StudentAnswer;
@@ -186,6 +187,11 @@ class ExamAttemptService
             }
         }
 
+        // Get tab switch count for resume
+        $tabSwitchCount = ExamActivityLog::where('exam_attempt_id', $attempt->id)
+            ->where('event_type', 'tab_switch')
+            ->count();
+
         return [
             'attempt_id' => $attempt->id,
             'exam' => [
@@ -202,12 +208,13 @@ class ExamAttemptService
             'started_at' => $attempt->started_at->timestamp,
             'server_time' => $now->timestamp,
             'remaining_seconds' => $remaining,
+            'tab_switch_count' => $tabSwitchCount,
             'security_hardening' => (bool) config('exam.security_hardening', true),
         ];
     }
 
     /**
-     * Save answers to Redis (fast).
+     * Save answers to Redis (fast), with DB fallback.
      */
     public function saveAnswersToRedis(ExamAttempt $attempt, array $answers, array $flags = []): array
     {
@@ -216,13 +223,23 @@ class ExamAttemptService
         $redisFlagKey = "exam:{$session->id}:student:{$attempt->user_id}:flags";
         $lastSaveKey = "exam:{$session->id}:student:{$attempt->user_id}:last_save";
 
-        $ttl = max(3600, $session->ends_at->diffInSeconds(now()) + 86400);
+        try {
+            $ttl = max(3600, $session->ends_at->diffInSeconds(now()) + 86400);
 
-        Redis::setex($redisKey, (int) $ttl, json_encode($answers));
-        Redis::setex($lastSaveKey, (int) $ttl, (string) now()->timestamp);
+            Redis::setex($redisKey, (int) $ttl, json_encode($answers));
+            Redis::setex($lastSaveKey, (int) $ttl, (string) now()->timestamp);
 
-        if (! empty($flags)) {
-            Redis::setex($redisFlagKey, (int) $ttl, json_encode($flags));
+            if (! empty($flags)) {
+                Redis::setex($redisFlagKey, (int) $ttl, json_encode($flags));
+            }
+        } catch (\Throwable $e) {
+            // Redis unavailable — fallback to direct DB write
+            \Illuminate\Support\Facades\Log::warning('Redis auto-save failed, falling back to DB', [
+                'attempt_id' => $attempt->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            $this->saveAnswersToDatabase($attempt, $answers);
         }
 
         // Return server time for client sync
@@ -238,6 +255,33 @@ class ExamAttemptService
             'server_time' => $now->timestamp,
             'remaining_seconds' => $remaining,
         ];
+    }
+
+    /**
+     * Direct DB write fallback when Redis is unavailable.
+     */
+    private function saveAnswersToDatabase(ExamAttempt $attempt, array $answers): void
+    {
+        $now = now()->toDateTimeString();
+        $values = [];
+
+        foreach ($answers as $questionId => $answer) {
+            $values[] = [
+                'exam_attempt_id' => $attempt->id,
+                'question_id' => (int) $questionId,
+                'answer' => $answer,
+                'answered_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (! empty($values)) {
+            StudentAnswer::upsert(
+                $values,
+                ['exam_attempt_id', 'question_id'],
+                ['answer', 'answered_at', 'updated_at']
+            );
+        }
     }
 
     /**
@@ -365,6 +409,7 @@ class ExamAttemptService
             $attempt->update([
                 'score' => round($percentage, 2),
                 'is_fully_graded' => true,
+                'status' => ExamAttemptStatus::Graded,
             ]);
         }
     }

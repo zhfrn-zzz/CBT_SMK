@@ -105,7 +105,7 @@ test('auto-grade gives full score for all correct PG answers', function () {
 
     $attempt->refresh();
 
-    expect($attempt->status)->toBe(ExamAttemptStatus::Submitted);
+    expect($attempt->status)->toBe(ExamAttemptStatus::Graded);
     expect($attempt->is_fully_graded)->toBeTrue();
     expect((float) $attempt->score)->toBe(100.0);
 
@@ -176,7 +176,7 @@ test('auto-grade gives zero for all wrong answers', function () {
 
     $attempt->refresh();
 
-    expect($attempt->status)->toBe(ExamAttemptStatus::Submitted);
+    expect($attempt->status)->toBe(ExamAttemptStatus::Graded);
     expect($attempt->is_fully_graded)->toBeTrue();
     expect((float) $attempt->score)->toBe(0.0);
 
@@ -247,7 +247,7 @@ test('auto-grade gives partial score for mix correct and wrong', function () {
 
     $attempt->refresh();
 
-    expect($attempt->status)->toBe(ExamAttemptStatus::Submitted);
+    expect($attempt->status)->toBe(ExamAttemptStatus::Graded);
     expect($attempt->is_fully_graded)->toBeTrue();
     expect((float) $attempt->score)->toBe(50.0);
 });

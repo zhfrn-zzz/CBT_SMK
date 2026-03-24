@@ -173,8 +173,14 @@ function requestFullscreen() {
 }
 
 // Submit handlers
+const submitIdempotencyKey = ref('');
+
 async function handleSubmit() {
+    if (isSubmitting.value) return;
     isSubmitting.value = true;
+
+    // Generate idempotency key to prevent duplicate processing
+    submitIdempotencyKey.value = crypto.randomUUID();
 
     // Force save before submit
     await autoSave.forceSave();
@@ -184,6 +190,7 @@ async function handleSubmit() {
     clearLocalStorage();
 
     router.post(`/siswa/ujian/${props.exam.id}/submit`, {}, {
+        headers: { 'X-Idempotency-Key': submitIdempotencyKey.value },
         onFinish: () => { isSubmitting.value = false; },
     });
 }
@@ -250,7 +257,7 @@ function handleToggleFlag() {
                 <!-- Submit Button -->
                 <AlertDialog>
                     <AlertDialogTrigger as-child>
-                        <Button size="sm" :disabled="isSubmitting">
+                        <Button size="sm" :disabled="isSubmitting" :aria-disabled="isSubmitting">
                             <Send class="size-4" />
                             <span class="hidden sm:inline">Kumpulkan</span>
                         </Button>

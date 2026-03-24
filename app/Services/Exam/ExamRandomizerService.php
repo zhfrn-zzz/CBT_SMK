@@ -19,6 +19,10 @@ class ExamRandomizerService
     {
         $questions = $this->getQuestions($examSession);
 
+        if ($questions->isEmpty()) {
+            throw new \RuntimeException('Tidak ada soal tersedia untuk ujian ini. Pastikan bank soal memiliki soal.');
+        }
+
         if ($examSession->is_randomize_questions) {
             $questions = $questions->shuffle();
         }
@@ -53,9 +57,11 @@ class ExamRandomizerService
 
         $allQuestions = $query->get();
 
-        // Jika pool_count di-set, ambil subset random
-        if ($examSession->pool_count && $examSession->pool_count < $allQuestions->count()) {
-            return $allQuestions->random($examSession->pool_count);
+        // Jika pool_count di-set, ambil subset random (clamp to available)
+        if ($examSession->pool_count && $allQuestions->isNotEmpty()) {
+            $poolCount = min($examSession->pool_count, $allQuestions->count());
+
+            return $allQuestions->random($poolCount);
         }
 
         return $allQuestions;

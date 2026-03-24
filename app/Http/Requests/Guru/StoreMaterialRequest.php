@@ -27,7 +27,7 @@ class StoreMaterialRequest extends FormRequest
             'subject_id' => ['required', 'exists:subjects,id'],
             'classroom_id' => ['required', 'exists:classrooms,id'],
             'type' => ['required', Rule::in(['file', 'video_link', 'text'])],
-            'file' => ['required_if:type,file', 'nullable', 'file', 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,gif', 'max:51200', new ValidMimeType],
+            'file' => ['required_if:type,file', 'nullable', 'file', 'min:1', 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,gif', 'max:51200', new ValidMimeType],
             'video_url' => ['required_if:type,video_link', 'nullable', 'url', 'regex:/youtube\.com|youtu\.be/'],
             'text_content' => ['required_if:type,text', 'nullable', 'string'],
             'topic' => ['nullable', 'string', 'max:255'],

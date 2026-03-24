@@ -167,6 +167,17 @@ class ExamController extends Controller
             $request->userAgent(),
         );
 
+        // Populate device fingerprint from multiple signals
+        $fingerprintParts = [
+            $request->ip(),
+            $request->userAgent(),
+            $request->header('Accept-Language', ''),
+            $request->header('Accept-Encoding', ''),
+        ];
+        $attempt->update([
+            'device_fingerprint' => hash('sha256', implode('|', $fingerprintParts)),
+        ]);
+
         // Lock exam to this session (both cache and encrypted session for tamper-proof storage)
         $sessionId = session()->getId();
         Cache::put("exam_session:{$attempt->id}:session_id", $sessionId, 86400);
@@ -243,7 +254,7 @@ class ExamController extends Controller
             return response()->json(['error' => 'Tidak ada ujian aktif.'], 404);
         }
 
-        if ($attempt->isExpired()) {
+        if ($attempt->isExpiredWithGrace()) {
             Cache::forget($cacheKey);
             $this->attemptService->submitExam($attempt, true);
 
@@ -403,6 +414,19 @@ class ExamController extends Controller
         // Check user agent match (basic browser fingerprint)
         if ($attempt->user_agent && $currentAgent && $attempt->user_agent !== substr($currentAgent, 0, 500)) {
             return 'Akses ditolak: Anda harus menggunakan browser yang sama saat memulai ujian. Browser berbeda terdeteksi.';
+        }
+
+        // Check device fingerprint
+        if ($attempt->device_fingerprint) {
+            $currentFingerprint = hash('sha256', implode('|', [
+                $currentIp,
+                $currentAgent,
+                $request->header('Accept-Language', ''),
+                $request->header('Accept-Encoding', ''),
+            ]));
+            if ($currentFingerprint !== $attempt->device_fingerprint) {
+                return 'Akses ditolak: Sidik jari perangkat tidak cocok. Gunakan perangkat yang sama saat memulai ujian.';
+            }
         }
 
         return null;

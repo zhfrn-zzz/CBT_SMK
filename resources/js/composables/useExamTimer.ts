@@ -50,9 +50,16 @@ export function useExamTimer(initialRemainingSeconds: number) {
      * Sync with server time. If difference > 3 seconds, use server value.
      */
     function syncWithServer(serverRemainingSeconds: number) {
-        const diff = Math.abs(remainingSeconds.value - serverRemainingSeconds);
+        const clamped = Math.max(0, serverRemainingSeconds);
+        const diff = Math.abs(remainingSeconds.value - clamped);
         if (diff > 3) {
-            remainingSeconds.value = serverRemainingSeconds;
+            remainingSeconds.value = clamped;
+        }
+        // If already expired, fire immediately without jitter
+        if (clamped <= 0 && !isExpired.value) {
+            stop();
+            isExpired.value = true;
+            onExpireCallback?.();
         }
     }
 

@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class PersistAnswersJob implements ShouldQueue
@@ -46,7 +47,12 @@ class PersistAnswersJob implements ShouldQueue
         }
 
         $answers = json_decode($answersJson, true);
-        if (! is_array($answers)) {
+        if (! is_array($answers) || empty($answers)) {
+            Log::warning('PersistAnswersJob: corrupted Redis data', [
+                'key' => $key,
+                'raw_data' => is_string($answersJson) ? mb_substr($answersJson, 0, 200) : null,
+            ]);
+
             return;
         }
 

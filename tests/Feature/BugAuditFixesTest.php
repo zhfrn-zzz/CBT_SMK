@@ -214,13 +214,13 @@ test('[2.1] submitExam handles already-submitted attempt gracefully', function (
     $service->submitExam($attempt);
 
     $attempt->refresh();
-    expect($attempt->status)->toBe(ExamAttemptStatus::Submitted);
+    expect($attempt->status)->toBe(ExamAttemptStatus::Graded);
     expect($attempt->submitted_at)->not->toBeNull();
 
     // Second submit should be a no-op
     $service->submitExam($attempt);
     $attempt->refresh();
-    expect($attempt->status)->toBe(ExamAttemptStatus::Submitted);
+    expect($attempt->status)->toBe(ExamAttemptStatus::Graded);
 });
 
 test('[2.1] submitExam code uses lockForUpdate within transaction', function () {

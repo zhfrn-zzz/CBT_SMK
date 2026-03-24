@@ -75,8 +75,11 @@ class AssignmentController extends Controller
             abort(403);
         }
 
-        // Prevent re-submit if already graded
-        $existing = $assignment->submissions()->where('user_id', $student->id)->first();
+        // Pessimistic lock: prevent re-submit if graded between check and submit
+        $existing = $assignment->submissions()
+            ->where('user_id', $student->id)
+            ->lockForUpdate()
+            ->first();
         if ($existing && $existing->graded_at) {
             return back()->withErrors(['submit' => 'Tugas sudah dinilai, tidak bisa diubah.']);
         }

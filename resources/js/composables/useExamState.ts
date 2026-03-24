@@ -58,7 +58,7 @@ export function useExamState(payload: ExamPayload) {
         answers: mergedAnswers,
         flaggedQuestions: mergedFlags,
         currentQuestionIndex: 0,
-        tabSwitchCount: 0,
+        tabSwitchCount: payload.tab_switch_count ?? 0,
     });
 
     // F6.1: Debounced localStorage write — prevents excessive writes on every keystroke

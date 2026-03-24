@@ -28,6 +28,7 @@ class SubmitAssignmentRequest extends FormRequest
                 'required_if:type,file',
                 'nullable',
                 'file',
+                'min:1',
                 'mimes:pdf,docx,pptx,doc,ppt,xls,xlsx,jpg,jpeg,png,zip,rar',
                 'max:25600',
                 new ValidMimeType,
