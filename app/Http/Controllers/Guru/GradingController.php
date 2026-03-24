@@ -144,6 +144,10 @@ class GradingController extends Controller
     {
         $this->authorize('view', $examSession);
 
+        if ($attempt->exam_session_id !== $examSession->id) {
+            abort(404);
+        }
+
         $attempt->load('user');
 
         $answers = $attempt->answers()
@@ -223,6 +227,10 @@ class GradingController extends Controller
     {
         $this->authorize('view', $examSession);
 
+        if ($answer->attempt->exam_session_id !== $examSession->id) {
+            abort(404);
+        }
+
         $request->validate([
             'score' => ['required', 'numeric', 'min:0'],
             'feedback' => ['nullable', 'string', 'max:1000'],
@@ -279,6 +287,10 @@ class GradingController extends Controller
     public function activityLog(ExamSession $examSession, ExamAttempt $attempt): Response
     {
         $this->authorize('view', $examSession);
+
+        if ($attempt->exam_session_id !== $examSession->id) {
+            abort(404);
+        }
 
         $attempt->load('user');
 

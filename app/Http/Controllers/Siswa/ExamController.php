@@ -167,8 +167,10 @@ class ExamController extends Controller
             $request->userAgent(),
         );
 
-        // Lock exam to this session
-        Cache::put("exam_session:{$attempt->id}:session_id", session()->getId(), 86400);
+        // Lock exam to this session (both cache and encrypted session for tamper-proof storage)
+        $sessionId = session()->getId();
+        Cache::put("exam_session:{$attempt->id}:session_id", $sessionId, 86400);
+        session()->put("exam_lock:{$attempt->id}", $sessionId);
 
         event(new StudentStartedExam($attempt));
 

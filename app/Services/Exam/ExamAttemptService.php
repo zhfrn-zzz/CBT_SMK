@@ -245,17 +245,26 @@ class ExamAttemptService
      */
     public function submitExam(ExamAttempt $attempt, bool $isForceSubmit = false): void
     {
-        if ($attempt->status !== ExamAttemptStatus::InProgress) {
-            return;
-        }
-
         $session = $attempt->examSession;
 
-        // Get answers from Redis first
+        // Get answers from Redis first (before transaction to avoid holding lock)
         $redisKey = "exam:{$session->id}:student:{$attempt->user_id}:answers";
         $redisAnswers = Redis::get($redisKey);
 
-        DB::transaction(function () use ($attempt, $isForceSubmit, $redisAnswers) {
+        $redisFlagKey = "exam:{$session->id}:student:{$attempt->user_id}:flags";
+        $redisFlags = Redis::get($redisFlagKey);
+
+        $submitted = DB::transaction(function () use ($attempt, $isForceSubmit, $redisAnswers, $redisFlags) {
+            // Pessimistic lock: atomic check-and-update to prevent double-submit
+            $locked = ExamAttempt::lockForUpdate()
+                ->where('id', $attempt->id)
+                ->where('status', ExamAttemptStatus::InProgress)
+                ->first();
+
+            if (! $locked) {
+                return false;
+            }
+
             // Persist Redis answers to MySQL via batch upsert
             if ($redisAnswers) {
                 $answers = json_decode($redisAnswers, true);
@@ -265,7 +274,7 @@ class ExamAttemptService
 
                     foreach ($answers as $questionId => $answer) {
                         $values[] = [
-                            'exam_attempt_id' => $attempt->id,
+                            'exam_attempt_id' => $locked->id,
                             'question_id' => (int) $questionId,
                             'answer' => $answer,
                             'answered_at' => $now,
@@ -284,24 +293,31 @@ class ExamAttemptService
             }
 
             // Persist flags
-            $redisFlagKey = "exam:{$attempt->examSession->id}:student:{$attempt->user_id}:flags";
-            $redisFlags = Redis::get($redisFlagKey);
             if ($redisFlags) {
                 $flags = json_decode($redisFlags, true);
                 if (is_array($flags)) {
-                    StudentAnswer::where('exam_attempt_id', $attempt->id)
+                    StudentAnswer::where('exam_attempt_id', $locked->id)
                         ->whereIn('question_id', $flags)
                         ->update(['is_flagged' => true]);
                 }
             }
 
             // Update attempt status
-            $attempt->update([
+            $locked->update([
                 'status' => ExamAttemptStatus::Submitted,
                 'submitted_at' => now(),
                 'is_force_submitted' => $isForceSubmit,
             ]);
+
+            // Sync the original model
+            $attempt->refresh();
+
+            return true;
         });
+
+        if (! $submitted) {
+            return;
+        }
 
         // Grade async via queue
         \App\Jobs\GradeExamJob::dispatch($attempt);

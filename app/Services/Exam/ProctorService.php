@@ -141,19 +141,25 @@ class ProctorService
      */
     public function terminate(ExamAttempt $attempt, User $proctorUser, string $reason = 'Diterminasi oleh pengawas'): void
     {
-        if ($attempt->status !== ExamAttemptStatus::InProgress) {
+        // Pessimistic lock: ensure status is still InProgress atomically
+        $locked = ExamAttempt::lockForUpdate()
+            ->where('id', $attempt->id)
+            ->where('status', ExamAttemptStatus::InProgress)
+            ->first();
+
+        if (! $locked) {
             return;
         }
 
         // Log the override before submit
         ExamActivityLog::create([
-            'exam_attempt_id' => $attempt->id,
+            'exam_attempt_id' => $locked->id,
             'event_type' => 'proctor_terminate',
             'description' => "Guru {$proctorUser->name}: {$reason}",
             'created_at' => now(),
         ]);
 
-        $this->attemptService->submitExam($attempt, true);
+        $this->attemptService->submitExam($locked, true);
         $attempt->refresh();
 
         // Broadcast to proctor channel

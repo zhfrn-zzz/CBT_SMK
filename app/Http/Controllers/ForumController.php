@@ -142,8 +142,13 @@ class ForumController extends Controller
         return back()->with('success', 'Balasan berhasil dihapus.');
     }
 
-    public function togglePin(ForumThread $thread): RedirectResponse
+    public function togglePin(ForumThread $thread, Request $request): RedirectResponse
     {
+        $user = $request->user();
+        if (! $user->isAdmin() && ! $user->isGuru()) {
+            abort(403);
+        }
+
         $thread->update(['is_pinned' => ! $thread->is_pinned]);
 
         $message = $thread->is_pinned ? 'Thread di-pin.' : 'Thread di-unpin.';
@@ -151,8 +156,13 @@ class ForumController extends Controller
         return back()->with('success', $message);
     }
 
-    public function toggleLock(ForumThread $thread): RedirectResponse
+    public function toggleLock(ForumThread $thread, Request $request): RedirectResponse
     {
+        $user = $request->user();
+        if (! $user->isAdmin() && ! $user->isGuru()) {
+            abort(403);
+        }
+
         $thread->update(['is_locked' => ! $thread->is_locked]);
 
         $message = $thread->is_locked ? 'Thread dikunci.' : 'Thread dibuka.';
