@@ -35,16 +35,22 @@ class AssignmentPolicy
 
     public function update(User $user, Assignment $assignment): bool
     {
-        return $user->isGuru() && $user->id === $assignment->user_id;
+        return $user->isGuru()
+            && $user->id === $assignment->user_id
+            && $user->teachingClassrooms()->where('classrooms.id', $assignment->classroom_id)->exists();
     }
 
     public function delete(User $user, Assignment $assignment): bool
     {
-        return $user->isGuru() && $user->id === $assignment->user_id;
+        return $user->isGuru()
+            && $user->id === $assignment->user_id
+            && $user->teachingClassrooms()->where('classrooms.id', $assignment->classroom_id)->exists();
     }
 
     public function grade(User $user, Assignment $assignment): bool
     {
-        return $user->isGuru() && $user->id === $assignment->user_id;
+        return $user->isGuru()
+            && $user->id === $assignment->user_id
+            && $user->teachingClassrooms()->where('classrooms.id', $assignment->classroom_id)->exists();
     }
 }

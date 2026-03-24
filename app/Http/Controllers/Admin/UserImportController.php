@@ -36,7 +36,8 @@ class UserImportController extends Controller
             $errors = [];
 
             foreach ($failures as $failure) {
-                $errors[] = "Baris {$failure->row()}: ".implode(', ', $failure->errors());
+                $sanitizedErrors = array_map(fn ($err) => htmlspecialchars($err, ENT_QUOTES, 'UTF-8'), $failure->errors());
+                $errors[] = "Baris {$failure->row()}: ".implode(', ', $sanitizedErrors);
             }
 
             return back()->with('error', implode("\n", $errors));

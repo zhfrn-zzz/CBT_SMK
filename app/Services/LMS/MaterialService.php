@@ -92,6 +92,12 @@ class MaterialService
 
     public function markComplete(Material $material, User $student): MaterialProgress
     {
+        // Verify student belongs to the material's classroom
+        $inClassroom = $student->classrooms()->where('classrooms.id', $material->classroom_id)->exists();
+        if (! $inClassroom) {
+            throw new \RuntimeException('Anda tidak terdaftar di kelas ini.');
+        }
+
         $progress = MaterialProgress::firstOrNew([
             'material_id' => $material->id,
             'user_id' => $student->id,

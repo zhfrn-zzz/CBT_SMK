@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Enums\ExamAttemptStatus;
 use App\Models\ExamAttempt;
 use App\Services\Exam\ExamAttemptService;
 use Illuminate\Bus\Queueable;
@@ -26,6 +27,11 @@ class GradeExamJob implements ShouldQueue
 
     public function handle(ExamAttemptService $attemptService): void
     {
+        // Idempotency: skip if already graded
+        if ($this->attempt->status === ExamAttemptStatus::Graded) {
+            return;
+        }
+
         $attemptService->autoGrade($this->attempt);
     }
 }

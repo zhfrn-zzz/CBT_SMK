@@ -15,9 +15,9 @@ class ExamRandomizerService
      *
      * @return Collection<int, array{question_id: int, order: int, option_order: array|null}>
      */
-    public function generateQuestionSet(ExamSession $examSession): Collection
+    public function generateQuestionSet(ExamSession $examSession, ?int $studentId = null): Collection
     {
-        $questions = $this->getQuestions($examSession);
+        $questions = $this->getQuestions($examSession, $studentId);
 
         if ($questions->isEmpty()) {
             throw new \RuntimeException('Tidak ada soal tersedia untuk ujian ini. Pastikan bank soal memiliki soal.');
@@ -44,8 +44,9 @@ class ExamRandomizerService
 
     /**
      * Ambil soal dari bank. Jika pool_count di-set, ambil subset random.
+     * Uses deterministic seed (exam_session_id + student_id) for reproducibility.
      */
-    private function getQuestions(ExamSession $examSession): Collection
+    private function getQuestions(ExamSession $examSession, ?int $studentId = null): Collection
     {
         // Jika ada soal yang dipilih manual di exam_session_questions, gunakan itu
         if ($examSession->questions()->count() > 0) {
@@ -60,6 +61,14 @@ class ExamRandomizerService
         // Jika pool_count di-set, ambil subset random (clamp to available)
         if ($examSession->pool_count && $allQuestions->isNotEmpty()) {
             $poolCount = min($examSession->pool_count, $allQuestions->count());
+
+            // Deterministic seed per student for reproducibility
+            if ($studentId) {
+                $seed = crc32("{$examSession->id}:{$studentId}");
+                $allQuestions = $allQuestions->shuffle($seed);
+
+                return $allQuestions->take($poolCount);
+            }
 
             return $allQuestions->random($poolCount);
         }

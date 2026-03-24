@@ -23,7 +23,11 @@ class ForceSubmitExpiredExams extends Command
             ->with('examSession')
             ->chunkById(50, function ($attempts) use ($attemptService, &$count) {
                 foreach ($attempts as $attempt) {
-                    if ($attempt->isExpired()) {
+                    // Check both duration-based expiry and session end time
+                    $isExpiredByDuration = $attempt->isExpired();
+                    $isExpiredBySession = $attempt->examSession->ends_at && now()->gt($attempt->examSession->ends_at);
+
+                    if ($isExpiredByDuration || $isExpiredBySession) {
                         $attemptService->submitExam($attempt, true);
                         $count++;
                     }

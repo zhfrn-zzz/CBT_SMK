@@ -25,11 +25,18 @@ export function useAutoSave(options: AutoSaveOptions) {
     const lastSavedAt = ref<Date | null>(null);
     const saveError = ref<string | null>(null);
     let intervalId: ReturnType<typeof setInterval> | null = null;
+    let retryTimeoutId: ReturnType<typeof setTimeout> | null = null;
     let retryCount = 0;
     const MAX_RETRIES = 3;
 
     async function save() {
         if (isSaving.value) return;
+
+        // Clear any pending retry to prevent overlap with scheduled save
+        if (retryTimeoutId) {
+            clearTimeout(retryTimeoutId);
+            retryTimeoutId = null;
+        }
 
         const answers = getAnswers();
         const flags = getFlags();
@@ -62,8 +69,8 @@ export function useAutoSave(options: AutoSaveOptions) {
             saveError.value = `Gagal menyimpan. Percobaan ${retryCount}/${MAX_RETRIES}`;
 
             if (retryCount < MAX_RETRIES) {
-                // Retry in 10 seconds
-                setTimeout(() => save(), 10000);
+                // Retry in 10 seconds (cleared if scheduled save fires first)
+                retryTimeoutId = setTimeout(() => save(), 10000);
             } else {
                 saveError.value = 'Gagal menyimpan jawaban. Periksa koneksi internet Anda.';
             }
@@ -87,6 +94,10 @@ export function useAutoSave(options: AutoSaveOptions) {
         if (intervalId) {
             clearInterval(intervalId);
             intervalId = null;
+        }
+        if (retryTimeoutId) {
+            clearTimeout(retryTimeoutId);
+            retryTimeoutId = null;
         }
     }
 

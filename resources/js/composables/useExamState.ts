@@ -35,11 +35,16 @@ export function useExamState(payload: ExamPayload) {
         // ignore parse errors
     }
 
-    // Merge: server answers take precedence, then localStorage
-    const mergedAnswers: Record<string, string> = {
-        ...storedAnswers,
-        ...(payload.saved_answers as Record<string, string>),
-    };
+    // Merge: localStorage preserves recent unsaved edits, server fills in the rest
+    const serverAnswers = payload.saved_answers as Record<string, string>;
+    const mergedAnswers: Record<string, string> = { ...serverAnswers };
+
+    // localStorage answers take precedence (they may contain unsaved edits)
+    for (const [key, value] of Object.entries(storedAnswers)) {
+        if (value !== null && value !== undefined && value !== '') {
+            mergedAnswers[key] = value;
+        }
+    }
 
     const mergedFlags = new Set<number>([
         ...storedFlags,

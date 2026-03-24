@@ -76,6 +76,12 @@ const tabWarningMax = ref<number | null>(props.exam.max_tab_switches);
 
 // Start timer and auto-save
 onMounted(() => {
+    // Guard against browser back button returning to stale exam page
+    if (props.remaining_seconds <= 0) {
+        router.visit('/siswa/ujian', { replace: true });
+        return;
+    }
+
     timer.start();
     autoSave.start();
 

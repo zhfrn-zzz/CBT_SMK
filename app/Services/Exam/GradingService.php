@@ -164,7 +164,7 @@ class GradingService
                 $attempt->user->username,
                 $attempt->started_at?->format('Y-m-d H:i'),
                 $attempt->submitted_at?->format('Y-m-d H:i'),
-                $attempt->score !== null ? number_format((float) $attempt->score, 2) : '-',
+                $attempt->score !== null ? number_format((float) $attempt->score, 2, '.', '') : '-',
                 $status,
                 $attempt->is_fully_graded ? 'Ya' : 'Belum',
             ]);

@@ -123,9 +123,9 @@ class AnalyticsService
             ->map(fn ($row) => [
                 'classroom_id' => $row->classroom_id,
                 'classroom_name' => $row->classroom_name,
-                'avg_score' => round((float) $row->avg_score, 2),
-                'max_score' => round((float) $row->max_score, 2),
-                'min_score' => round((float) $row->min_score, 2),
+                'avg_score' => $row->avg_score !== null ? round((float) $row->avg_score, 2) : 0,
+                'max_score' => $row->max_score !== null ? round((float) $row->max_score, 2) : 0,
+                'min_score' => $row->min_score !== null ? round((float) $row->min_score, 2) : 0,
                 'student_count' => (int) $row->student_count,
                 'exam_count' => (int) $row->exam_count,
             ])->toArray();

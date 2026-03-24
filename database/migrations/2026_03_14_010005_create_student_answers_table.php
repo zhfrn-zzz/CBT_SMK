@@ -23,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['exam_attempt_id', 'question_id']);
+            $table->unique(['exam_attempt_id', 'question_id'], 'uniq_attempt_question');
         });
     }
 

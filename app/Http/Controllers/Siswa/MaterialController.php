@@ -41,7 +41,7 @@ class MaterialController extends Controller
             // Verify student belongs to classroom
             $inClassroom = $student->classrooms()->where('classrooms.id', $classroomId)->exists();
             if ($inClassroom) {
-                $materials = Material::with(['user', 'subject'])
+                $materials = Material::with(['user', 'subject', 'progress' => fn ($q) => $q->where('user_id', $student->id)])
                     ->where('classroom_id', $classroomId)
                     ->where('subject_id', $subjectId)
                     ->published()
@@ -49,9 +49,8 @@ class MaterialController extends Controller
                     ->orderBy('order')
                     ->get();
 
-                $progress = MaterialProgress::where('user_id', $student->id)
-                    ->whereIn('material_id', $materials->pluck('id'))
-                    ->get()
+                $progress = $materials->pluck('progress')
+                    ->flatten()
                     ->keyBy('material_id');
 
                 $topics = $materials->pluck('topic')->filter()->unique()->values();

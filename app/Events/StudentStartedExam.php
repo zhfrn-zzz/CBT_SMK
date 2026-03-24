@@ -30,7 +30,6 @@ class StudentStartedExam implements ShouldBroadcast
         return [
             'attempt_id' => $this->attempt->id,
             'user_id' => $this->attempt->user_id,
-            'user_name' => $this->attempt->user->name,
             'started_at' => $this->attempt->started_at->toISOString(),
         ];
     }

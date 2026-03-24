@@ -21,16 +21,21 @@ class DiscussionReply extends Model
     protected static function booted(): void
     {
         static::created(function (self $reply) {
-            $reply->thread()->increment('reply_count');
-            $reply->thread()->update(['last_reply_at' => $reply->created_at]);
+            $thread = $reply->thread;
+            \Illuminate\Support\Facades\DB::transaction(function () use ($reply, $thread) {
+                $thread->increment('reply_count');
+                $thread->update(['last_reply_at' => $reply->created_at]);
+            });
         });
 
         static::deleted(function (self $reply) {
             $thread = $reply->thread;
             if ($thread) {
-                $thread->decrement('reply_count');
-                $lastReply = $thread->replies()->latest()->first();
-                $thread->update(['last_reply_at' => $lastReply?->created_at]);
+                \Illuminate\Support\Facades\DB::transaction(function () use ($thread) {
+                    $thread->decrement('reply_count');
+                    $lastReply = $thread->replies()->latest()->first();
+                    $thread->update(['last_reply_at' => $lastReply?->created_at]);
+                });
             }
         });
     }

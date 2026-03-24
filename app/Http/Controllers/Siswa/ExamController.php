@@ -180,7 +180,8 @@ class ExamController extends Controller
 
         // Lock exam to this session (both cache and encrypted session for tamper-proof storage)
         $sessionId = session()->getId();
-        Cache::put("exam_session:{$attempt->id}:session_id", $sessionId, 86400);
+        $ttl = $ujian->duration_minutes * 60 + 3600;
+        Cache::put("exam_session:{$attempt->id}:session_id", $sessionId, $ttl);
         session()->put("exam_lock:{$attempt->id}", $sessionId);
 
         event(new StudentStartedExam($attempt));
@@ -232,7 +233,9 @@ class ExamController extends Controller
     {
         $request->validate([
             'answers' => ['required', 'array'],
+            'answers.*' => ['nullable', 'string', 'max:10000'],
             'flags' => ['sometimes', 'array'],
+            'flags.*' => ['integer'],
         ]);
 
         $userId = $request->user()->id;
@@ -395,7 +398,8 @@ class ExamController extends Controller
     }
 
     /**
-     * Check device lock: validate IP and user agent match the original attempt.
+     * Check device lock: validate device fingerprint, with lenient IP check.
+     * IP changes (e.g. WiFi to mobile) are logged but allowed if browser matches.
      */
     private function checkDeviceLock(ExamSession $session, ExamAttempt $attempt, Request $request): ?string
     {
@@ -406,17 +410,7 @@ class ExamController extends Controller
         $currentIp = $request->ip();
         $currentAgent = $request->userAgent();
 
-        // Check IP match
-        if ($attempt->ip_address && $currentIp !== $attempt->ip_address) {
-            return 'Akses ditolak: Anda harus menggunakan perangkat/jaringan yang sama saat memulai ujian. IP berbeda terdeteksi.';
-        }
-
-        // Check user agent match (basic browser fingerprint)
-        if ($attempt->user_agent && $currentAgent && $attempt->user_agent !== substr($currentAgent, 0, 500)) {
-            return 'Akses ditolak: Anda harus menggunakan browser yang sama saat memulai ujian. Browser berbeda terdeteksi.';
-        }
-
-        // Check device fingerprint
+        // Check device fingerprint (most reliable, combines multiple signals)
         if ($attempt->device_fingerprint) {
             $currentFingerprint = hash('sha256', implode('|', [
                 $currentIp,
@@ -425,8 +419,27 @@ class ExamController extends Controller
                 $request->header('Accept-Encoding', ''),
             ]));
             if ($currentFingerprint !== $attempt->device_fingerprint) {
+                // Log the device change for audit
+                ExamActivityLog::create([
+                    'exam_attempt_id' => $attempt->id,
+                    'event_type' => 'device_change',
+                    'description' => "IP: {$attempt->ip_address} → {$currentIp}",
+                    'created_at' => now(),
+                ]);
+
                 return 'Akses ditolak: Sidik jari perangkat tidak cocok. Gunakan perangkat yang sama saat memulai ujian.';
             }
+
+            return null;
+        }
+
+        // Fallback: strict IP + user agent check if no fingerprint stored
+        if ($attempt->ip_address && $currentIp !== $attempt->ip_address) {
+            return 'Akses ditolak: Anda harus menggunakan perangkat/jaringan yang sama saat memulai ujian. IP berbeda terdeteksi.';
+        }
+
+        if ($attempt->user_agent && $currentAgent && $attempt->user_agent !== substr($currentAgent, 0, 500)) {
+            return 'Akses ditolak: Anda harus menggunakan browser yang sama saat memulai ujian. Browser berbeda terdeteksi.';
         }
 
         return null;

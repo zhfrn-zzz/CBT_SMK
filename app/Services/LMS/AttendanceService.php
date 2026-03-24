@@ -46,17 +46,20 @@ class AttendanceService
 
     public function closeSession(Attendance $attendance): void
     {
-        // Set all students without a record to 'alfa'
-        $studentIds = $attendance->classroom->students()->pluck('users.id');
-        $recordedIds = $attendance->records()->pluck('user_id');
-        $unrecordedIds = $studentIds->diff($recordedIds);
+        // Only auto-mark Alfa if code had an expiration time (finite session)
+        // If code_expires_at is NULL, the session had unlimited time — don't penalize
+        if ($attendance->code_expires_at !== null) {
+            $studentIds = $attendance->classroom->students()->pluck('users.id');
+            $recordedIds = $attendance->records()->pluck('user_id');
+            $unrecordedIds = $studentIds->diff($recordedIds);
 
-        foreach ($unrecordedIds as $studentId) {
-            AttendanceRecord::create([
-                'attendance_id' => $attendance->id,
-                'user_id' => $studentId,
-                'status' => AttendanceStatus::Alfa,
-            ]);
+            foreach ($unrecordedIds as $studentId) {
+                AttendanceRecord::create([
+                    'attendance_id' => $attendance->id,
+                    'user_id' => $studentId,
+                    'status' => AttendanceStatus::Alfa,
+                ]);
+            }
         }
 
         $attendance->update(['is_open' => false]);
@@ -157,10 +160,13 @@ class AttendanceService
 
         $students = \App\Models\Classroom::find($classroomId)->students()->orderBy('name')->get();
 
-        return $students->map(function ($student) use ($attendanceIds, $totalMeetings) {
-            $records = AttendanceRecord::where('user_id', $student->id)
-                ->whereIn('attendance_id', $attendanceIds)
-                ->get();
+        // Batch-load all records for these attendances to avoid N+1
+        $allRecords = AttendanceRecord::whereIn('attendance_id', $attendanceIds)
+            ->get()
+            ->groupBy('user_id');
+
+        return $students->map(function ($student) use ($allRecords, $totalMeetings) {
+            $records = $allRecords->get($student->id, collect());
 
             $hadir = $records->where('status', AttendanceStatus::Hadir)->count();
             $izin = $records->where('status', AttendanceStatus::Izin)->count();

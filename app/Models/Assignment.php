@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Assignment extends Model
 {
@@ -83,5 +84,14 @@ class Assignment extends Model
     public function scopeOverdue(Builder $query): Builder
     {
         return $query->where('deadline_at', '<', now());
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $assignment) {
+            if ($assignment->file_path && Storage::exists($assignment->file_path)) {
+                Storage::delete($assignment->file_path);
+            }
+        });
     }
 }

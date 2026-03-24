@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -55,9 +56,11 @@ class NotificationController extends Controller
     public function markAllAsRead(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $user->unreadNotifications()->update(['read_at' => now()]);
 
-        Cache::forget("user:{$user->id}:unread_notifications");
+        DB::transaction(function () use ($user) {
+            $user->unreadNotifications()->update(['read_at' => now()]);
+            Cache::forget("user:{$user->id}:unread_notifications");
+        });
 
         return back()->with('success', 'Semua notifikasi telah ditandai dibaca.');
     }

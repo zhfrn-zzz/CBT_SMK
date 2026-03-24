@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Material extends Model
 {
@@ -90,5 +91,14 @@ class Material extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $material) {
+            if ($material->file_path && Storage::exists($material->file_path)) {
+                Storage::delete($material->file_path);
+            }
+        });
     }
 }

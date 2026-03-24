@@ -117,11 +117,7 @@ class ForumController extends Controller
 
     public function destroy(ForumThread $thread, Request $request): RedirectResponse
     {
-        $user = $request->user();
-
-        if (! $user->isAdmin() && ! $user->isGuru() && $thread->user_id !== $user->id) {
-            abort(403, 'Anda tidak memiliki akses untuk menghapus thread ini.');
-        }
+        $this->authorize('delete', $thread);
 
         $thread->delete();
 
@@ -131,11 +127,7 @@ class ForumController extends Controller
 
     public function destroyReply(ForumReply $reply, Request $request): RedirectResponse
     {
-        $user = $request->user();
-
-        if (! $user->isAdmin() && ! $user->isGuru() && $reply->user_id !== $user->id) {
-            abort(403, 'Anda tidak memiliki akses untuk menghapus balasan ini.');
-        }
+        $this->authorize('delete', $reply);
 
         $reply->delete();
 
@@ -144,10 +136,7 @@ class ForumController extends Controller
 
     public function togglePin(ForumThread $thread, Request $request): RedirectResponse
     {
-        $user = $request->user();
-        if (! $user->isAdmin() && ! $user->isGuru()) {
-            abort(403);
-        }
+        $this->authorize('pin', $thread);
 
         $thread->update(['is_pinned' => ! $thread->is_pinned]);
 
@@ -158,10 +147,7 @@ class ForumController extends Controller
 
     public function toggleLock(ForumThread $thread, Request $request): RedirectResponse
     {
-        $user = $request->user();
-        if (! $user->isAdmin() && ! $user->isGuru()) {
-            abort(403);
-        }
+        $this->authorize('lock', $thread);
 
         $thread->update(['is_locked' => ! $thread->is_locked]);
 

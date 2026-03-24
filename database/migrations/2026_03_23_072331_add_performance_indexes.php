@@ -15,10 +15,12 @@ return new class extends Migration
             $table->index(['exam_session_id', 'user_id', 'status'], 'idx_attempt_lookup');
         });
 
-        // §1: student_answers — add UNIQUE constraint for upsert (keep existing index for FK)
-        Schema::table('student_answers', function (Blueprint $table) {
-            $table->unique(['exam_attempt_id', 'question_id'], 'uniq_attempt_question');
-        });
+        // §1: student_answers — UNIQUE constraint now in base migration (skip if exists)
+        if (! $this->hasUniqueIndex()) {
+            Schema::table('student_answers', function (Blueprint $table) {
+                $table->unique(['exam_attempt_id', 'question_id'], 'uniq_attempt_question');
+            });
+        }
 
         // §1: exam_activity_logs — add composite index for logActivity query
         Schema::table('exam_activity_logs', function (Blueprint $table) {
@@ -32,12 +34,20 @@ return new class extends Migration
             $table->dropIndex('idx_attempt_lookup');
         });
 
-        Schema::table('student_answers', function (Blueprint $table) {
-            $table->dropUnique('uniq_attempt_question');
-        });
-
         Schema::table('exam_activity_logs', function (Blueprint $table) {
             $table->dropIndex('idx_attempt_event');
         });
+    }
+
+    private function hasUniqueIndex(): bool
+    {
+        $indexes = Schema::getIndexes('student_answers');
+        foreach ($indexes as $index) {
+            if ($index['name'] === 'uniq_attempt_question') {
+                return true;
+            }
+        }
+
+        return false;
     }
 };

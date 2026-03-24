@@ -29,27 +29,31 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ===== 1. Admin (1) =====
-        User::create([
-            'name' => 'Administrator',
-            'username' => 'admin',
-            'email' => 'admin@smklms.test',
-            'password' => Hash::make('password'),
-            'role' => UserRole::Admin,
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
+        User::firstOrCreate(
+            ['username' => 'admin'],
+            [
+                'name' => 'Administrator',
+                'email' => 'admin@smklms.test',
+                'password' => Hash::make('password'),
+                'role' => UserRole::Admin,
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
 
         // ===== 2. Guru (5 + 1 shortcut) =====
         // Shortcut guru: login dengan guru / password
-        $shortcutGuru = User::create([
-            'name' => 'Guru Demo',
-            'username' => 'guru',
-            'email' => 'guru@smklms.test',
-            'password' => Hash::make('password'),
-            'role' => UserRole::Guru,
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
+        $shortcutGuru = User::firstOrCreate(
+            ['username' => 'guru'],
+            [
+                'name' => 'Guru Demo',
+                'email' => 'guru@smklms.test',
+                'password' => Hash::make('password'),
+                'role' => UserRole::Guru,
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
 
         $guruData = [
             ['name' => 'Budi Santoso', 'username' => '198501012010011001'],
@@ -61,14 +65,17 @@ class DatabaseSeeder extends Seeder
 
         $teachers = [];
         foreach ($guruData as $guru) {
-            $teachers[] = User::create([
-                ...$guru,
-                'email' => strtolower(str_replace(' ', '.', $guru['name'])).'@smklms.test',
-                'password' => Hash::make('password'),
-                'role' => UserRole::Guru,
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]);
+            $teachers[] = User::firstOrCreate(
+                ['username' => $guru['username']],
+                [
+                    'name' => $guru['name'],
+                    'email' => strtolower(str_replace(' ', '.', $guru['name'])).'@smklms.test',
+                    'password' => Hash::make('password'),
+                    'role' => UserRole::Guru,
+                    'is_active' => true,
+                    'email_verified_at' => now(),
+                ]
+            );
         }
 
         // ===== 3. Tahun Ajaran =====
@@ -161,15 +168,17 @@ class DatabaseSeeder extends Seeder
         $students = [];
         foreach ($siswaNames as $i => $name) {
             $nis = (string) (10001 + $i);
-            $students[] = User::create([
-                'name' => $name,
-                'username' => $nis,
-                'email' => null,
-                'password' => Hash::make('password'),
-                'role' => UserRole::Siswa,
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]);
+            $students[] = User::firstOrCreate(
+                ['username' => $nis],
+                [
+                    'name' => $name,
+                    'email' => null,
+                    'password' => Hash::make('password'),
+                    'role' => UserRole::Siswa,
+                    'is_active' => true,
+                    'email_verified_at' => now(),
+                ]
+            );
         }
 
         // Distribute 100 students across 9 classrooms (~11 per class)

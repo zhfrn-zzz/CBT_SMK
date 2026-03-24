@@ -16,11 +16,11 @@ class AnnouncementPolicy
 
     public function update(User $user, Announcement $announcement): bool
     {
-        return $user->id === $announcement->user_id;
+        return ($user->isGuru() || $user->isAdmin()) && $user->id === $announcement->user_id;
     }
 
     public function delete(User $user, Announcement $announcement): bool
     {
-        return $user->id === $announcement->user_id;
+        return ($user->isGuru() || $user->isAdmin()) && $user->id === $announcement->user_id;
     }
 }

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['exam_session_id', 'question_id']);
+            $table->index(['exam_session_id', 'order']);
         });
     }
 

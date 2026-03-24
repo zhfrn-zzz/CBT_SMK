@@ -35,11 +35,15 @@ class MaterialPolicy
 
     public function update(User $user, Material $material): bool
     {
-        return $user->isGuru() && $user->id === $material->user_id;
+        return $user->isGuru()
+            && $user->id === $material->user_id
+            && $user->teachingClassrooms()->where('classrooms.id', $material->classroom_id)->exists();
     }
 
     public function delete(User $user, Material $material): bool
     {
-        return $user->isGuru() && $user->id === $material->user_id;
+        return $user->isGuru()
+            && $user->id === $material->user_id
+            && $user->teachingClassrooms()->where('classrooms.id', $material->classroom_id)->exists();
     }
 }

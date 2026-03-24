@@ -30,7 +30,6 @@ class StudentSubmittedExam implements ShouldBroadcast
         return [
             'attempt_id' => $this->attempt->id,
             'user_id' => $this->attempt->user_id,
-            'user_name' => $this->attempt->user->name,
             'submitted_at' => $this->attempt->submitted_at?->toISOString(),
             'is_force_submitted' => $this->attempt->is_force_submitted,
             'score' => $this->attempt->score,

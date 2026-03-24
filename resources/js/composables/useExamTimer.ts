@@ -28,8 +28,8 @@ export function useExamTimer(initialRemainingSeconds: number) {
                 stop();
                 isExpired.value = true;
 
-                // Stagger auto-submit: random 0-30s delay to prevent thundering herd
-                const jitter = Math.floor(Math.random() * 30000);
+                // Stagger auto-submit: random 0-5s delay to prevent thundering herd
+                const jitter = Math.floor(Math.random() * 5000);
                 setTimeout(() => {
                     onExpireCallback?.();
                 }, jitter);

@@ -62,8 +62,8 @@ test('device lock blocks resume from different IP', function () {
 
     $attempt = ExamAttempt::where('user_id', $this->siswa->id)->first();
 
-    // Set a different IP to simulate device change
-    $attempt->update(['ip_address' => '10.0.0.99']);
+    // Set a different IP to simulate device change (clear fingerprint to test IP-only fallback)
+    $attempt->update(['ip_address' => '10.0.0.99', 'device_fingerprint' => null]);
 
     // Resume — should be blocked
     $response = $this->actingAs($this->siswa)
@@ -104,10 +104,11 @@ test('device lock blocks resume from different user agent', function () {
 
     $attempt = ExamAttempt::where('user_id', $this->siswa->id)->first();
 
-    // Set matching IP but different user agent
+    // Set matching IP but different user agent (clear fingerprint to test UA-only fallback)
     $attempt->update([
         'ip_address' => '127.0.0.1',
         'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0',
+        'device_fingerprint' => null,
     ]);
 
     // Resume with a different user agent

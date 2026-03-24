@@ -98,8 +98,18 @@ class AssignmentService
         ?string $feedback,
         User $grader
     ): void {
+        // Auto-apply late penalty if submission was late
+        $finalScore = $score;
+        if ($submission->is_late) {
+            $assignment = $submission->assignment;
+            if ($assignment->late_penalty_percent > 0) {
+                $penalty = $score * ($assignment->late_penalty_percent / 100);
+                $finalScore = max(0, $score - $penalty);
+            }
+        }
+
         $submission->update([
-            'score' => $score,
+            'score' => $finalScore,
             'feedback' => $feedback,
             'graded_at' => now(),
             'graded_by' => $grader->id,

@@ -24,7 +24,7 @@ class AssignmentController extends Controller
         $classroomIds = $student->classrooms()->pluck('classrooms.id');
         $subjectId = $request->integer('subject_id') ?: null;
 
-        $query = Assignment::with(['subject', 'classroom'])
+        $query = Assignment::with(['subject', 'classroom', 'submissions' => fn ($q) => $q->where('user_id', $student->id)])
             ->whereIn('classroom_id', $classroomIds)
             ->where('is_published', true)
             ->orderBy('deadline_at');
@@ -33,8 +33,8 @@ class AssignmentController extends Controller
             $query->where('subject_id', $subjectId);
         }
 
-        $assignments = $query->get()->map(function ($assignment) use ($student) {
-            $submission = $assignment->submissions()->where('user_id', $student->id)->first();
+        $assignments = $query->get()->map(function ($assignment) {
+            $submission = $assignment->submissions->first();
 
             return array_merge($assignment->toArray(), [
                 'my_submission' => $submission,

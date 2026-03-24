@@ -27,4 +27,20 @@ class StudentAnswerFactory extends Factory
             'answered_at' => now(),
         ];
     }
+
+    /**
+     * Create answer for a specific attempt, ensuring the question belongs to
+     * the same exam session via attempt questions.
+     */
+    public function forAttempt(ExamAttempt $attempt): static
+    {
+        return $this->state(function () use ($attempt) {
+            $questionId = $attempt->attemptQuestions()->inRandomOrder()->value('question_id');
+
+            return [
+                'exam_attempt_id' => $attempt->id,
+                'question_id' => $questionId ?? Question::factory(),
+            ];
+        });
+    }
 }

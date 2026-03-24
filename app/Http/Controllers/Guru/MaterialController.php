@@ -186,6 +186,10 @@ class MaterialController extends Controller
         $this->authorize('update', $material);
 
         if (! $material->file_path || ! Storage::exists($material->file_path)) {
+            \Illuminate\Support\Facades\Log::warning('Material file missing from storage', [
+                'material_id' => $material->id,
+                'file_path' => $material->file_path,
+            ]);
             abort(404, 'File tidak ditemukan.');
         }
 

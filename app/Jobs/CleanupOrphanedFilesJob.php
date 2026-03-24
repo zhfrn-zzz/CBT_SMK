@@ -49,7 +49,7 @@ class CleanupOrphanedFilesJob implements ShouldQueue
                 continue;
             }
 
-            $diskFiles = Storage::disk('public')->files($dir);
+            $diskFiles = Storage::disk('public')->allFiles($dir);
             foreach ($diskFiles as $diskFile) {
                 if (! $dbPathsSet->has($diskFile)) {
                     $size = Storage::disk('public')->size($diskFile);

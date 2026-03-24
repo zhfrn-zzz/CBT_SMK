@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CircleCheck, CircleX } from 'lucide-vue-next';
 
@@ -9,10 +9,21 @@ const page = usePage();
 const flash = computed(
     () => page.props.flash as { success?: string; error?: string },
 );
+
+const showSuccess = ref(true);
+let successTimer: ReturnType<typeof setTimeout> | null = null;
+
+watch(() => flash.value.success, (val) => {
+    if (val) {
+        showSuccess.value = true;
+        if (successTimer) clearTimeout(successTimer);
+        successTimer = setTimeout(() => { showSuccess.value = false; }, 5000);
+    }
+}, { immediate: true });
 </script>
 
 <template>
-    <Alert v-if="flash.success" variant="default" class="mb-4 border-green-500/50 text-green-700 dark:text-green-400">
+    <Alert v-if="flash.success && showSuccess" variant="default" class="mb-4 border-green-500/50 text-green-700 dark:text-green-400">
         <CircleCheck class="size-4" />
         <AlertDescription>{{ flash.success }}</AlertDescription>
     </Alert>

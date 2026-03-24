@@ -14,7 +14,7 @@ Broadcast::channel('exam.{examSessionId}', function ($user, int $examSessionId) 
         return false;
     }
 
-    return $user->id === $examSession->user_id;
+    return $user->isGuru() && $user->id === $examSession->user_id;
 });
 
 // Per-student exam channel — the student themselves can listen

@@ -34,7 +34,7 @@ class Question extends Model
     {
         return [
             'type' => QuestionType::class,
-            'points' => 'decimal:2',
+            'points' => 'float',
             'metadata' => 'array',
         ];
     }

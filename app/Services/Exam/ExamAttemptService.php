@@ -47,7 +47,7 @@ class ExamAttemptService
             ]);
 
             // Generate randomized question set
-            $questionSet = $this->randomizer->generateQuestionSet($examSession);
+            $questionSet = $this->randomizer->generateQuestionSet($examSession, $student->id);
 
             foreach ($questionSet as $item) {
                 $attempt->attemptQuestions()->create($item);
@@ -203,7 +203,7 @@ class ExamAttemptService
                 'max_tab_switches' => $session->max_tab_switches,
             ],
             'questions' => $questions,
-            'saved_answers' => (object) $savedAnswers,
+            'saved_answers' => $savedAnswers,
             'flagged_questions' => $flaggedQuestions,
             'started_at' => $attempt->started_at->timestamp,
             'server_time' => $now->timestamp,
@@ -485,6 +485,11 @@ class ExamAttemptService
         if ($studentAnswer->answer === null || trim($studentAnswer->answer) === '') {
             $studentAnswer->update(['is_correct' => false, 'score' => 0]);
 
+            return;
+        }
+
+        // No keywords defined — cannot auto-grade, leave for manual grading
+        if ($question->keywords->isEmpty()) {
             return;
         }
 
