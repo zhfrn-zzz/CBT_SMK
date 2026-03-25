@@ -2,14 +2,12 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import StatsCard from '@/Components/StatsCard.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -18,19 +16,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { BarChart3, CheckCircle, ClipboardCheck, Download, Eye, TrendingUp, Users, XCircle } from 'lucide-vue-next';
+import { Award, BarChart3, CheckCircle, ClipboardCheck, Download, Eye, TrendingUp, Users, XCircle } from 'lucide-vue-next';
 import type { BreadcrumbItem, ExamSession, ExamStatistics, GradingAttempt, GradingProgress } from '@/types';
 
 const props = defineProps<{
@@ -73,18 +61,13 @@ const progressPercent = props.progress.total_attempts > 0
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <!-- Header -->
-            <div class="flex items-start justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold">{{ examSession.name }}</h2>
-                    <p class="text-sm text-muted-foreground">{{ examSession.subject?.name }}</p>
-                </div>
-                <div class="flex gap-2">
+            <PageHeader :title="examSession.name" :description="examSession.subject?.name" :icon="Award">
+                <template #actions>
                     <Button variant="outline" size="sm" as-child>
-                        <a :href="`/guru/grading/${examSession.id}/item-analysis`">
+                        <Link :href="`/guru/grading/${examSession.id}/item-analysis`">
                             <BarChart3 class="mr-1 size-4" />
                             Analisis Soal
-                        </a>
+                        </Link>
                     </Button>
 
                     <Button variant="outline" size="sm" as-child>
@@ -94,86 +77,28 @@ const progressPercent = props.progress.total_attempts > 0
                         </a>
                     </Button>
 
-                    <AlertDialog>
-                        <AlertDialogTrigger as-child>
-                            <Button :variant="examSession.is_results_published ? 'secondary' : 'default'" size="sm">
-                                {{ examSession.is_results_published ? 'Batalkan Publikasi' : 'Publikasi Hasil' }}
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                    {{ examSession.is_results_published ? 'Batalkan Publikasi?' : 'Publikasi Hasil Ujian?' }}
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    {{ examSession.is_results_published
-                                        ? 'Siswa tidak akan bisa melihat hasil ujian setelah dibatalkan.'
-                                        : 'Siswa akan dapat melihat nilai dan pembahasan setelah dipublikasikan.' }}
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction @click="togglePublish">
-                                    {{ examSession.is_results_published ? 'Ya, Batalkan' : 'Ya, Publikasikan' }}
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-            </div>
+                    <ConfirmDialog
+                        :title="examSession.is_results_published ? 'Batalkan Publikasi?' : 'Publikasi Hasil Ujian?'"
+                        :description="examSession.is_results_published
+                            ? 'Siswa tidak akan bisa melihat hasil ujian setelah dibatalkan.'
+                            : 'Siswa akan dapat melihat nilai dan pembahasan setelah dipublikasikan.'"
+                        :confirm-label="examSession.is_results_published ? 'Ya, Batalkan' : 'Ya, Publikasikan'"
+                        :variant="examSession.is_results_published ? 'destructive' : 'default'"
+                        @confirm="togglePublish"
+                    >
+                        <Button :variant="examSession.is_results_published ? 'secondary' : 'default'" size="sm">
+                            {{ examSession.is_results_published ? 'Batalkan Publikasi' : 'Publikasi Hasil' }}
+                        </Button>
+                    </ConfirmDialog>
+                </template>
+            </PageHeader>
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <Users class="size-4" />
-                            Total Peserta
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold">{{ statistics.total_students }}</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <BarChart3 class="size-4" />
-                            Rata-rata
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold">{{ statistics.average }}</p>
-                        <p class="text-xs text-muted-foreground">
-                            Tertinggi: {{ statistics.highest }} | Terendah: {{ statistics.lowest }}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card v-if="examSession.kkm">
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <CheckCircle class="size-4" />
-                            Lulus (KKM {{ examSession.kkm }})
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold text-green-600">{{ statistics.passed }}</p>
-                    </CardContent>
-                </Card>
-
-                <Card v-if="examSession.kkm">
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <XCircle class="size-4" />
-                            Remedial
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold text-red-600">{{ statistics.failed }}</p>
-                    </CardContent>
-                </Card>
+                <StatsCard title="Total Peserta" :value="statistics.total_students" :icon="Users" />
+                <StatsCard title="Rata-rata" :value="statistics.average" :icon="BarChart3" :trend="`Tertinggi: ${statistics.highest} | Terendah: ${statistics.lowest}`" />
+                <StatsCard v-if="examSession.kkm" :title="`Lulus (KKM ${examSession.kkm})`" :value="statistics.passed" :icon="CheckCircle" icon-color="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" />
+                <StatsCard v-if="examSession.kkm" title="Remedial" :value="statistics.failed" :icon="XCircle" icon-color="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" />
             </div>
 
             <!-- Grading Progress -->
@@ -196,21 +121,21 @@ const progressPercent = props.progress.total_attempts > 0
             </Card>
 
             <!-- Student Results Table -->
-            <div class="rounded-xl border">
+            <div class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>No</TableHead>
-                            <TableHead>Nama Siswa</TableHead>
-                            <TableHead>Username</TableHead>
-                            <TableHead class="text-center">Nilai</TableHead>
-                            <TableHead class="text-center">Status</TableHead>
-                            <TableHead class="text-center">Penilaian</TableHead>
-                            <TableHead class="text-center">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">No</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Siswa</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Username</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Nilai</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Penilaian</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="(attempt, index) in attempts" :key="attempt.id">
+                        <TableRow v-for="(attempt, index) in attempts" :key="attempt.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell>{{ index + 1 }}</TableCell>
                             <TableCell class="font-medium">{{ attempt.user.name }}</TableCell>
                             <TableCell>{{ attempt.user.username }}</TableCell>
@@ -243,14 +168,16 @@ const progressPercent = props.progress.total_attempts > 0
                                 </Button>
                             </TableCell>
                         </TableRow>
-                        <TableRow v-if="attempts.length === 0">
-                            <TableCell colspan="7" class="text-center text-muted-foreground py-8">
-                                Belum ada peserta yang mengumpulkan.
-                            </TableCell>
-                        </TableRow>
                     </TableBody>
                 </Table>
             </div>
+
+            <EmptyState
+                v-if="attempts.length === 0"
+                :icon="Award"
+                title="Belum ada peserta"
+                description="Belum ada peserta yang mengumpulkan."
+            />
         </div>
     </AppLayout>
 </template>

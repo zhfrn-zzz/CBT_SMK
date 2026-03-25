@@ -2,6 +2,8 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +17,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { BookOpen } from 'lucide-vue-next';
 import { useYouTubeEmbed } from '@/composables/useYouTubeEmbed';
 import type { BreadcrumbItem } from '@/types';
 
@@ -90,119 +93,121 @@ function submit() {
     <Head title="Tambah Materi" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto max-w-2xl p-4">
-            <h2 class="mb-4 text-xl font-semibold">Tambah Materi</h2>
+            <PageHeader title="Tambah Materi" :icon="BookOpen" />
 
-            <form @submit.prevent="submit" class="space-y-4">
-                <!-- Mapel & Kelas -->
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-1">
-                        <Label>Mata Pelajaran <span class="text-destructive">*</span></Label>
-                        <Select v-model="form.subject_id">
-                            <SelectTrigger><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p v-if="form.errors.subject_id" class="text-xs text-destructive">{{ form.errors.subject_id }}</p>
-                    </div>
-                    <div class="space-y-1">
-                        <Label>Kelas <span class="text-destructive">*</span></Label>
-                        <Select v-model="form.classroom_id" :disabled="!form.subject_id">
-                            <SelectTrigger><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p v-if="form.errors.classroom_id" class="text-xs text-destructive">{{ form.errors.classroom_id }}</p>
-                    </div>
-                </div>
+            <Card class="mt-4">
+                <CardContent class="p-6">
+                    <form @submit.prevent="submit" class="space-y-4">
+                        <!-- Mapel & Kelas -->
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Mata Pelajaran <span class="text-destructive">*</span></Label>
+                                <Select v-model="form.subject_id">
+                                    <SelectTrigger class="h-11"><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p v-if="form.errors.subject_id" class="text-xs text-destructive">{{ form.errors.subject_id }}</p>
+                            </div>
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Kelas <span class="text-destructive">*</span></Label>
+                                <Select v-model="form.classroom_id" :disabled="!form.subject_id">
+                                    <SelectTrigger class="h-11"><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p v-if="form.errors.classroom_id" class="text-xs text-destructive">{{ form.errors.classroom_id }}</p>
+                            </div>
+                        </div>
 
-                <!-- Judul -->
-                <div class="space-y-1">
-                    <Label>Judul <span class="text-destructive">*</span></Label>
-                    <Input v-model="form.title" placeholder="Judul materi" />
-                    <p v-if="form.errors.title" class="text-xs text-destructive">{{ form.errors.title }}</p>
-                </div>
+                        <!-- Judul -->
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Judul <span class="text-destructive">*</span></Label>
+                            <Input v-model="form.title" placeholder="Judul materi" class="h-11" />
+                            <p v-if="form.errors.title" class="text-xs text-destructive">{{ form.errors.title }}</p>
+                        </div>
 
-                <!-- Deskripsi -->
-                <div class="space-y-1">
-                    <Label>Deskripsi</Label>
-                    <Textarea v-model="form.description" placeholder="Deskripsi singkat materi (opsional)" rows="2" />
-                </div>
+                        <!-- Deskripsi -->
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Deskripsi</Label>
+                            <Textarea v-model="form.description" placeholder="Deskripsi singkat materi (opsional)" rows="2" />
+                        </div>
 
-                <!-- Topik & Urutan -->
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-1">
-                        <Label>Topik / Bab</Label>
-                        <Input v-model="form.topic" placeholder="Contoh: Bab 1 - Pengenalan" />
-                    </div>
-                    <div class="space-y-1">
-                        <Label>Urutan</Label>
-                        <Input v-model.number="form.order" type="number" min="0" />
-                    </div>
-                </div>
+                        <!-- Topik & Urutan -->
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Topik / Bab</Label>
+                                <Input v-model="form.topic" placeholder="Contoh: Bab 1 - Pengenalan" class="h-11" />
+                            </div>
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Urutan</Label>
+                                <Input v-model.number="form.order" type="number" min="0" class="h-11" />
+                            </div>
+                        </div>
 
-                <!-- Tipe Materi -->
-                <div class="space-y-2">
-                    <Label>Tipe Materi <span class="text-destructive">*</span></Label>
-                    <div class="flex gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" v-model="form.type" value="file" class="accent-primary" />
-                            File Upload
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" v-model="form.type" value="video_link" class="accent-primary" />
-                            Link Video YouTube
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" v-model="form.type" value="text" class="accent-primary" />
-                            Teks / Artikel
-                        </label>
-                    </div>
-                </div>
+                        <!-- Tipe Materi -->
+                        <div class="space-y-2">
+                            <Label class="font-semibold text-sm">Tipe Materi <span class="text-destructive">*</span></Label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" v-model="form.type" value="file" class="accent-primary" />
+                                    File Upload
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" v-model="form.type" value="video_link" class="accent-primary" />
+                                    Link Video YouTube
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" v-model="form.type" value="text" class="accent-primary" />
+                                    Teks / Artikel
+                                </label>
+                            </div>
+                        </div>
 
-                <!-- File Upload -->
-                <div v-if="form.type === 'file'" class="space-y-1">
-                    <Label>File <span class="text-destructive">*</span></Label>
-                    <Input type="file" accept=".pdf,.docx,.pptx,.doc,.ppt,.xls,.xlsx,.jpg,.jpeg,.png,.gif" @change="handleFileChange" />
-                    <p class="text-xs text-muted-foreground">Maks 50 MB. Format: PDF, DOCX, PPTX, XLS, XLSX, JPG, PNG, GIF</p>
-                    <p v-if="form.errors.file" class="text-xs text-destructive">{{ form.errors.file }}</p>
-                </div>
+                        <!-- File Upload -->
+                        <div v-if="form.type === 'file'" class="space-y-1">
+                            <Label class="font-semibold text-sm">File <span class="text-destructive">*</span></Label>
+                            <Input type="file" accept=".pdf,.docx,.pptx,.doc,.ppt,.xls,.xlsx,.jpg,.jpeg,.png,.gif" class="h-11" @change="handleFileChange" />
+                            <p class="text-xs text-muted-foreground">Maks 50 MB. Format: PDF, DOCX, PPTX, XLS, XLSX, JPG, PNG, GIF</p>
+                            <p v-if="form.errors.file" class="text-xs text-destructive">{{ form.errors.file }}</p>
+                        </div>
 
-                <!-- Video URL -->
-                <div v-if="form.type === 'video_link'" class="space-y-2">
-                    <div class="space-y-1">
-                        <Label>URL YouTube <span class="text-destructive">*</span></Label>
-                        <Input v-model="form.video_url" placeholder="https://www.youtube.com/watch?v=..." />
-                        <p v-if="form.errors.video_url" class="text-xs text-destructive">{{ form.errors.video_url }}</p>
-                    </div>
-                    <div v-if="videoPreviewUrl" class="aspect-video w-full overflow-hidden rounded-md border">
-                        <iframe :src="videoPreviewUrl" class="size-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen />
-                    </div>
-                </div>
+                        <!-- Video URL -->
+                        <div v-if="form.type === 'video_link'" class="space-y-2">
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">URL YouTube <span class="text-destructive">*</span></Label>
+                                <Input v-model="form.video_url" placeholder="https://www.youtube.com/watch?v=..." class="h-11" />
+                                <p v-if="form.errors.video_url" class="text-xs text-destructive">{{ form.errors.video_url }}</p>
+                            </div>
+                            <div v-if="videoPreviewUrl" class="aspect-video w-full overflow-hidden rounded-md border">
+                                <iframe :src="videoPreviewUrl" class="size-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen />
+                            </div>
+                        </div>
 
-                <!-- Text Content -->
-                <div v-if="form.type === 'text'" class="space-y-1">
-                    <Label>Konten Teks <span class="text-destructive">*</span></Label>
-                    <Textarea v-model="form.text_content" placeholder="Tulis konten materi di sini..." rows="10" />
-                    <p v-if="form.errors.text_content" class="text-xs text-destructive">{{ form.errors.text_content }}</p>
-                </div>
+                        <!-- Text Content -->
+                        <div v-if="form.type === 'text'" class="space-y-1">
+                            <Label class="font-semibold text-sm">Konten Teks <span class="text-destructive">*</span></Label>
+                            <Textarea v-model="form.text_content" placeholder="Tulis konten materi di sini..." rows="10" />
+                            <p v-if="form.errors.text_content" class="text-xs text-destructive">{{ form.errors.text_content }}</p>
+                        </div>
 
-                <!-- Publish -->
-                <div class="flex items-center gap-2">
-                    <Checkbox id="is_published" v-model="form.is_published" />
-                    <Label for="is_published">Publish langsung</Label>
-                </div>
+                        <!-- Publish -->
+                        <div class="flex items-center gap-2">
+                            <Checkbox id="is_published" v-model="form.is_published" />
+                            <Label for="is_published">Publish langsung</Label>
+                        </div>
 
-                <div class="flex gap-2">
-                    <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Menyimpan...' : 'Simpan Materi' }}
-                    </Button>
-                    <Button variant="outline" as-child>
-                        <Link href="/guru/materi">Batal</Link>
-                    </Button>
-                </div>
-            </form>
+                        <div class="flex items-center justify-end gap-3 pt-4">
+                            <Button variant="outline" as-child>
+                                <Link href="/guru/materi">Batal</Link>
+                            </Button>
+                            <LoadingButton :loading="form.processing" type="submit">Simpan</LoadingButton>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

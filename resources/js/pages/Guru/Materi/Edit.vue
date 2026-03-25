@@ -2,14 +2,18 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { BookOpen } from 'lucide-vue-next';
 import type { BreadcrumbItem, Material } from '@/types';
 
 interface TeachingAssignment {
@@ -78,96 +82,98 @@ function submit() {
     <Head :title="`Edit: ${material.title}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto max-w-2xl p-4">
-            <h2 class="mb-4 text-xl font-semibold">Edit Materi</h2>
+            <PageHeader title="Edit Materi" :icon="BookOpen" />
 
-            <form @submit.prevent="submit" class="space-y-4">
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-1">
-                        <Label>Mata Pelajaran <span class="text-destructive">*</span></Label>
-                        <Select v-model="form.subject_id">
-                            <SelectTrigger><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div class="space-y-1">
-                        <Label>Kelas <span class="text-destructive">*</span></Label>
-                        <Select v-model="form.classroom_id" :disabled="!form.subject_id">
-                            <SelectTrigger><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+            <Card class="mt-4">
+                <CardContent class="p-6">
+                    <form @submit.prevent="submit" class="space-y-4">
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Mata Pelajaran <span class="text-destructive">*</span></Label>
+                                <Select v-model="form.subject_id">
+                                    <SelectTrigger class="h-11"><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Kelas <span class="text-destructive">*</span></Label>
+                                <Select v-model="form.classroom_id" :disabled="!form.subject_id">
+                                    <SelectTrigger class="h-11"><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
 
-                <div class="space-y-1">
-                    <Label>Judul <span class="text-destructive">*</span></Label>
-                    <Input v-model="form.title" />
-                    <p v-if="form.errors.title" class="text-xs text-destructive">{{ form.errors.title }}</p>
-                </div>
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Judul <span class="text-destructive">*</span></Label>
+                            <Input v-model="form.title" class="h-11" />
+                            <p v-if="form.errors.title" class="text-xs text-destructive">{{ form.errors.title }}</p>
+                        </div>
 
-                <div class="space-y-1">
-                    <Label>Deskripsi</Label>
-                    <Textarea v-model="form.description" rows="2" />
-                </div>
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Deskripsi</Label>
+                            <Textarea v-model="form.description" rows="2" />
+                        </div>
 
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-1">
-                        <Label>Topik / Bab</Label>
-                        <Input v-model="form.topic" list="topics-list" />
-                        <datalist id="topics-list">
-                            <option v-for="t in topics" :key="t" :value="t" />
-                        </datalist>
-                    </div>
-                    <div class="space-y-1">
-                        <Label>Urutan</Label>
-                        <Input v-model.number="form.order" type="number" min="0" />
-                    </div>
-                </div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Topik / Bab</Label>
+                                <Input v-model="form.topic" list="topics-list" class="h-11" />
+                                <datalist id="topics-list">
+                                    <option v-for="t in topics" :key="t" :value="t" />
+                                </datalist>
+                            </div>
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Urutan</Label>
+                                <Input v-model.number="form.order" type="number" min="0" class="h-11" />
+                            </div>
+                        </div>
 
-                <!-- File existing info -->
-                <div v-if="material.type === 'file' && material.file_original_name" class="rounded-md border p-3 text-sm">
-                    <p class="font-medium">File saat ini: {{ material.file_original_name }}</p>
-                    <p v-if="material.formatted_file_size" class="text-muted-foreground">{{ material.formatted_file_size }}</p>
-                    <p class="mt-1 text-muted-foreground">Upload file baru untuk mengganti:</p>
-                    <Input type="file" accept=".pdf,.docx,.pptx,.doc,.ppt,.xls,.xlsx,.jpg,.jpeg,.png,.gif" class="mt-1" @change="handleFileChange" />
-                </div>
+                        <!-- File existing info -->
+                        <div v-if="material.type === 'file' && material.file_original_name" class="rounded-md border p-3 text-sm">
+                            <p class="font-medium">File saat ini: {{ material.file_original_name }}</p>
+                            <p v-if="material.formatted_file_size" class="text-muted-foreground">{{ material.formatted_file_size }}</p>
+                            <p class="mt-1 text-muted-foreground">Upload file baru untuk mengganti:</p>
+                            <Input type="file" accept=".pdf,.docx,.pptx,.doc,.ppt,.xls,.xlsx,.jpg,.jpeg,.png,.gif" class="mt-1 h-11" @change="handleFileChange" />
+                        </div>
 
-                <!-- Video URL -->
-                <div v-if="form.type === 'video_link'" class="space-y-2">
-                    <div class="space-y-1">
-                        <Label>URL YouTube <span class="text-destructive">*</span></Label>
-                        <Input v-model="form.video_url" placeholder="https://www.youtube.com/watch?v=..." />
-                        <p v-if="form.errors.video_url" class="text-xs text-destructive">{{ form.errors.video_url }}</p>
-                    </div>
-                    <div v-if="videoPreviewUrl" class="aspect-video w-full overflow-hidden rounded-md border">
-                        <iframe :src="videoPreviewUrl" class="size-full" allowfullscreen />
-                    </div>
-                </div>
+                        <!-- Video URL -->
+                        <div v-if="form.type === 'video_link'" class="space-y-2">
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">URL YouTube <span class="text-destructive">*</span></Label>
+                                <Input v-model="form.video_url" placeholder="https://www.youtube.com/watch?v=..." class="h-11" />
+                                <p v-if="form.errors.video_url" class="text-xs text-destructive">{{ form.errors.video_url }}</p>
+                            </div>
+                            <div v-if="videoPreviewUrl" class="aspect-video w-full overflow-hidden rounded-md border">
+                                <iframe :src="videoPreviewUrl" class="size-full" allowfullscreen />
+                            </div>
+                        </div>
 
-                <!-- Text Content -->
-                <div v-if="form.type === 'text'" class="space-y-1">
-                    <Label>Konten Teks <span class="text-destructive">*</span></Label>
-                    <Textarea v-model="form.text_content" rows="10" />
-                    <p v-if="form.errors.text_content" class="text-xs text-destructive">{{ form.errors.text_content }}</p>
-                </div>
+                        <!-- Text Content -->
+                        <div v-if="form.type === 'text'" class="space-y-1">
+                            <Label class="font-semibold text-sm">Konten Teks <span class="text-destructive">*</span></Label>
+                            <Textarea v-model="form.text_content" rows="10" />
+                            <p v-if="form.errors.text_content" class="text-xs text-destructive">{{ form.errors.text_content }}</p>
+                        </div>
 
-                <div class="flex items-center gap-2">
-                    <Checkbox id="is_published" v-model="form.is_published" />
-                    <Label for="is_published">Dipublikasikan</Label>
-                </div>
+                        <div class="flex items-center gap-2">
+                            <Checkbox id="is_published" v-model="form.is_published" />
+                            <Label for="is_published">Dipublikasikan</Label>
+                        </div>
 
-                <div class="flex gap-2">
-                    <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
-                    </Button>
-                    <Button variant="outline" as-child>
-                        <Link :href="`/guru/materi/${material.id}`">Batal</Link>
-                    </Button>
-                </div>
-            </form>
+                        <div class="flex items-center justify-end gap-3 pt-4">
+                            <Button variant="outline" as-child>
+                                <Link :href="`/guru/materi/${material.id}`">Batal</Link>
+                            </Button>
+                            <LoadingButton :loading="form.processing" type="submit">Simpan</LoadingButton>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

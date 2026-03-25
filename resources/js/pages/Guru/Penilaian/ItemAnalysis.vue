@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import StatsCard from '@/Components/StatsCard.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +12,10 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, AlertTriangle } from 'lucide-vue-next';
+import { AlertTriangle, BarChart3, Hash, PieChart, RefreshCw, ThumbsDown, ThumbsUp, TrendingDown } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { ExamAnalysis } from '@/types/analytics';
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps<{
     examSession: { id: number; name: string; subject: string };
@@ -27,6 +31,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 let pollingInterval: ReturnType<typeof setInterval> | null = null;
+
+const isRefreshing = ref(false);
 
 function startPolling() {
     if (props.analysis.computing) {
@@ -46,7 +52,10 @@ onMounted(startPolling);
 onUnmounted(stopPolling);
 
 function refreshAnalysis() {
-    router.post(`/guru/grading/${props.examSession.id}/item-analysis/refresh`);
+    isRefreshing.value = true;
+    router.post(`/guru/grading/${props.examSession.id}/item-analysis/refresh`, {}, {
+        onFinish: () => { isRefreshing.value = false; },
+    });
 }
 
 function difficultyVariant(label: string) {
@@ -66,16 +75,14 @@ function discriminationVariant(label: string) {
     <Head :title="`Analisis Soal - ${examSession.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold">Analisis Butir Soal</h1>
-                    <p class="text-muted-foreground">{{ examSession.name }} — {{ examSession.subject }}</p>
-                </div>
-                <Button @click="refreshAnalysis" variant="outline" size="sm">
-                    <RefreshCw class="mr-2 h-4 w-4" />
-                    Hitung Ulang
-                </Button>
-            </div>
+            <PageHeader title="Analisis Soal" :description="`${examSession.name} — ${examSession.subject}`" :icon="PieChart">
+                <template #actions>
+                    <LoadingButton :loading="isRefreshing" @click="refreshAnalysis" variant="outline" size="sm">
+                        <RefreshCw class="mr-2 h-4 w-4" />
+                        Hitung Ulang
+                    </LoadingButton>
+                </template>
+            </PageHeader>
 
             <Alert v-if="attemptCount < 5" variant="destructive">
                 <AlertTriangle class="h-4 w-4" />
@@ -92,114 +99,96 @@ function discriminationVariant(label: string) {
 
             <!-- Summary Cards -->
             <div v-if="!analysis.computing" class="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-                <Card>
-                    <CardHeader class="pb-2"><CardTitle class="text-sm">Total Soal</CardTitle></CardHeader>
-                    <CardContent><p class="text-2xl font-bold">{{ analysis.summary.total_questions }}</p></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2"><CardTitle class="text-sm">Mudah</CardTitle></CardHeader>
-                    <CardContent><p class="text-2xl font-bold text-green-600">{{ analysis.summary.easy_count }}</p></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2"><CardTitle class="text-sm">Sedang</CardTitle></CardHeader>
-                    <CardContent><p class="text-2xl font-bold text-yellow-600">{{ analysis.summary.medium_count }}</p></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2"><CardTitle class="text-sm">Sulit</CardTitle></CardHeader>
-                    <CardContent><p class="text-2xl font-bold text-red-600">{{ analysis.summary.hard_count }}</p></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2"><CardTitle class="text-sm">Daya Beda Baik</CardTitle></CardHeader>
-                    <CardContent><p class="text-2xl font-bold text-blue-600">{{ analysis.summary.good_discrimination_count }}</p></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2"><CardTitle class="text-sm">Daya Beda Buruk</CardTitle></CardHeader>
-                    <CardContent><p class="text-2xl font-bold text-orange-600">{{ analysis.summary.poor_discrimination_count }}</p></CardContent>
-                </Card>
+                <StatsCard title="Total Soal" :value="analysis.summary.total_questions" :icon="Hash" />
+                <StatsCard title="Mudah" :value="analysis.summary.easy_count" :icon="ThumbsUp" icon-color="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" />
+                <StatsCard title="Sedang" :value="analysis.summary.medium_count" :icon="BarChart3" icon-color="bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400" />
+                <StatsCard title="Sulit" :value="analysis.summary.hard_count" :icon="TrendingDown" icon-color="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" />
+                <StatsCard title="Daya Beda Baik" :value="analysis.summary.good_discrimination_count" :icon="ThumbsUp" icon-color="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" />
+                <StatsCard title="Daya Beda Buruk" :value="analysis.summary.poor_discrimination_count" :icon="ThumbsDown" icon-color="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" />
             </div>
 
             <!-- Item Table -->
-            <Card v-if="!analysis.computing && analysis.items.length > 0">
-                <CardHeader><CardTitle>Tabel Analisis Butir</CardTitle></CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-12">No</TableHead>
-                                <TableHead>Soal</TableHead>
-                                <TableHead>Tipe</TableHead>
-                                <TableHead class="text-center">P (Tingkat Kesulitan)</TableHead>
-                                <TableHead class="text-center">D (Daya Beda)</TableHead>
-                                <TableHead>KD</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="(item, idx) in analysis.items" :key="item.question_id">
-                                <TableCell>{{ idx + 1 }}</TableCell>
-                                <TableCell class="max-w-xs">
-                                    <span class="line-clamp-2 text-sm">{{ item.content_preview }}</span>
-                                    <span v-if="item.skipped" class="text-xs text-muted-foreground">(belum dinilai)</span>
-                                </TableCell>
-                                <TableCell class="text-xs">{{ item.type }}</TableCell>
-                                <TableCell class="text-center" v-if="!item.skipped">
-                                    <div class="flex flex-col items-center gap-1">
-                                        <span class="font-mono text-sm">{{ item.difficulty_index.toFixed(2) }}</span>
-                                        <Badge :variant="difficultyVariant(item.difficulty_label)" class="text-xs">
-                                            {{ item.difficulty_label }}
-                                        </Badge>
-                                    </div>
-                                </TableCell>
-                                <TableCell class="text-center" v-if="!item.skipped">
-                                    <div class="flex flex-col items-center gap-1">
-                                        <span class="font-mono text-sm">{{ item.discrimination_index.toFixed(2) }}</span>
-                                        <Badge :variant="discriminationVariant(item.discrimination_label)" class="text-xs">
-                                            {{ item.discrimination_label }}
-                                        </Badge>
-                                    </div>
-                                </TableCell>
-                                <TableCell v-if="item.skipped" colspan="2" class="text-center text-xs text-muted-foreground">—</TableCell>
-                                <TableCell>
-                                    <div class="flex flex-wrap gap-1">
-                                        <Badge v-for="kd in item.competency_standards" :key="kd.code" variant="outline" class="text-xs">
-                                            {{ kd.code }}
-                                        </Badge>
-                                        <span v-if="item.competency_standards.length === 0" class="text-xs text-muted-foreground">—</span>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+            <div v-if="!analysis.computing && analysis.items.length > 0" class="overflow-hidden rounded-xl border bg-card">
+                <Table>
+                    <TableHeader>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="w-12 text-xs font-semibold uppercase tracking-wider">No</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Soal</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Tipe</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">P (Tingkat Kesulitan)</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">D (Daya Beda)</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">KD</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="(item, idx) in analysis.items" :key="item.question_id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
+                            <TableCell>{{ idx + 1 }}</TableCell>
+                            <TableCell class="max-w-xs">
+                                <span class="line-clamp-2 text-sm">{{ item.content_preview }}</span>
+                                <span v-if="item.skipped" class="text-xs text-muted-foreground">(belum dinilai)</span>
+                            </TableCell>
+                            <TableCell class="text-xs">{{ item.type }}</TableCell>
+                            <TableCell class="text-center" v-if="!item.skipped">
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="font-mono text-sm">{{ item.difficulty_index.toFixed(2) }}</span>
+                                    <Badge :variant="difficultyVariant(item.difficulty_label)" class="text-xs">
+                                        {{ item.difficulty_label }}
+                                    </Badge>
+                                </div>
+                            </TableCell>
+                            <TableCell class="text-center" v-if="!item.skipped">
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="font-mono text-sm">{{ item.discrimination_index.toFixed(2) }}</span>
+                                    <Badge :variant="discriminationVariant(item.discrimination_label)" class="text-xs">
+                                        {{ item.discrimination_label }}
+                                    </Badge>
+                                </div>
+                            </TableCell>
+                            <TableCell v-if="item.skipped" colspan="2" class="text-center text-xs text-muted-foreground">—</TableCell>
+                            <TableCell>
+                                <div class="flex flex-wrap gap-1">
+                                    <Badge v-for="kd in item.competency_standards" :key="kd.code" variant="outline" class="text-xs">
+                                        {{ kd.code }}
+                                    </Badge>
+                                    <span v-if="item.competency_standards.length === 0" class="text-xs text-muted-foreground">—</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
 
             <!-- KD Breakdown -->
-            <Card v-if="!analysis.computing && analysis.kd_breakdown.length > 0">
-                <CardHeader><CardTitle>Rekap per Kompetensi Dasar</CardTitle></CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Kode</TableHead>
-                                <TableHead>Nama KD</TableHead>
-                                <TableHead class="text-center">Jumlah Soal</TableHead>
-                                <TableHead class="text-center">Rata-rata Tingkat Kesulitan</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="kd in analysis.kd_breakdown" :key="kd.code">
-                                <TableCell class="font-mono text-sm">{{ kd.code }}</TableCell>
-                                <TableCell>{{ kd.name }}</TableCell>
-                                <TableCell class="text-center">{{ kd.question_count }}</TableCell>
-                                <TableCell class="text-center">{{ kd.avg_score }}%</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-
-            <div v-if="!analysis.computing && analysis.items.length === 0" class="py-12 text-center text-muted-foreground">
-                Belum ada data analisis. Klik "Hitung Ulang" untuk memulai.
+            <div v-if="!analysis.computing && analysis.kd_breakdown.length > 0" class="overflow-hidden rounded-xl border bg-card">
+                <div class="border-b px-6 py-4">
+                    <h3 class="font-semibold">Rekap per Kompetensi Dasar</h3>
+                </div>
+                <Table>
+                    <TableHeader>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Kode</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama KD</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Jumlah Soal</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Rata-rata Tingkat Kesulitan</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="kd in analysis.kd_breakdown" :key="kd.code" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
+                            <TableCell class="font-mono text-sm">{{ kd.code }}</TableCell>
+                            <TableCell>{{ kd.name }}</TableCell>
+                            <TableCell class="text-center">{{ kd.question_count }}</TableCell>
+                            <TableCell class="text-center">{{ kd.avg_score }}%</TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
+
+            <EmptyState
+                v-if="!analysis.computing && analysis.items.length === 0"
+                :icon="PieChart"
+                title="Belum ada data analisis"
+                description="Klik 'Hitung Ulang' untuk memulai analisis butir soal."
+            />
         </div>
     </AppLayout>
 </template>

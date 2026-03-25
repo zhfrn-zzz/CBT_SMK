@@ -3,6 +3,8 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Check, Save } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, PenLine, Save } from 'lucide-vue-next';
 import type { BreadcrumbItem, GradingAnswer, OtherAttempt } from '@/types';
 
 const props = defineProps<{
@@ -109,23 +111,19 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
             <FlashMessage />
 
             <!-- Header with student info & navigation -->
-            <div class="flex items-start justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold">{{ attempt.user.name }}</h2>
-                    <p class="text-sm text-muted-foreground">
-                        {{ attempt.user.username }} &mdash; {{ examSession.name }} ({{ examSession.subject }})
-                    </p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-muted-foreground">Nilai saat ini:</span>
-                    <span class="text-lg font-bold">
-                        {{ attempt.score !== null ? attempt.score.toFixed(2) : '-' }}
-                    </span>
-                    <Badge :variant="attempt.is_fully_graded ? 'default' : 'secondary'">
-                        {{ attempt.is_fully_graded ? 'Lengkap' : 'Belum Lengkap' }}
-                    </Badge>
-                </div>
-            </div>
+            <PageHeader title="Penilaian Manual" :description="`${attempt.user.name} — ${examSession.name} (${examSession.subject})`" :icon="PenLine">
+                <template #actions>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-muted-foreground">Nilai saat ini:</span>
+                        <span class="text-lg font-bold">
+                            {{ attempt.score !== null ? attempt.score.toFixed(2) : '-' }}
+                        </span>
+                        <Badge :variant="attempt.is_fully_graded ? 'default' : 'secondary'">
+                            {{ attempt.is_fully_graded ? 'Lengkap' : 'Belum Lengkap' }}
+                        </Badge>
+                    </div>
+                </template>
+            </PageHeader>
 
             <!-- Student switcher -->
             <div class="flex items-center gap-2">
@@ -262,10 +260,10 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
                                             placeholder="0"
                                         />
                                     </div>
-                                    <Button @click="saveGrade(currentAnswer.id)" size="sm">
+                                    <LoadingButton @click="saveGrade(currentAnswer.id)" size="sm">
                                         <Save class="mr-1 size-4" />
                                         Simpan Nilai
-                                    </Button>
+                                    </LoadingButton>
                                 </div>
                                 <div>
                                     <Label>Feedback (opsional)</Label>

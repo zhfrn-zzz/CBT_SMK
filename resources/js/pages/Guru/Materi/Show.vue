@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { CheckCircle2, Download, Pencil, XCircle } from 'lucide-vue-next';
+import { BookOpen, CheckCircle2, Download, Pencil, Trash2, XCircle } from 'lucide-vue-next';
 import { useYouTubeEmbed } from '@/composables/useYouTubeEmbed';
 import type { BreadcrumbItem, Material } from '@/types';
 
@@ -42,6 +44,10 @@ function formatDate(date: string | null) {
     if (!date) return '-';
     return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
+
+function deleteMaterial() {
+    router.delete(`/guru/materi/${props.material.id}`);
+}
 </script>
 
 <template>
@@ -50,32 +56,41 @@ function formatDate(date: string | null) {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h2 class="text-xl font-semibold">{{ material.title }}</h2>
-                        <Badge v-if="!material.is_published" variant="secondary">Draft</Badge>
-                    </div>
-                    <p v-if="material.description" class="mt-1 text-sm text-muted-foreground">{{ material.description }}</p>
-                    <p class="mt-1 text-xs text-muted-foreground">
-                        {{ material.subject?.name }} · {{ material.classroom?.name }}
-                        <span v-if="material.topic"> · {{ material.topic }}</span>
-                    </p>
-                </div>
-                <div class="flex gap-2 shrink-0">
+            <PageHeader :title="material.title" :icon="BookOpen">
+                <template #actions>
+                    <Badge v-if="!material.is_published" variant="secondary">Draft</Badge>
                     <Button variant="outline" size="sm" as-child v-if="material.type === 'file'">
                         <a :href="`/guru/materi/${material.id}/download`">
                             <Download class="size-4" />
                             Download
                         </a>
                     </Button>
-                    <Button size="sm" as-child>
+                    <Button variant="outline" size="sm" as-child>
                         <Link :href="`/guru/materi/${material.id}/edit`">
                             <Pencil class="size-4" />
                             Edit
                         </Link>
                     </Button>
-                </div>
+                    <ConfirmDialog
+                        title="Hapus Materi?"
+                        description="Materi dan semua data progress siswa akan dihapus permanen. Lanjutkan?"
+                        confirm-label="Ya, Hapus"
+                        @confirm="deleteMaterial"
+                    >
+                        <Button variant="destructive" size="sm">
+                            <Trash2 class="size-4" />
+                            Hapus
+                        </Button>
+                    </ConfirmDialog>
+                </template>
+            </PageHeader>
+
+            <div class="text-sm text-muted-foreground">
+                <p v-if="material.description" class="mb-1">{{ material.description }}</p>
+                <p>
+                    {{ material.subject?.name }} · {{ material.classroom?.name }}
+                    <span v-if="material.topic"> · {{ material.topic }}</span>
+                </p>
             </div>
 
             <!-- Tab -->
@@ -135,18 +150,18 @@ function formatDate(date: string | null) {
                     </CardContent>
                 </Card>
 
-                <div class="rounded-md border">
+                <div class="overflow-hidden rounded-xl border bg-card">
                     <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Nama Siswa</TableHead>
-                                <TableHead>Username</TableHead>
-                                <TableHead class="text-center">Status</TableHead>
-                                <TableHead>Tanggal Selesai</TableHead>
+                            <TableRow class="bg-slate-50">
+                                <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Siswa</TableHead>
+                                <TableHead class="text-xs font-semibold uppercase tracking-wider">Username</TableHead>
+                                <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                                <TableHead class="text-xs font-semibold uppercase tracking-wider">Tanggal Selesai</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="s in students" :key="s.id">
+                            <TableRow v-for="s in students" :key="s.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                                 <TableCell class="font-medium">{{ s.name }}</TableCell>
                                 <TableCell class="text-muted-foreground">{{ s.username }}</TableCell>
                                 <TableCell class="text-center">

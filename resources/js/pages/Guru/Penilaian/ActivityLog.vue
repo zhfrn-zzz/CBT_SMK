@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import StatsCard from '@/Components/StatsCard.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +20,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, AlertTriangle, Monitor, Copy, MousePointer, Maximize } from 'lucide-vue-next';
+import { Activity, AlertTriangle, ArrowLeft, Copy, Maximize, Monitor, MousePointer } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 
 const props = defineProps<{
@@ -106,27 +109,23 @@ function getEventBadgeVariant(type: string): 'default' | 'secondary' | 'destruct
                 </Button>
             </div>
 
+            <PageHeader title="Log Aktivitas" :description="attempt.user.name" :icon="Activity" />
+
             <!-- Student Info -->
             <Card>
-                <CardHeader class="pb-3">
-                    <CardTitle class="text-lg">
-                        {{ attempt.user.name }}
-                        <span class="text-sm font-normal text-muted-foreground">({{ attempt.user.username }})</span>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent class="p-6">
                     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
                         <div>
-                            <span class="text-muted-foreground">Ujian:</span>
-                            <p class="font-medium">{{ examSession.name }}</p>
+                            <span class="text-sm font-semibold text-muted-foreground">Ujian</span>
+                            <p class="text-base text-foreground">{{ examSession.name }}</p>
                         </div>
                         <div>
-                            <span class="text-muted-foreground">Mulai:</span>
-                            <p class="font-medium">{{ formatDateTime(attempt.started_at) }}</p>
+                            <span class="text-sm font-semibold text-muted-foreground">Mulai</span>
+                            <p class="text-base text-foreground">{{ formatDateTime(attempt.started_at) }}</p>
                         </div>
                         <div>
-                            <span class="text-muted-foreground">Selesai:</span>
-                            <p class="font-medium">
+                            <span class="text-sm font-semibold text-muted-foreground">Selesai</span>
+                            <p class="text-base text-foreground">
                                 {{ attempt.submitted_at ? formatDateTime(attempt.submitted_at) : '-' }}
                                 <Badge v-if="attempt.is_force_submitted" variant="destructive" class="ml-1">
                                     Auto-submit
@@ -134,8 +133,8 @@ function getEventBadgeVariant(type: string): 'default' | 'secondary' | 'destruct
                             </p>
                         </div>
                         <div>
-                            <span class="text-muted-foreground">IP Address:</span>
-                            <p class="font-medium font-mono">{{ attempt.ip_address ?? '-' }}</p>
+                            <span class="text-sm font-semibold text-muted-foreground">IP Address</span>
+                            <p class="text-base text-foreground font-mono">{{ attempt.ip_address ?? '-' }}</p>
                         </div>
                     </div>
                     <div v-if="attempt.user_agent" class="mt-2 text-xs text-muted-foreground">
@@ -146,83 +145,52 @@ function getEventBadgeVariant(type: string): 'default' | 'secondary' | 'destruct
 
             <!-- Summary Cards -->
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                <Card>
-                    <CardContent class="pt-4">
-                        <p class="text-2xl font-bold">{{ summary.total }}</p>
-                        <p class="text-sm text-muted-foreground">Total Pelanggaran</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-4">
-                        <p class="text-2xl font-bold text-red-600">
-                            {{ summary.tab_switches }}
-                            <span v-if="examSession.max_tab_switches !== null" class="text-sm font-normal text-muted-foreground">
-                                / {{ examSession.max_tab_switches }}
-                            </span>
-                        </p>
-                        <p class="text-sm text-muted-foreground">Pindah Tab</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-4">
-                        <p class="text-2xl font-bold">{{ summary.fullscreen_exits }}</p>
-                        <p class="text-sm text-muted-foreground">Keluar Fullscreen</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-4">
-                        <p class="text-2xl font-bold">{{ summary.copy_attempts }}</p>
-                        <p class="text-sm text-muted-foreground">Copy Attempt</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-4">
-                        <p class="text-2xl font-bold">{{ summary.right_clicks }}</p>
-                        <p class="text-sm text-muted-foreground">Klik Kanan</p>
-                    </CardContent>
-                </Card>
+                <StatsCard title="Total Pelanggaran" :value="summary.total" :icon="AlertTriangle" icon-color="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" />
+                <StatsCard title="Pindah Tab" :value="summary.tab_switches" :icon="AlertTriangle" icon-color="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" :trend="examSession.max_tab_switches !== null ? `/ ${examSession.max_tab_switches}` : undefined" />
+                <StatsCard title="Keluar Fullscreen" :value="summary.fullscreen_exits" :icon="Maximize" />
+                <StatsCard title="Copy Attempt" :value="summary.copy_attempts" :icon="Copy" />
+                <StatsCard title="Klik Kanan" :value="summary.right_clicks" :icon="MousePointer" />
             </div>
 
             <!-- Activity Log Table -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>Log Aktivitas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div v-if="logs.length === 0" class="py-8 text-center text-muted-foreground">
-                        Tidak ada log aktivitas untuk siswa ini.
-                    </div>
-                    <Table v-else>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-12">#</TableHead>
-                                <TableHead>Jenis Pelanggaran</TableHead>
-                                <TableHead>Deskripsi</TableHead>
-                                <TableHead>Waktu</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="(log, index) in logs" :key="log.id">
-                                <TableCell class="font-mono text-muted-foreground">
-                                    {{ logs.length - index }}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge :variant="getEventBadgeVariant(log.event_type)" class="gap-1">
-                                        <component :is="getEventIcon(log.event_type)" class="size-3" />
-                                        {{ log.event_label }}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell class="text-sm text-muted-foreground">
-                                    {{ log.description ?? '-' }}
-                                </TableCell>
-                                <TableCell class="whitespace-nowrap text-sm font-mono">
-                                    {{ formatDateTime(log.created_at) }}
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+            <div class="overflow-hidden rounded-xl border bg-card">
+                <Table>
+                    <TableHeader>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="w-12 text-xs font-semibold uppercase tracking-wider">#</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Jenis Pelanggaran</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Deskripsi</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Waktu</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="(log, index) in logs" :key="log.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
+                            <TableCell class="font-mono text-muted-foreground">
+                                {{ logs.length - index }}
+                            </TableCell>
+                            <TableCell>
+                                <Badge :variant="getEventBadgeVariant(log.event_type)" class="gap-1">
+                                    <component :is="getEventIcon(log.event_type)" class="size-3" />
+                                    {{ log.event_label }}
+                                </Badge>
+                            </TableCell>
+                            <TableCell class="text-sm text-muted-foreground">
+                                {{ log.description ?? '-' }}
+                            </TableCell>
+                            <TableCell class="whitespace-nowrap text-sm font-mono">
+                                {{ formatDateTime(log.created_at) }}
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
+
+            <EmptyState
+                v-if="logs.length === 0"
+                :icon="Activity"
+                title="Tidak ada log aktivitas"
+                description="Tidak ada log aktivitas untuk siswa ini."
+            />
         </div>
     </AppLayout>
 </template>

@@ -3,20 +3,26 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
-import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import DataTableToolbar from '@/Components/DataTableToolbar.vue';
+import Pagination from '@/Components/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Eye, FileText, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import type { Assignment, BreadcrumbItem, PaginatedData } from '@/types';
 
 interface TeachingAssignment {
@@ -81,44 +87,48 @@ function deleteItem(id: number) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Tugas & Assignment</h2>
-                <Button size="sm" as-child>
-                    <Link href="/guru/tugas/create"><Plus class="size-4" />Buat Tugas</Link>
-                </Button>
-            </div>
 
-            <div class="flex flex-wrap gap-3">
-                <Select v-model="subjectId">
-                    <SelectTrigger class="w-[220px]"><SelectValue placeholder="Semua Mata Pelajaran" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua</SelectItem>
-                        <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Select v-model="classroomId">
-                    <SelectTrigger class="w-[180px]"><SelectValue placeholder="Semua Kelas" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua</SelectItem>
-                        <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+            <PageHeader title="Tugas" description="Kelola tugas siswa" :icon="FileText">
+                <template #actions>
+                    <Button size="sm" as-child>
+                        <Link href="/guru/tugas/create"><Plus class="size-4" />Buat Tugas</Link>
+                    </Button>
+                </template>
+            </PageHeader>
 
-            <div class="rounded-md border">
+            <DataTableToolbar>
+                <template #filters>
+                    <Select v-model="subjectId">
+                        <SelectTrigger class="w-[220px]"><SelectValue placeholder="Semua Mata Pelajaran" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua</SelectItem>
+                            <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select v-model="classroomId">
+                        <SelectTrigger class="w-[180px]"><SelectValue placeholder="Semua Kelas" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua</SelectItem>
+                            <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </template>
+            </DataTableToolbar>
+
+            <div class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Judul</TableHead>
-                            <TableHead>Kelas / Mapel</TableHead>
-                            <TableHead>Deadline</TableHead>
-                            <TableHead class="text-center">Submit</TableHead>
-                            <TableHead class="text-center">Dinilai</TableHead>
-                            <TableHead>Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Judul</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Kelas / Mapel</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Deadline</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Submit</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Dinilai</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="a in assignments.data" :key="a.id">
+                        <TableRow v-for="a in assignments.data" :key="a.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell class="font-medium">{{ a.title }}</TableCell>
                             <TableCell class="text-sm text-muted-foreground">
                                 {{ a.classroom?.name }}<br />{{ a.subject?.name }}
@@ -128,38 +138,46 @@ function deleteItem(id: number) {
                             </TableCell>
                             <TableCell class="text-center">{{ a.submission_count ?? 0 }} / {{ a.total_students ?? '-' }}</TableCell>
                             <TableCell class="text-center">{{ a.graded_count ?? 0 }} / {{ a.submission_count ?? 0 }}</TableCell>
-                            <TableCell>
-                                <div class="flex gap-1">
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/guru/tugas/${a.id}`"><Eye class="size-4" /></Link>
-                                    </Button>
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/guru/tugas/${a.id}/edit`"><Pencil class="size-4" /></Link>
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger as-child>
-                                            <Button variant="ghost" size="icon-sm"><Trash2 class="size-4 text-destructive" /></Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Hapus Tugas</AlertDialogTitle>
-                                                <AlertDialogDescription>Semua submission akan ikut terhapus. Lanjutkan?</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                <AlertDialogAction class="bg-destructive text-white hover:bg-destructive/90" @click="deleteItem(a.id)">Hapus</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
+                            <TableCell class="text-center">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon-sm"><MoreHorizontal class="size-4" /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/guru/tugas/${a.id}`"><Eye class="mr-2 size-4" />Lihat</Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/guru/tugas/${a.id}/edit`"><Pencil class="mr-2 size-4" />Edit</Link>
+                                        </DropdownMenuItem>
+                                        <ConfirmDialog
+                                            description="Semua submission akan ikut terhapus. Lanjutkan?"
+                                            @confirm="deleteItem(a.id)"
+                                        >
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @select.prevent>
+                                                <Trash2 class="mr-2 size-4" />Hapus
+                                            </DropdownMenuItem>
+                                        </ConfirmDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
-                        </TableRow>
-                        <TableRow v-if="assignments.data.length === 0">
-                            <TableCell :colspan="6" class="text-center text-muted-foreground">Belum ada tugas.</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
             </div>
+
+            <EmptyState
+                v-if="assignments.data.length === 0"
+                :icon="FileText"
+                title="Belum ada tugas"
+                description="Mulai buat tugas untuk siswa Anda."
+            >
+                <template #action>
+                    <Button as-child>
+                        <Link href="/guru/tugas/create"><Plus class="size-4" />Buat Tugas</Link>
+                    </Button>
+                </template>
+            </EmptyState>
 
             <Pagination :links="assignments.links" :from="assignments.from" :to="assignments.to" :total="assignments.total" />
         </div>

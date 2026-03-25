@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import Pagination from '@/Components/Pagination.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,8 +14,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import Pagination from '@/components/Pagination.vue';
-import { ClipboardCheck, Eye } from 'lucide-vue-next';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Award, Eye, MoreHorizontal } from 'lucide-vue-next';
 import type { BreadcrumbItem, GradingExamSession, PaginatedData } from '@/types';
 
 const props = defineProps<{
@@ -38,25 +46,23 @@ function formatDate(date: string) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Penilaian Ujian</h2>
-            </div>
+            <PageHeader title="Penilaian" description="Kelola penilaian ujian" :icon="Award" />
 
-            <div class="rounded-xl border">
+            <div class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Nama Ujian</TableHead>
-                            <TableHead>Mata Pelajaran</TableHead>
-                            <TableHead class="text-center">Peserta</TableHead>
-                            <TableHead class="text-center">Dinilai</TableHead>
-                            <TableHead class="text-center">Esai Belum Dinilai</TableHead>
-                            <TableHead class="text-center">Publikasi</TableHead>
-                            <TableHead class="text-center">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Ujian</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Mata Pelajaran</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Peserta</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Dinilai</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Esai Belum Dinilai</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Publikasi</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="session in examSessions.data" :key="session.id">
+                        <TableRow v-for="session in examSessions.data" :key="session.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell class="font-medium">{{ session.name }}</TableCell>
                             <TableCell>{{ session.subject?.name }}</TableCell>
                             <TableCell class="text-center">{{ session.total_attempts }}</TableCell>
@@ -77,22 +83,28 @@ function formatDate(date: string) {
                                 </Badge>
                             </TableCell>
                             <TableCell class="text-center">
-                                <Button variant="outline" size="sm" as-child>
-                                    <Link :href="`/guru/grading/${session.id}`">
-                                        <Eye class="mr-1 size-4" />
-                                        Lihat
-                                    </Link>
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow v-if="examSessions.data.length === 0">
-                            <TableCell colspan="7" class="text-center text-muted-foreground py-8">
-                                Belum ada ujian yang perlu dinilai.
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon-sm"><MoreHorizontal class="size-4" /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/guru/grading/${session.id}`"><Eye class="mr-2 size-4" />Lihat</Link>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
             </div>
+
+            <EmptyState
+                v-if="examSessions.data.length === 0"
+                :icon="Award"
+                title="Belum ada penilaian"
+                description="Belum ada ujian yang perlu dinilai."
+            />
 
             <Pagination :links="examSessions.links" :from="examSessions.from" :to="examSessions.to" :total="examSessions.total" />
         </div>

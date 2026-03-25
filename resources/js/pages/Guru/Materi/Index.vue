@@ -3,7 +3,11 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
-import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import DataTableToolbar from '@/Components/DataTableToolbar.vue';
+import Pagination from '@/Components/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,18 +18,20 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, FileText, Pencil, Plus, Trash2, Video } from 'lucide-vue-next';
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { BookOpen, Eye, FileText, MoreHorizontal, Pencil, Plus, Trash2, Video } from 'lucide-vue-next';
 import type { BreadcrumbItem, Material, PaginatedData } from '@/types';
 
 interface TeachingAssignment {
@@ -96,18 +102,6 @@ const typeLabel = (type: string) => {
     if (type === 'text') return 'Teks';
     return 'File';
 };
-
-// Group materials by topic
-const groupedMaterials = computed(() => {
-    if (!props.materials?.data) return {};
-    const groups: Record<string, Material[]> = {};
-    props.materials.data.forEach((m) => {
-        const key = m.topic ?? 'Tanpa Topik';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(m);
-    });
-    return groups;
-});
 </script>
 
 <template>
@@ -116,115 +110,142 @@ const groupedMaterials = computed(() => {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Materi Pembelajaran</h2>
-                <Button size="sm" as-child>
-                    <Link href="/guru/materi/create">
-                        <Plus class="size-4" />
-                        Tambah Materi
-                    </Link>
-                </Button>
-            </div>
+            <PageHeader title="Materi" description="Kelola materi pembelajaran" :icon="BookOpen">
+                <template #actions>
+                    <Button size="sm" as-child>
+                        <Link href="/guru/materi/create">
+                            <Plus class="size-4" />
+                            Tambah Materi
+                        </Link>
+                    </Button>
+                </template>
+            </PageHeader>
 
             <!-- Filters -->
-            <div class="flex flex-wrap gap-3">
-                <Select v-model="subjectId">
-                    <SelectTrigger class="w-[220px]">
-                        <SelectValue placeholder="Pilih Mata Pelajaran" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">
-                            {{ s.name }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+            <DataTableToolbar>
+                <template #filters>
+                    <Select v-model="subjectId">
+                        <SelectTrigger class="w-[220px]">
+                            <SelectValue placeholder="Pilih Mata Pelajaran" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">
+                                {{ s.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                <Select v-model="classroomId" :disabled="!subjectId">
-                    <SelectTrigger class="w-[180px]">
-                        <SelectValue placeholder="Pilih Kelas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">
-                            {{ c.name }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+                    <Select v-model="classroomId" :disabled="!subjectId">
+                        <SelectTrigger class="w-[180px]">
+                            <SelectValue placeholder="Pilih Kelas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">
+                                {{ c.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                <Select v-if="topics.length > 0" v-model="topic">
-                    <SelectTrigger class="w-[180px]">
-                        <SelectValue placeholder="Semua Topik" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Topik</SelectItem>
-                        <SelectItem v-for="t in topics" :key="t" :value="t">{{ t }}</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+                    <Select v-if="topics.length > 0" v-model="topic">
+                        <SelectTrigger class="w-[180px]">
+                            <SelectValue placeholder="Semua Topik" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Topik</SelectItem>
+                            <SelectItem v-for="t in topics" :key="t" :value="t">{{ t }}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </template>
+            </DataTableToolbar>
 
-            <!-- Empty state -->
-            <div v-if="!subjectId || !classroomId" class="rounded-lg border-2 border-dashed border-muted p-12 text-center text-muted-foreground">
-                Pilih mata pelajaran dan kelas untuk melihat materi.
-            </div>
+            <!-- Empty state: no filters selected -->
+            <EmptyState
+                v-if="!subjectId || !classroomId"
+                :icon="BookOpen"
+                title="Pilih filter"
+                description="Pilih mata pelajaran dan kelas untuk melihat materi."
+            />
 
-            <!-- Materials grouped by topic -->
+            <!-- Materials Table -->
             <template v-else-if="materials && materials.data.length > 0">
-                <div v-for="(items, topicName) in groupedMaterials" :key="topicName" class="space-y-2">
-                    <h3 class="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{{ topicName }}</h3>
-                    <div class="rounded-md border divide-y">
-                        <div v-for="m in items" :key="m.id" class="flex items-center justify-between p-3">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <component :is="typeIcon(m.type)" class="size-4 shrink-0 text-muted-foreground" />
-                                <div class="min-w-0">
-                                    <p class="font-medium truncate">{{ m.title }}</p>
-                                    <p class="text-xs text-muted-foreground">
-                                        {{ typeLabel(m.type) }}
-                                        <span v-if="m.formatted_file_size"> · {{ m.formatted_file_size }}</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <Badge v-if="!m.is_published" variant="secondary">Draft</Badge>
-                                <Button variant="ghost" size="icon-sm" as-child>
-                                    <Link :href="`/guru/materi/${m.id}`">
-                                        <Eye class="size-4" />
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" size="icon-sm" as-child>
-                                    <Link :href="`/guru/materi/${m.id}/edit`">
-                                        <Pencil class="size-4" />
-                                    </Link>
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger as-child>
-                                        <Button variant="ghost" size="icon-sm">
-                                            <Trash2 class="size-4 text-destructive" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Hapus Materi</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Materi dan semua data progress siswa akan dihapus. Lanjutkan?
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                                            <AlertDialogAction class="bg-destructive text-white hover:bg-destructive/90" @click="deleteMaterial(m.id)">
-                                                Hapus
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </div>
-                    </div>
+                <div class="overflow-hidden rounded-xl border bg-card">
+                    <Table>
+                        <TableHeader>
+                            <TableRow class="bg-slate-50">
+                                <TableHead class="text-xs font-semibold uppercase tracking-wider">Judul</TableHead>
+                                <TableHead class="text-xs font-semibold uppercase tracking-wider">Topik</TableHead>
+                                <TableHead class="text-xs font-semibold uppercase tracking-wider">Tipe</TableHead>
+                                <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                                <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow v-for="m in materials.data" :key="m.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
+                                <TableCell>
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <component :is="typeIcon(m.type)" class="size-4 shrink-0 text-muted-foreground" />
+                                        <div class="min-w-0">
+                                            <p class="font-medium truncate">{{ m.title }}</p>
+                                            <p class="text-xs text-muted-foreground">
+                                                {{ typeLabel(m.type) }}
+                                                <span v-if="m.formatted_file_size"> · {{ m.formatted_file_size }}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell class="text-sm text-muted-foreground">{{ m.topic ?? '-' }}</TableCell>
+                                <TableCell>
+                                    <Badge variant="outline">{{ typeLabel(m.type) }}</Badge>
+                                </TableCell>
+                                <TableCell class="text-center">
+                                    <Badge v-if="!m.is_published" variant="secondary">Draft</Badge>
+                                    <Badge v-else variant="default">Dipublikasi</Badge>
+                                </TableCell>
+                                <TableCell class="text-center">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger as-child>
+                                            <Button variant="ghost" size="icon-sm"><MoreHorizontal class="size-4" /></Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem as-child>
+                                                <Link :href="`/guru/materi/${m.id}`"><Eye class="mr-2 size-4" />Lihat</Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem as-child>
+                                                <Link :href="`/guru/materi/${m.id}/edit`"><Pencil class="mr-2 size-4" />Edit</Link>
+                                            </DropdownMenuItem>
+                                            <ConfirmDialog
+                                                description="Materi dan semua data progress siswa akan dihapus. Lanjutkan?"
+                                                @confirm="deleteMaterial(m.id)"
+                                            >
+                                                <DropdownMenuItem class="text-destructive focus:text-destructive" @select.prevent>
+                                                    <Trash2 class="mr-2 size-4" />Hapus
+                                                </DropdownMenuItem>
+                                            </ConfirmDialog>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </div>
-                <Pagination v-if="materials" :links="materials.links" :from="materials.from" :to="materials.to" :total="materials.total" />
+                <Pagination :links="materials.links" :from="materials.from" :to="materials.to" :total="materials.total" />
             </template>
 
-            <div v-else-if="materials && materials.data.length === 0" class="rounded-lg border-2 border-dashed border-muted p-12 text-center text-muted-foreground">
-                Belum ada materi. <Link href="/guru/materi/create" class="text-primary underline">Tambahkan materi pertama.</Link>
-            </div>
+            <EmptyState
+                v-else-if="materials && materials.data.length === 0"
+                :icon="BookOpen"
+                title="Belum ada materi"
+                description="Mulai tambahkan materi pembelajaran untuk kelas ini."
+            >
+                <template #action>
+                    <Button as-child>
+                        <Link href="/guru/materi/create">
+                            <Plus class="size-4" />
+                            Tambah Materi
+                        </Link>
+                    </Button>
+                </template>
+            </EmptyState>
         </div>
     </AppLayout>
 </template>
