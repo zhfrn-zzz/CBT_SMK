@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-vue-next';
+import { Card, CardContent } from '@/components/ui/card';
+import { ChevronLeft, Megaphone } from 'lucide-vue-next';
 import type { Announcement, BreadcrumbItem } from '@/types';
 
 const props = defineProps<{
@@ -27,18 +29,18 @@ function formatDate(d: string) {
                 <Link href="/siswa/pengumuman"><ChevronLeft class="size-4" />Kembali</Link>
             </Button>
 
-            <div class="space-y-3">
-                <h2 class="text-2xl font-semibold">{{ announcement.title }}</h2>
-                <p class="text-sm text-muted-foreground">
-                    Oleh <strong>{{ announcement.user?.name }}</strong> · {{ formatDate(announcement.published_at) }}
-                    <span v-if="announcement.classroom"> · {{ announcement.classroom.name }}</span>
-                </p>
-            </div>
+            <PageHeader :title="announcement.title" :icon="Megaphone" />
+            <p class="text-sm text-muted-foreground">
+                Oleh <strong>{{ announcement.user?.name }}</strong> · {{ formatDate(announcement.published_at) }}
+                <span v-if="announcement.classroom"> · {{ announcement.classroom.name }}</span>
+            </p>
 
-            <div class="prose prose-sm max-w-none rounded-lg border p-4">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-html="announcement.content" />
-            </div>
+            <Card>
+                <CardContent class="p-6 prose prose-sm max-w-none">
+                    <!-- eslint-disable-next-line vue/no-v-html -->
+                    <div v-html="announcement.content" />
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Badge } from '@/components/ui/badge';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import StatusBadge from '@/Components/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -11,7 +13,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Eye } from 'lucide-vue-next';
+import { Eye, Trophy } from 'lucide-vue-next';
 import type { BreadcrumbItem, SiswaResult } from '@/types';
 
 defineProps<{
@@ -40,24 +42,25 @@ function formatDate(date: string | null) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <h2 class="text-xl font-semibold">Nilai Ujian</h2>
+            <PageHeader title="Nilai" description="Rekap nilai ujian" :icon="Trophy" />
 
-            <div class="rounded-xl border">
+            <EmptyState v-if="results.length === 0" :icon="Trophy" title="Belum ada nilai" description="Belum ada hasil ujian yang dipublikasikan." />
+            <div v-else class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>No</TableHead>
-                            <TableHead>Nama Ujian</TableHead>
-                            <TableHead>Mata Pelajaran</TableHead>
-                            <TableHead class="text-center">Nilai</TableHead>
-                            <TableHead class="text-center">KKM</TableHead>
-                            <TableHead class="text-center">Status</TableHead>
-                            <TableHead class="text-center">Tanggal</TableHead>
-                            <TableHead class="text-center">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">No</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Ujian</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Mata Pelajaran</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Nilai</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">KKM</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Tanggal</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="(result, index) in results" :key="result.id">
+                        <TableRow v-for="(result, index) in results" :key="result.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell>{{ index + 1 }}</TableCell>
                             <TableCell class="font-medium">{{ result.exam_name }}</TableCell>
                             <TableCell>{{ result.subject }}</TableCell>
@@ -74,12 +77,8 @@ function formatDate(date: string | null) {
                                 {{ result.kkm ?? '-' }}
                             </TableCell>
                             <TableCell class="text-center">
-                                <Badge v-if="result.pass_status" :variant="result.pass_status === 'lulus' ? 'default' : 'destructive'">
-                                    {{ result.pass_status === 'lulus' ? 'Lulus' : 'Remedial' }}
-                                </Badge>
-                                <Badge v-else-if="!result.is_fully_graded" variant="secondary">
-                                    Proses Penilaian
-                                </Badge>
+                                <StatusBadge v-if="result.pass_status" :label="result.pass_status === 'lulus' ? 'Lulus' : 'Remedial'" :variant="result.pass_status === 'lulus' ? 'default' : 'destructive'" />
+                                <StatusBadge v-else-if="!result.is_fully_graded" label="Proses Penilaian" variant="secondary" />
                                 <span v-else class="text-muted-foreground">-</span>
                             </TableCell>
                             <TableCell class="text-center text-sm">
@@ -92,11 +91,6 @@ function formatDate(date: string | null) {
                                         Detail
                                     </Link>
                                 </Button>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow v-if="results.length === 0">
-                            <TableCell colspan="8" class="text-center text-muted-foreground py-8">
-                                Belum ada hasil ujian yang dipublikasikan.
                             </TableCell>
                         </TableRow>
                     </TableBody>

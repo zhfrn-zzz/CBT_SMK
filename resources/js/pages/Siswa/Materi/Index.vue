@@ -2,11 +2,14 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import DataTableToolbar from '@/Components/DataTableToolbar.vue';
 import { Badge } from '@/components/ui/badge';
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { CheckCircle2, FileText, Video } from 'lucide-vue-next';
+import { BookOpen, CheckCircle2, FileText, Video } from 'lucide-vue-next';
 import type { BreadcrumbItem, Material, MaterialProgress } from '@/types';
 
 interface Classroom {
@@ -61,22 +64,24 @@ const typeLabel = (type: string) => ({ file: 'File', video_link: 'Video', text: 
     <Head title="Materi Pembelajaran" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <h2 class="text-xl font-semibold">Materi Pembelajaran</h2>
+            <PageHeader title="Materi" description="Materi pembelajaran" :icon="BookOpen" />
 
-            <div class="flex flex-wrap gap-3">
-                <Select v-model="classroomId">
-                    <SelectTrigger class="w-[180px]"><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem v-for="c in classrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Select v-model="subjectId" :disabled="!classroomId">
-                    <SelectTrigger class="w-[220px]"><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem v-for="s in currentClassroom?.subjects ?? []" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+            <DataTableToolbar>
+                <template #filters>
+                    <Select v-model="classroomId">
+                        <SelectTrigger class="w-[180px]"><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="c in classrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select v-model="subjectId" :disabled="!classroomId">
+                        <SelectTrigger class="w-[220px]"><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="s in currentClassroom?.subjects ?? []" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </template>
+            </DataTableToolbar>
 
             <!-- Progress bar -->
             <div v-if="progressSummary && progressSummary.total > 0" class="rounded-lg border p-3">
@@ -89,9 +94,7 @@ const typeLabel = (type: string) => ({ file: 'File', video_link: 'Video', text: 
                 </div>
             </div>
 
-            <div v-if="!classroomId || !subjectId" class="rounded-lg border-2 border-dashed p-10 text-center text-muted-foreground">
-                Pilih kelas dan mata pelajaran untuk melihat materi.
-            </div>
+            <EmptyState v-if="!classroomId || !subjectId" :icon="BookOpen" title="Pilih kelas dan mata pelajaran" description="Pilih kelas dan mata pelajaran untuk melihat materi." />
 
             <template v-else-if="materials && materials.length > 0">
                 <div v-for="(items, topicName) in groupedMaterials" :key="topicName" class="space-y-2">
@@ -100,7 +103,7 @@ const typeLabel = (type: string) => ({ file: 'File', video_link: 'Video', text: 
                         <Link
                             v-for="m in items" :key="m.id"
                             :href="`/siswa/materi/${m.id}`"
-                            class="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors"
+                            class="flex items-center gap-3 p-3 hover:bg-slate-50/50 transition-colors"
                         >
                             <component :is="typeIcon(m.type)" class="size-4 shrink-0 text-muted-foreground" />
                             <div class="flex-1 min-w-0">
@@ -114,9 +117,7 @@ const typeLabel = (type: string) => ({ file: 'File', video_link: 'Video', text: 
                 </div>
             </template>
 
-            <div v-else-if="materials" class="rounded-lg border-2 border-dashed p-10 text-center text-muted-foreground">
-                Belum ada materi untuk mata pelajaran ini.
-            </div>
+            <EmptyState v-else-if="materials" :icon="BookOpen" title="Belum ada materi" description="Belum ada materi untuk mata pelajaran ini." />
         </div>
     </AppLayout>
 </template>

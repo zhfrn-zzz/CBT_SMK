@@ -3,12 +3,15 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Download } from 'lucide-vue-next';
+import { Download, FileText } from 'lucide-vue-next';
 import type { Assignment, AssignmentSubmission, BreadcrumbItem } from '@/types';
 
 const props = defineProps<{
@@ -71,40 +74,44 @@ const finalScore = computed(() => {
         <div class="mx-auto max-w-2xl p-4 space-y-4">
             <FlashMessage />
 
-            <div>
-                <h2 class="text-xl font-semibold">{{ assignment.title }}</h2>
-                <p class="text-sm text-muted-foreground">
-                    {{ assignment.subject?.name }} · {{ assignment.classroom?.name }}
-                </p>
-            </div>
+            <PageHeader :title="assignment.title" :icon="FileText">
+                <template #actions>
+                    <Button v-if="assignment.file_path" variant="outline" size="sm" as-child>
+                        <a :href="`/siswa/tugas/${assignment.id}/download`">
+                            <Download class="size-4" />Unduh Lampiran
+                        </a>
+                    </Button>
+                </template>
+            </PageHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ assignment.subject?.name }} · {{ assignment.classroom?.name }}
+            </p>
 
             <!-- Deadline info -->
-            <div class="rounded-lg border p-3 text-sm space-y-1">
-                <p>Deadline: <strong :class="isOverdue ? 'text-red-600' : ''">{{ formatDate(assignment.deadline_at) }}</strong></p>
-                <p v-if="!isOverdue && countdown(assignment.deadline_at)" class="text-orange-600">{{ countdown(assignment.deadline_at) }}</p>
-                <p v-if="isOverdue && assignment.allow_late_submission" class="text-orange-600">
-                    Deadline sudah lewat. Pengumpulan terlambat diizinkan (potongan {{ assignment.late_penalty_percent }}%).
-                </p>
-                <p v-if="isOverdue && !assignment.allow_late_submission" class="text-red-600">Deadline sudah lewat. Tidak bisa mengumpulkan.</p>
-                <p>Nilai maksimal: {{ assignment.max_score }}</p>
-                <p>Tipe submission: {{ { file: 'File', text: 'Teks', file_or_text: 'File atau Teks' }[assignment.submission_type] }}</p>
-            </div>
+            <Card>
+                <CardContent class="p-4 text-sm space-y-1">
+                    <p>Deadline: <strong :class="isOverdue ? 'text-red-600' : ''">{{ formatDate(assignment.deadline_at) }}</strong></p>
+                    <p v-if="!isOverdue && countdown(assignment.deadline_at)" class="text-orange-600">{{ countdown(assignment.deadline_at) }}</p>
+                    <p v-if="isOverdue && assignment.allow_late_submission" class="text-orange-600">
+                        Deadline sudah lewat. Pengumpulan terlambat diizinkan (potongan {{ assignment.late_penalty_percent }}%).
+                    </p>
+                    <p v-if="isOverdue && !assignment.allow_late_submission" class="text-red-600">Deadline sudah lewat. Tidak bisa mengumpulkan.</p>
+                    <p>Nilai maksimal: {{ assignment.max_score }}</p>
+                    <p>Tipe submission: {{ { file: 'File', text: 'Teks', file_or_text: 'File atau Teks' }[assignment.submission_type] }}</p>
+                </CardContent>
+            </Card>
 
             <!-- Description -->
-            <div class="prose prose-sm max-w-none rounded-lg border p-4">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-html="assignment.description" />
-            </div>
-
-            <!-- Attachment -->
-            <Button v-if="assignment.file_path" variant="outline" size="sm" as-child>
-                <a :href="`/siswa/tugas/${assignment.id}/download`">
-                    <Download class="size-4" />Unduh Lampiran
-                </a>
-            </Button>
+            <Card>
+                <CardContent class="p-4 prose prose-sm max-w-none">
+                    <!-- eslint-disable-next-line vue/no-v-html -->
+                    <div v-html="assignment.description" />
+                </CardContent>
+            </Card>
 
             <!-- If already graded -->
-            <div v-if="submission?.graded_at" class="rounded-lg border p-4 space-y-3">
+            <Card v-if="submission?.graded_at">
+                <CardContent class="p-4 space-y-3">
                 <div class="flex items-center gap-2">
                     <Badge variant="default">Sudah Dinilai</Badge>
                     <Badge v-if="submission.is_late" variant="destructive">Terlambat</Badge>
@@ -124,55 +131,64 @@ const finalScore = computed(() => {
                     </p>
                     <p v-if="submission.feedback" class="text-sm">Feedback: {{ submission.feedback }}</p>
                 </div>
-            </div>
+                </CardContent>
+            </Card>
 
             <!-- If submitted but not graded -->
             <div v-else-if="submission && !submission.graded_at" class="space-y-3">
-                <div class="rounded-lg border p-4 space-y-2">
-                    <div class="flex items-center gap-2">
-                        <Badge variant="secondary">Sudah Dikumpulkan</Badge>
-                        <Badge v-if="submission.is_late" variant="destructive">Terlambat</Badge>
-                        <span class="text-xs text-muted-foreground">{{ formatDate(submission.submitted_at) }}</span>
-                    </div>
-                    <p v-if="submission.content" class="text-sm whitespace-pre-wrap text-muted-foreground">{{ submission.content }}</p>
-                    <p v-if="submission.file_original_name" class="text-sm text-muted-foreground">File: {{ submission.file_original_name }}</p>
-                </div>
+                <Card>
+                    <CardContent class="p-4 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <Badge variant="secondary">Sudah Dikumpulkan</Badge>
+                            <Badge v-if="submission.is_late" variant="destructive">Terlambat</Badge>
+                            <span class="text-xs text-muted-foreground">{{ formatDate(submission.submitted_at) }}</span>
+                        </div>
+                        <p v-if="submission.content" class="text-sm whitespace-pre-wrap text-muted-foreground">{{ submission.content }}</p>
+                        <p v-if="submission.file_original_name" class="text-sm text-muted-foreground">File: {{ submission.file_original_name }}</p>
+                    </CardContent>
+                </Card>
 
-                <div v-if="canSubmit" class="space-y-2">
-                    <p class="text-sm font-medium">Edit Jawaban:</p>
+                <Card v-if="canSubmit">
+                    <CardHeader>
+                        <CardTitle class="text-base">Edit Jawaban</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form @submit.prevent="submit" class="space-y-3">
+                            <div v-if="['text', 'file_or_text'].includes(assignment.submission_type)" class="space-y-1">
+                                <Label>Jawaban Teks</Label>
+                                <Textarea v-model="form.content" rows="5" />
+                            </div>
+                            <div v-if="['file', 'file_or_text'].includes(assignment.submission_type)" class="space-y-1">
+                                <Label>Ganti File</Label>
+                                <Input type="file" @change="handleFileChange" />
+                            </div>
+                            <LoadingButton type="submit" :loading="form.processing">Update Jawaban</LoadingButton>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- If not submitted -->
+            <Card v-else-if="canSubmit">
+                <CardHeader>
+                    <CardTitle class="text-base">Kumpulkan Tugas</CardTitle>
+                </CardHeader>
+                <CardContent>
                     <form @submit.prevent="submit" class="space-y-3">
                         <div v-if="['text', 'file_or_text'].includes(assignment.submission_type)" class="space-y-1">
                             <Label>Jawaban Teks</Label>
                             <Textarea v-model="form.content" rows="5" />
                         </div>
                         <div v-if="['file', 'file_or_text'].includes(assignment.submission_type)" class="space-y-1">
-                            <Label>Ganti File</Label>
+                            <Label>Upload File</Label>
                             <Input type="file" @change="handleFileChange" />
+                            <p class="text-xs text-muted-foreground">Maks 25 MB</p>
                         </div>
-                        <Button type="submit" :disabled="form.processing">Update Jawaban</Button>
+                        <p v-if="form.errors.submit" class="text-xs text-destructive">{{ form.errors.submit }}</p>
+                        <LoadingButton type="submit" :loading="form.processing">Kumpulkan Tugas</LoadingButton>
                     </form>
-                </div>
-            </div>
-
-            <!-- If not submitted -->
-            <div v-else-if="canSubmit" class="space-y-3">
-                <p class="font-medium">Kumpulkan Tugas:</p>
-                <form @submit.prevent="submit" class="space-y-3">
-                    <div v-if="['text', 'file_or_text'].includes(assignment.submission_type)" class="space-y-1">
-                        <Label>Jawaban Teks</Label>
-                        <Textarea v-model="form.content" rows="5" />
-                    </div>
-                    <div v-if="['file', 'file_or_text'].includes(assignment.submission_type)" class="space-y-1">
-                        <Label>Upload File</Label>
-                        <Input type="file" @change="handleFileChange" />
-                        <p class="text-xs text-muted-foreground">Maks 25 MB</p>
-                    </div>
-                    <p v-if="form.errors.submit" class="text-xs text-destructive">{{ form.errors.submit }}</p>
-                    <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Mengumpulkan...' : 'Kumpulkan Tugas' }}
-                    </Button>
-                </form>
-            </div>
+                </CardContent>
+            </Card>
 
             <div v-else class="rounded-lg border-2 border-dashed p-4 text-center text-muted-foreground text-sm">
                 Tidak bisa mengumpulkan tugas (deadline sudah lewat).

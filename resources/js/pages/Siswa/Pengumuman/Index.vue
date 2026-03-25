@@ -2,8 +2,10 @@
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import { Badge } from '@/components/ui/badge';
-import { Pin } from 'lucide-vue-next';
+import { Megaphone, Pin } from 'lucide-vue-next';
 import type { Announcement, BreadcrumbItem, PaginatedData } from '@/types';
 
 const props = defineProps<{
@@ -24,17 +26,15 @@ function formatDate(d: string) {
     <Head title="Pengumuman" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <h2 class="text-xl font-semibold">Pengumuman</h2>
+            <PageHeader title="Pengumuman" description="Pengumuman terbaru" :icon="Megaphone" />
 
-            <div v-if="announcements.data.length === 0" class="rounded-lg border-2 border-dashed p-10 text-center text-muted-foreground">
-                Belum ada pengumuman.
-            </div>
+            <EmptyState v-if="announcements.data.length === 0" :icon="Megaphone" title="Belum ada pengumuman" description="Belum ada pengumuman saat ini." />
 
             <div class="space-y-2">
                 <Link
                     v-for="a in announcements.data" :key="a.id"
                     :href="`/siswa/pengumuman/${a.id}`"
-                    class="flex items-start gap-3 rounded-lg border p-4 hover:bg-muted/50 transition-colors"
+                    class="flex items-start gap-3 rounded-xl border bg-card p-4 shadow-sm hover:bg-slate-50/50 transition-colors"
                     :class="a.is_pinned ? 'border-primary/30 bg-primary/5' : ''"
                 >
                     <Pin v-if="a.is_pinned" class="size-4 text-primary mt-0.5 shrink-0" />

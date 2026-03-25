@@ -3,9 +3,14 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Lock, Pin, Trash2 } from 'lucide-vue-next';
+import { Lock, MessagesSquare, Pin, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, DiscussionReply, DiscussionThread, PaginatedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 
@@ -33,9 +38,7 @@ function deleteReply(replyId: number) {
 }
 
 function deleteThread() {
-    if (confirm('Hapus thread ini?')) {
-        router.delete(`/siswa/forum/${props.thread.id}`);
-    }
+    router.delete(`/siswa/forum/${props.thread.id}`);
 }
 
 function timeAgo(date: string) {
@@ -55,56 +58,64 @@ function timeAgo(date: string) {
         <div class="mx-auto max-w-3xl p-4 space-y-4">
             <FlashMessage />
 
-            <div class="rounded-lg border p-4 space-y-3">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <Pin v-if="thread.is_pinned" class="size-4 text-primary" />
-                            <Lock v-if="thread.is_locked" class="size-4 text-muted-foreground" />
-                            <h2 class="text-xl font-semibold">{{ thread.title }}</h2>
-                        </div>
-                        <p class="text-sm text-muted-foreground">
-                            Oleh <strong>{{ thread.user?.name }}</strong> · {{ timeAgo(thread.created_at) }}
-                        </p>
+            <PageHeader :title="thread.title" :icon="MessagesSquare">
+                <template #actions>
+                    <div class="flex items-center gap-2">
+                        <Pin v-if="thread.is_pinned" class="size-4 text-primary" />
+                        <Lock v-if="thread.is_locked" class="size-4 text-muted-foreground" />
+                        <ConfirmDialog v-if="thread.user_id === currentUserId" title="Hapus Thread?" description="Thread dan semua balasan akan dihapus. Tindakan ini tidak dapat dibatalkan." confirm-label="Ya, Hapus" @confirm="deleteThread">
+                            <Button variant="ghost" size="icon-sm">
+                                <Trash2 class="size-4 text-destructive" />
+                            </Button>
+                        </ConfirmDialog>
                     </div>
-                    <Button v-if="thread.user_id === currentUserId" variant="ghost" size="icon-sm" @click="deleteThread">
-                        <Trash2 class="size-4 text-destructive" />
-                    </Button>
-                </div>
-                <p class="text-sm whitespace-pre-wrap">{{ thread.content }}</p>
-            </div>
+                </template>
+            </PageHeader>
+
+            <Card>
+                <CardContent class="p-4 space-y-2">
+                    <p class="text-sm text-muted-foreground">
+                        Oleh <strong>{{ thread.user?.name }}</strong> · {{ timeAgo(thread.created_at) }}
+                    </p>
+                    <p class="text-sm whitespace-pre-wrap">{{ thread.content }}</p>
+                </CardContent>
+            </Card>
 
             <div class="space-y-3">
                 <p class="font-medium text-sm text-muted-foreground">{{ thread.reply_count }} Balasan</p>
 
-                <div v-if="replies.data.length === 0" class="text-center text-muted-foreground py-4 text-sm">
-                    Belum ada balasan.
-                </div>
+                <EmptyState v-if="replies.data.length === 0" :icon="MessagesSquare" title="Belum ada balasan" description="Jadilah yang pertama membalas thread ini." />
 
-                <div v-for="r in replies.data" :key="r.id" class="rounded-md border p-3 space-y-1">
-                    <div class="flex items-center justify-between">
-                        <p class="text-sm font-medium">{{ r.user?.name }}</p>
-                        <div class="flex items-center gap-2">
-                            <p class="text-xs text-muted-foreground">{{ timeAgo(r.created_at) }}</p>
-                            <Button v-if="r.user_id === currentUserId" variant="ghost" size="icon-sm" @click="deleteReply(r.id)">
-                                <Trash2 class="size-3 text-destructive" />
-                            </Button>
+                <Card v-for="r in replies.data" :key="r.id">
+                    <CardContent class="p-4 space-y-1">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium">{{ r.user?.name }}</p>
+                            <div class="flex items-center gap-2">
+                                <p class="text-xs text-muted-foreground">{{ timeAgo(r.created_at) }}</p>
+                                <ConfirmDialog v-if="r.user_id === currentUserId" title="Hapus Balasan?" description="Balasan ini akan dihapus." confirm-label="Ya, Hapus" @confirm="deleteReply(r.id)">
+                                    <Button variant="ghost" size="icon-sm">
+                                        <Trash2 class="size-3 text-destructive" />
+                                    </Button>
+                                </ConfirmDialog>
+                            </div>
                         </div>
-                    </div>
-                    <p class="text-sm whitespace-pre-wrap">{{ r.content }}</p>
-                </div>
+                        <p class="text-sm whitespace-pre-wrap">{{ r.content }}</p>
+                    </CardContent>
+                </Card>
 
                 <Pagination :links="replies.links" :from="replies.from" :to="replies.to" :total="replies.total" />
             </div>
 
-            <div v-if="!thread.is_locked" class="rounded-lg border p-4 space-y-2">
-                <p class="font-medium text-sm">Balas</p>
-                <form @submit.prevent="submitReply" class="space-y-2">
-                    <Textarea v-model="replyForm.content" placeholder="Tulis balasan..." rows="3" />
-                    <p v-if="replyForm.errors.content" class="text-xs text-destructive">{{ replyForm.errors.content }}</p>
-                    <Button type="submit" size="sm" :disabled="replyForm.processing">Kirim</Button>
-                </form>
-            </div>
+            <Card v-if="!thread.is_locked">
+                <CardContent class="p-4 space-y-2">
+                    <p class="font-medium text-sm">Balas</p>
+                    <form @submit.prevent="submitReply" class="space-y-2">
+                        <Textarea v-model="replyForm.content" placeholder="Tulis balasan..." rows="3" />
+                        <p v-if="replyForm.errors.content" class="text-xs text-destructive">{{ replyForm.errors.content }}</p>
+                        <LoadingButton type="submit" size="sm" :loading="replyForm.processing">Kirim</LoadingButton>
+                    </form>
+                </CardContent>
+            </Card>
             <div v-else class="rounded-lg border border-dashed p-4 text-center text-muted-foreground text-sm">
                 Thread ini sudah dikunci.
             </div>

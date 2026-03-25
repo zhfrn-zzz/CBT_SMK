@@ -2,6 +2,8 @@
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +15,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import InputError from '@/components/InputError.vue';
-import { KeyRound } from 'lucide-vue-next';
+import { KeyRound, ShieldCheck } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 
 const props = defineProps<{
@@ -50,7 +52,10 @@ function submit() {
     <Head title="Verifikasi Token Ujian" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 items-center justify-center p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+            <PageHeader title="Verifikasi Token" :icon="ShieldCheck" />
+
+            <div class="flex flex-1 items-center justify-center">
             <Card class="w-full max-w-md">
                 <CardHeader class="text-center">
                     <div class="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-primary/10">
@@ -75,12 +80,11 @@ function submit() {
                             />
                             <InputError :message="errors.token" />
                         </div>
-                        <Button type="submit" class="w-full" :disabled="processing || !token">
-                            {{ processing ? 'Memverifikasi...' : 'Mulai Ujian' }}
-                        </Button>
+                        <LoadingButton type="submit" class="w-full" :loading="processing" :disabled="!token">Mulai Ujian</LoadingButton>
                     </form>
                 </CardContent>
             </Card>
+            </div>
         </div>
     </AppLayout>
 </template>

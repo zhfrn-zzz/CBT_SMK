@@ -2,6 +2,8 @@
 import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import StatsCard from '@/Components/StatsCard.vue';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -10,7 +12,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Award, BookOpen, CheckCircle, XCircle } from 'lucide-vue-next';
+import { Award, BookOpen, CheckCircle, Trophy, XCircle } from 'lucide-vue-next';
 import type { BreadcrumbItem, GradingAnswer } from '@/types';
 
 const props = defineProps<{
@@ -65,61 +67,28 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <!-- Header -->
-            <div>
-                <h2 class="text-xl font-semibold">{{ examSession.name }}</h2>
-                <p class="text-sm text-muted-foreground">{{ examSession.subject }} &mdash; {{ formatDate(attempt.submitted_at) }}</p>
-            </div>
+            <PageHeader :title="examSession.name" :icon="Trophy" :description="`${examSession.subject} — ${formatDate(attempt.submitted_at)}`" />
 
             <!-- Score Summary -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <Award class="size-4" />
-                            Nilai
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-3xl font-bold" :class="{
-                            'text-green-600': attempt.pass_status === 'lulus',
-                            'text-red-600': attempt.pass_status === 'remedial',
-                        }">
-                            {{ attempt.score !== null ? attempt.score.toFixed(2) : '-' }}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card v-if="examSession.kkm">
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <BookOpen class="size-4" />
-                            KKM
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-3xl font-bold">{{ examSession.kkm }}</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <template v-if="attempt.pass_status === 'lulus'">
-                                <CheckCircle class="size-4 text-green-600" />
-                            </template>
-                            <template v-else-if="attempt.pass_status === 'remedial'">
-                                <XCircle class="size-4 text-red-600" />
-                            </template>
-                            Status
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Badge v-if="attempt.pass_status" :variant="attempt.pass_status === 'lulus' ? 'default' : 'destructive'" class="text-lg px-4 py-1">
-                            {{ attempt.pass_status === 'lulus' ? 'LULUS' : 'REMEDIAL' }}
-                        </Badge>
-                        <span v-else class="text-lg text-muted-foreground">-</span>
-                    </CardContent>
-                </Card>
+                <StatsCard
+                    title="Nilai"
+                    :value="attempt.score !== null ? attempt.score.toFixed(2) : '-'"
+                    :icon="Award"
+                    :icon-color="attempt.pass_status === 'lulus' ? 'bg-green-100 text-green-600' : attempt.pass_status === 'remedial' ? 'bg-red-100 text-red-600' : 'bg-primary/10 text-primary'"
+                />
+                <StatsCard
+                    v-if="examSession.kkm"
+                    title="KKM"
+                    :value="examSession.kkm"
+                    :icon="BookOpen"
+                />
+                <StatsCard
+                    title="Status"
+                    :value="attempt.pass_status === 'lulus' ? 'LULUS' : attempt.pass_status === 'remedial' ? 'REMEDIAL' : '-'"
+                    :icon="attempt.pass_status === 'lulus' ? CheckCircle : XCircle"
+                    :icon-color="attempt.pass_status === 'lulus' ? 'bg-green-100 text-green-600' : attempt.pass_status === 'remedial' ? 'bg-red-100 text-red-600' : 'bg-primary/10 text-primary'"
+                />
             </div>
 
             <!-- Per-question Detail -->

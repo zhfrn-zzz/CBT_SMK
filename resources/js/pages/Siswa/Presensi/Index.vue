@@ -4,14 +4,19 @@ import { ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import StatsCard from '@/Components/StatsCard.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
+import StatusBadge from '@/Components/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { ClipboardCheck, CheckSquare, AlertTriangle, Thermometer, XCircle } from 'lucide-vue-next';
 import type { AttendanceRecord, BreadcrumbItem, PaginatedData } from '@/types';
 
 interface AttendanceRecordWithSession extends AttendanceRecord {
@@ -91,79 +96,67 @@ function handleKeyDown(index: number, e: KeyboardEvent) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
-            <h2 class="text-xl font-semibold">Presensi</h2>
+            <PageHeader title="Presensi" description="Riwayat kehadiran" :icon="ClipboardCheck" />
 
             <!-- Check-in form -->
-            <div class="rounded-lg border p-4 space-y-3 max-w-sm">
-                <p class="font-medium text-sm">Input Kode Presensi</p>
-                <form @submit.prevent="checkIn" class="space-y-3">
-                    <div class="flex gap-2">
-                        <Input
-                            v-for="i in 6" :key="i"
-                            :id="`code-digit-${i - 1}`"
-                            v-model="codeDigits[i - 1]"
-                            maxlength="1"
-                            class="w-10 h-12 text-center text-xl font-bold font-mono p-0"
-                            inputmode="numeric"
-                            @input="handleDigitInput(i - 1, $event)"
-                            @keydown="handleKeyDown(i - 1, $event)"
-                        />
-                    </div>
-                    <p v-if="form.errors.code" class="text-xs text-destructive">{{ form.errors.code }}</p>
-                    <Button type="submit" :disabled="form.processing || form.code.length < 6">
-                        {{ form.processing ? 'Memproses...' : 'Hadir' }}
-                    </Button>
-                </form>
-            </div>
+            <Card class="max-w-sm">
+                <CardContent class="p-4 space-y-3">
+                    <p class="font-medium text-sm">Input Kode Presensi</p>
+                    <form @submit.prevent="checkIn" class="space-y-3">
+                        <div class="flex gap-2">
+                            <Input
+                                v-for="i in 6" :key="i"
+                                :id="`code-digit-${i - 1}`"
+                                v-model="codeDigits[i - 1]"
+                                maxlength="1"
+                                class="w-10 h-12 text-center text-xl font-bold font-mono p-0"
+                                inputmode="numeric"
+                                @input="handleDigitInput(i - 1, $event)"
+                                @keydown="handleKeyDown(i - 1, $event)"
+                            />
+                        </div>
+                        <p v-if="form.errors.code" class="text-xs text-destructive">{{ form.errors.code }}</p>
+                        <LoadingButton type="submit" :loading="form.processing" :disabled="form.code.length < 6">Hadir</LoadingButton>
+                    </form>
+                </CardContent>
+            </Card>
 
             <!-- Summary cards -->
-            <div v-if="Object.keys(summary).length > 0" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <Card v-for="(s, subjectId) in summary" :key="subjectId">
-                    <CardContent class="pt-3 pb-3">
-                        <div class="flex justify-between items-center mb-2">
-                            <p class="text-sm font-medium">Rekap</p>
-                            <p class="text-lg font-bold" :class="s.percentage < 75 ? 'text-red-600' : 'text-green-600'">
-                                {{ s.percentage }}%
-                            </p>
-                        </div>
-                        <div class="flex gap-2 text-xs text-muted-foreground">
-                            <span class="text-green-600">H:{{ s.hadir }}</span>
-                            <span class="text-blue-600">I:{{ s.izin }}</span>
-                            <span class="text-yellow-600">S:{{ s.sakit }}</span>
-                            <span class="text-red-600">A:{{ s.alfa }}</span>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div v-if="Object.keys(summary).length > 0" class="space-y-4">
+                <div v-for="(s, subjectKey) in summary" :key="subjectKey" class="space-y-2">
+                    <div class="grid gap-3 grid-cols-2 sm:grid-cols-4">
+                        <StatsCard title="Hadir" :value="s.hadir" :icon="CheckSquare" icon-color="bg-green-100 text-green-600" />
+                        <StatsCard title="Sakit" :value="s.sakit" :icon="Thermometer" icon-color="bg-yellow-100 text-yellow-600" />
+                        <StatsCard title="Izin" :value="s.izin" :icon="AlertTriangle" icon-color="bg-blue-100 text-blue-600" />
+                        <StatsCard title="Alfa" :value="s.alfa" :icon="XCircle" icon-color="bg-red-100 text-red-600" />
+                    </div>
+                </div>
             </div>
 
             <!-- Records table -->
-            <div class="rounded-md border">
+            <EmptyState v-if="records.data.length === 0" :icon="ClipboardCheck" title="Belum ada data presensi" description="Belum ada data presensi saat ini." />
+            <div v-else class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Tanggal</TableHead>
-                            <TableHead>Mata Pelajaran</TableHead>
-                            <TableHead>Pertemuan</TableHead>
-                            <TableHead class="text-center">Status</TableHead>
-                            <TableHead>Check-in</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Tanggal</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Mata Pelajaran</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Pertemuan</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider text-center">Status</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Check-in</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="r in records.data" :key="r.id">
+                        <TableRow v-for="r in records.data" :key="r.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell>{{ formatDate(r.attendance.meeting_date) }}</TableCell>
                             <TableCell>{{ r.attendance.subject.name }}</TableCell>
                             <TableCell class="text-center">{{ r.attendance.meeting_number }}</TableCell>
                             <TableCell class="text-center">
-                                <Badge :variant="statusVariant(r.status?.valueOf() ?? '')">
-                                    {{ r.status?.valueOf() }}
-                                </Badge>
+                                <StatusBadge :label="r.status?.valueOf() ?? ''" :variant="statusVariant(r.status?.valueOf() ?? '')" />
                             </TableCell>
                             <TableCell class="text-sm text-muted-foreground">
                                 {{ r.checked_in_at ? new Date(r.checked_in_at).toLocaleTimeString('id-ID') : '-' }}
                             </TableCell>
-                        </TableRow>
-                        <TableRow v-if="records.data.length === 0">
-                            <TableCell :colspan="5" class="text-center text-muted-foreground">Belum ada data presensi.</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>

@@ -3,6 +3,8 @@ import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,7 +14,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Clock, Play, CheckCircle2 } from 'lucide-vue-next';
+import { BookOpen, Clock, Play, CheckCircle2, ClipboardList } from 'lucide-vue-next';
 import type { BreadcrumbItem, SiswaExamListItem } from '@/types';
 
 const props = defineProps<{
@@ -64,7 +66,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <h2 class="text-xl font-semibold">Daftar Ujian</h2>
+            <PageHeader title="Ujian" description="Daftar ujian Anda" :icon="ClipboardList" />
 
             <Tabs default-value="upcoming">
                 <TabsList>
@@ -81,9 +83,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
 
                 <!-- Upcoming -->
                 <TabsContent value="upcoming" class="mt-4">
-                    <div v-if="upcoming.length === 0" class="py-8 text-center text-muted-foreground">
-                        Tidak ada ujian yang tersedia.
-                    </div>
+                    <EmptyState v-if="upcoming.length === 0" :icon="ClipboardList" title="Tidak ada ujian tersedia" description="Belum ada ujian yang dijadwalkan untuk Anda saat ini." />
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <Card v-for="exam in upcoming" :key="exam.id">
                             <CardHeader class="pb-3">
@@ -129,9 +129,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
 
                 <!-- In Progress -->
                 <TabsContent value="in_progress" class="mt-4">
-                    <div v-if="inProgress.length === 0" class="py-8 text-center text-muted-foreground">
-                        Tidak ada ujian yang sedang berlangsung.
-                    </div>
+                    <EmptyState v-if="inProgress.length === 0" :icon="ClipboardList" title="Tidak ada ujian berlangsung" description="Tidak ada ujian yang sedang Anda kerjakan." />
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <Card v-for="exam in inProgress" :key="exam.id" class="border-primary">
                             <CardHeader class="pb-3">
@@ -157,9 +155,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
 
                 <!-- Completed -->
                 <TabsContent value="completed" class="mt-4">
-                    <div v-if="completed.length === 0" class="py-8 text-center text-muted-foreground">
-                        Belum ada ujian yang diselesaikan.
-                    </div>
+                    <EmptyState v-if="completed.length === 0" :icon="ClipboardList" title="Belum ada riwayat ujian" description="Belum ada ujian yang telah Anda selesaikan." />
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <Card v-for="exam in completed" :key="exam.id">
                             <CardHeader class="pb-3">

@@ -2,8 +2,10 @@
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import StatusBadge from '@/Components/StatusBadge.vue';
+import { FileText } from 'lucide-vue-next';
 import type { Assignment, AssignmentSubmission, BreadcrumbItem } from '@/types';
 
 interface AssignmentWithSubmission extends Assignment {
@@ -49,24 +51,20 @@ function countdown(deadline: string) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
-            <h2 class="text-xl font-semibold">Tugas & Assignment</h2>
+            <PageHeader title="Tugas" description="Daftar tugas Anda" :icon="FileText" />
 
-            <div v-if="assignments.length === 0" class="rounded-lg border-2 border-dashed p-10 text-center text-muted-foreground">
-                Tidak ada tugas saat ini.
-            </div>
+            <EmptyState v-if="assignments.length === 0" :icon="FileText" title="Tidak ada tugas" description="Tidak ada tugas saat ini." />
 
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <Link
                     v-for="a in assignments" :key="a.id"
                     :href="`/siswa/tugas/${a.id}`"
-                    class="block rounded-lg border p-4 hover:bg-muted/50 transition-colors space-y-2"
+                    class="block rounded-xl border bg-card p-4 shadow-sm hover:bg-slate-50/50 transition-colors space-y-2"
                     :class="a.is_overdue && !a.my_submission ? 'border-red-300 bg-red-50/50 dark:bg-red-950/10' : ''"
                 >
                     <div class="flex items-start justify-between gap-2">
                         <p class="font-medium line-clamp-2">{{ a.title }}</p>
-                        <Badge :variant="statusBadge(a).variant" class="shrink-0 text-xs">
-                            {{ statusBadge(a).label }}
-                        </Badge>
+                        <StatusBadge :label="statusBadge(a).label" :variant="statusBadge(a).variant" class="shrink-0 text-xs" />
                     </div>
                     <p class="text-xs text-muted-foreground">{{ a.subject?.name }} · {{ a.classroom?.name }}</p>
                     <div class="text-xs">
