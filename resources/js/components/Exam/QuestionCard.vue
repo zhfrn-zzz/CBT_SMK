@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import {
     Select,
     SelectContent,
@@ -10,14 +12,20 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { ArrowUp, ArrowDown } from 'lucide-vue-next';
+import {
+    RadioGroup,
+    RadioGroupItem,
+} from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { GripVertical } from 'lucide-vue-next';
 import type { ExamQuestion } from '@/types';
 
 const props = defineProps<{
     question: ExamQuestion;
     answer: string | undefined;
     isFlagged: boolean;
+    questionNumber: number;
+    totalQuestions: number;
 }>();
 
 const emit = defineEmits<{
@@ -30,7 +38,7 @@ const currentAnswer = computed({
     set: (val: string) => emit('update:answer', val),
 });
 
-// --- Pilihan Ganda / Benar Salah ---
+// --- Pilihan Ganda ---
 function selectOption(label: string) {
     emit('update:answer', label);
 }
@@ -95,7 +103,6 @@ function getMatchingAnswer(premiseId: number): string {
     return matchingAnswers.value[String(premiseId)] ?? '';
 }
 
-// Check if a response is already used by another premise
 function isResponseUsed(responseId: number, excludePremiseId: number): boolean {
     const answers = matchingAnswers.value;
     const responseStr = String(responseId);
@@ -112,7 +119,6 @@ const orderingItems = computed<{ id: number; label: string; content: string }[]>
     get() {
         if (!props.question.options) return [];
         if (!props.answer) {
-            // Show shuffled order from server
             return props.question.options.map((opt) => ({
                 id: opt.id,
                 label: opt.label,
@@ -151,7 +157,7 @@ function moveOrderingItem(index: number, direction: 'up' | 'down') {
     orderingItems.value = items;
 }
 
-// Drag-and-drop state
+// Drag-and-drop
 const draggedIndex = ref<number | null>(null);
 
 function onDragStart(index: number) {
@@ -175,6 +181,13 @@ function onDragEnd() {
     draggedIndex.value = null;
 }
 
+// --- Esai word count ---
+const wordCount = computed(() => {
+    const text = currentAnswer.value.trim();
+    if (!text) return 0;
+    return text.split(/\s+/).length;
+});
+
 const typeLabel = computed(() => {
     const labels: Record<string, string> = {
         pilihan_ganda: 'Pilihan Ganda',
@@ -190,32 +203,21 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="bg-white rounded-xl shadow-sm border p-6 sm:p-8">
         <!-- Question Header -->
-        <div class="flex items-start justify-between">
+        <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <span class="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                    {{ question.order }}
+                <span class="text-sm font-semibold text-muted-foreground">
+                    Soal {{ questionNumber }} / {{ totalQuestions }}
                 </span>
-                <Badge variant="outline" class="text-xs">{{ typeLabel }}</Badge>
-                <Badge v-if="question.points !== 1" variant="secondary" class="text-xs">
-                    {{ question.points }} poin
-                </Badge>
             </div>
-            <button
-                type="button"
-                class="rounded-md px-2 py-1 text-sm transition-colors"
-                :class="isFlagged
-                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                    : 'text-muted-foreground hover:bg-muted'"
-                @click="$emit('toggle-flag')"
-            >
-                {{ isFlagged ? 'Ditandai' : 'Tandai' }}
-            </button>
+            <Badge variant="outline" class="text-xs">{{ typeLabel }}</Badge>
         </div>
 
-        <!-- Question Content (rich text) -->
-        <div class="prose prose-sm dark:prose-invert max-w-none" v-html="question.content" />
+        <Separator class="my-4" />
+
+        <!-- Question Content -->
+        <div class="prose prose-lg dark:prose-invert max-w-none leading-relaxed" v-html="question.content" />
 
         <!-- Media -->
         <img
@@ -223,102 +225,121 @@ const typeLabel = computed(() => {
             :src="question.media_url"
             alt="Media soal"
             loading="lazy"
-            class="max-h-64 rounded-md"
+            class="max-w-full rounded-lg border mt-4 mb-6"
         />
 
         <!-- Answer Section -->
-        <div class="space-y-2">
-            <!-- Pilihan Ganda / Benar Salah -->
-            <template v-if="question.type === 'pilihan_ganda' || question.type === 'benar_salah'">
-                <button
-                    v-for="option in question.options"
-                    :key="option.id"
-                    type="button"
-                    class="flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors"
-                    :class="currentAnswer === option.label
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                        : 'hover:bg-muted/50'"
-                    @click="selectOption(option.label)"
-                >
-                    <span
-                        class="flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-medium"
-                        :class="currentAnswer === option.label
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-muted-foreground/30'"
-                    >
-                        {{ option.label }}
-                    </span>
-                    <span class="pt-0.5" v-html="option.content" />
-                </button>
+        <div class="mt-6 space-y-3">
+            <!-- Pilihan Ganda (PG) — Radio buttons -->
+            <template v-if="question.type === 'pilihan_ganda'">
+                <RadioGroup :model-value="currentAnswer" @update:model-value="(v: string) => selectOption(v)">
+                    <div class="space-y-3">
+                        <label
+                            v-for="option in question.options"
+                            :key="option.id"
+                            class="flex w-full cursor-pointer items-center gap-4 rounded-lg border p-4 transition-all min-h-[52px]"
+                            :class="currentAnswer === option.label
+                                ? 'bg-primary/5 border-primary ring-2 ring-primary/20'
+                                : 'hover:bg-slate-50 hover:border-primary/30'"
+                        >
+                            <RadioGroupItem :value="option.label" class="h-5 w-5 shrink-0" />
+                            <span class="text-sm font-bold text-muted-foreground">{{ option.label }}.</span>
+                            <span class="flex-1" v-html="option.content" />
+                        </label>
+                    </div>
+                </RadioGroup>
             </template>
 
-            <!-- Multiple Answer (Checkbox style) -->
-            <template v-else-if="question.type === 'multiple_answer'">
-                <p class="text-sm text-muted-foreground">Pilih semua jawaban yang benar:</p>
-                <button
-                    v-for="option in question.options"
-                    :key="option.id"
-                    type="button"
-                    class="flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors"
-                    :class="isMultipleSelected(option.label)
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                        : 'hover:bg-muted/50'"
-                    @click="toggleMultipleOption(option.label)"
-                >
-                    <span
-                        class="flex size-7 shrink-0 items-center justify-center rounded border text-sm font-medium"
-                        :class="isMultipleSelected(option.label)
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-muted-foreground/30'"
+            <!-- Benar / Salah (B/S) — Two big buttons -->
+            <template v-else-if="question.type === 'benar_salah'">
+                <div class="grid grid-cols-2 gap-4">
+                    <button
+                        v-for="option in question.options"
+                        :key="option.id"
+                        type="button"
+                        class="h-16 rounded-xl border-2 text-lg font-semibold transition-all"
+                        :class="option.label === 'A'
+                            ? (currentAnswer === option.label
+                                ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
+                                : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50')
+                            : (currentAnswer === option.label
+                                ? 'bg-red-500 border-red-500 text-white shadow-md'
+                                : 'border-red-300 text-red-700 hover:bg-red-50')"
+                        @click="selectOption(option.label)"
                     >
-                        <svg v-if="isMultipleSelected(option.label)" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        <template v-else>{{ option.label }}</template>
-                    </span>
-                    <span class="pt-0.5" v-html="option.content" />
-                </button>
+                        {{ option.content }}
+                    </button>
+                </div>
+            </template>
+
+            <!-- Multiple Answer (Checkbox) -->
+            <template v-else-if="question.type === 'multiple_answer'">
+                <p class="text-sm italic text-muted-foreground mb-3">Pilih semua jawaban yang benar</p>
+                <div class="space-y-3">
+                    <button
+                        v-for="option in question.options"
+                        :key="option.id"
+                        type="button"
+                        class="flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-all min-h-[52px]"
+                        :class="isMultipleSelected(option.label)
+                            ? 'bg-primary/5 border-primary ring-2 ring-primary/20'
+                            : 'hover:bg-slate-50 hover:border-primary/30'"
+                        @click="toggleMultipleOption(option.label)"
+                    >
+                        <Checkbox
+                            :checked="isMultipleSelected(option.label)"
+                            class="h-5 w-5 shrink-0"
+                            @click.stop
+                            @update:checked="() => toggleMultipleOption(option.label)"
+                        />
+                        <span class="text-sm font-bold text-muted-foreground">{{ option.label }}.</span>
+                        <span class="flex-1" v-html="option.content" />
+                    </button>
+                </div>
             </template>
 
             <!-- Esai -->
             <template v-else-if="question.type === 'esai'">
-                <Label class="text-sm text-muted-foreground">Jawaban Anda:</Label>
                 <Textarea
                     v-model="currentAnswer"
                     placeholder="Tulis jawaban Anda di sini..."
-                    :rows="8"
-                    class="resize-y"
+                    class="min-h-[200px] text-base p-4 rounded-lg resize-y"
                 />
+                <div class="text-right">
+                    <span class="text-xs text-muted-foreground">{{ wordCount }} kata</span>
+                </div>
             </template>
 
             <!-- Isian Singkat -->
             <template v-else-if="question.type === 'isian_singkat'">
-                <Label class="text-sm text-muted-foreground">Jawaban Anda:</Label>
-                <input
+                <Input
                     v-model="currentAnswer"
                     type="text"
-                    placeholder="Tulis jawaban singkat..."
-                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    placeholder="Ketik jawaban singkat..."
+                    class="h-14 text-lg text-center rounded-lg"
                 />
             </template>
 
             <!-- Menjodohkan -->
             <template v-else-if="question.type === 'menjodohkan' && question.matching_premises">
-                <p class="text-sm text-muted-foreground">Cocokkan setiap pernyataan dengan jawaban yang tepat:</p>
+                <p class="text-sm text-muted-foreground mb-3">Cocokkan setiap pernyataan dengan jawaban yang tepat:</p>
                 <div class="space-y-3">
                     <div
-                        v-for="premise in question.matching_premises"
+                        v-for="(premise, idx) in question.matching_premises"
                         :key="premise.id"
-                        class="flex items-center gap-3 rounded-lg border p-3"
-                        :class="getMatchingAnswer(premise.id) ? 'border-primary/50 bg-primary/5' : ''"
+                        class="flex items-center gap-4 rounded-lg p-3"
+                        :class="getMatchingAnswer(premise.id) ? 'bg-primary/5 border border-primary/30' : 'bg-slate-50 border border-slate-200'"
                     >
-                        <div class="flex-1 text-sm font-medium" v-html="premise.content" />
-                        <div class="w-48">
+                        <div class="flex-1">
+                            <span class="text-xs font-medium text-muted-foreground">{{ idx + 1 }}.</span>
+                            <span class="ml-1 text-base" v-html="premise.content" />
+                        </div>
+                        <div class="w-52">
                             <Select
                                 :model-value="getMatchingAnswer(premise.id)"
                                 @update:model-value="(v: any) => setMatchingAnswer(premise.id, v === '__clear__' ? '' : String(v ?? ''))"
                             >
-                                <SelectTrigger>
+                                <SelectTrigger class="h-11">
                                     <SelectValue placeholder="Pilih jawaban..." />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -338,47 +359,28 @@ const typeLabel = computed(() => {
                 </div>
             </template>
 
-            <!-- Ordering (Drag & Drop + Buttons) -->
+            <!-- Ordering (Sortable) -->
             <template v-else-if="question.type === 'ordering'">
-                <p class="text-sm text-muted-foreground">Susun item dalam urutan yang benar:</p>
-                <div class="space-y-1">
+                <p class="text-sm text-muted-foreground mb-3">Susun item dalam urutan yang benar:</p>
+                <div class="space-y-2">
                     <div
                         v-for="(item, index) in orderingItems"
                         :key="item.id"
                         draggable="true"
-                        class="flex items-center gap-2 rounded-lg border bg-background p-3 transition-colors"
-                        :class="draggedIndex === index ? 'opacity-50' : 'cursor-grab hover:bg-muted/50'"
+                        class="flex items-center gap-3 rounded-lg border bg-white p-4 transition-all"
+                        :class="draggedIndex === index
+                            ? 'shadow-lg ring-2 ring-primary/30 opacity-80'
+                            : 'cursor-grab hover:shadow-md'"
                         @dragstart="onDragStart(index)"
                         @dragover="onDragOver"
                         @drop="onDrop(index)"
                         @dragend="onDragEnd"
                     >
-                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+                        <GripVertical class="size-5 text-muted-foreground shrink-0" />
+                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-muted-foreground">
                             {{ index + 1 }}
                         </span>
-                        <span class="flex-1 text-sm" v-html="item.content" />
-                        <div class="flex flex-col gap-0.5">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                class="size-6"
-                                :disabled="index === 0"
-                                @click="moveOrderingItem(index, 'up')"
-                            >
-                                <ArrowUp class="size-3" />
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                class="size-6"
-                                :disabled="index === orderingItems.length - 1"
-                                @click="moveOrderingItem(index, 'down')"
-                            >
-                                <ArrowDown class="size-3" />
-                            </Button>
-                        </div>
+                        <span class="flex-1 text-base" v-html="item.content" />
                     </div>
                 </div>
             </template>
