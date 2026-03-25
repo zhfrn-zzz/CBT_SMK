@@ -2,7 +2,6 @@
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Trash2 } from 'lucide-vue-next';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { ForumReply } from '@/types';
 
@@ -22,10 +21,16 @@ const canDelete = computed(() => {
     return user.role === 'admin' || user.role === 'guru' || props.reply.user_id === user.id;
 });
 
-function roleBadgeVariant(role: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-    if (role === 'admin') return 'destructive';
-    if (role === 'guru') return 'default';
-    return 'secondary';
+function roleClasses(role: string): string {
+    if (role === 'admin') return 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400';
+    if (role === 'guru') return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400';
+    return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400';
+}
+
+function roleLabel(role: string): string {
+    if (role === 'admin') return 'Admin';
+    if (role === 'guru') return 'Guru';
+    return 'Siswa';
 }
 
 function formatDate(dateStr: string): string {
@@ -40,28 +45,34 @@ function formatDate(dateStr: string): string {
 </script>
 
 <template>
-    <div class="flex gap-3 py-4 border-b last:border-b-0">
-        <div class="size-10 rounded-full bg-muted flex items-center justify-center shrink-0 text-sm font-medium">
-            {{ reply.user?.name?.charAt(0)?.toUpperCase() ?? '?' }}
-        </div>
-        <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1">
-                <span class="font-medium text-sm">{{ reply.user?.name ?? 'Deleted User' }}</span>
-                <Badge v-if="reply.user" :variant="roleBadgeVariant(reply.user.role)" class="text-xs">
-                    {{ reply.user.role === 'admin' ? 'Admin' : reply.user.role === 'guru' ? 'Guru' : 'Siswa' }}
-                </Badge>
-                <span class="text-xs text-muted-foreground">{{ formatDate(reply.created_at) }}</span>
+    <div class="border-l-2 border-primary/20 py-4 pl-4">
+        <div class="flex gap-3">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                {{ reply.user?.name?.charAt(0)?.toUpperCase() ?? '?' }}
             </div>
-            <div class="text-sm prose prose-sm dark:prose-invert max-w-none" v-html="reply.content" />
+            <div class="min-w-0 flex-1">
+                <div class="mb-1 flex items-center gap-2">
+                    <span class="text-sm font-medium">{{ reply.user?.name ?? 'Deleted User' }}</span>
+                    <span
+                        v-if="reply.user"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                        :class="roleClasses(reply.user.role)"
+                    >
+                        {{ roleLabel(reply.user.role) }}
+                    </span>
+                    <span class="text-xs text-muted-foreground">{{ formatDate(reply.created_at) }}</span>
+                </div>
+                <div class="prose prose-sm max-w-none dark:prose-invert" v-html="reply.content" />
+            </div>
+            <Button
+                v-if="canDelete"
+                variant="ghost"
+                size="icon"
+                class="shrink-0 text-muted-foreground hover:text-destructive"
+                @click="emit('delete', reply.id)"
+            >
+                <Trash2 class="size-4" />
+            </Button>
         </div>
-        <Button
-            v-if="canDelete"
-            variant="ghost"
-            size="icon"
-            class="shrink-0 text-muted-foreground hover:text-destructive"
-            @click="emit('delete', reply.id)"
-        >
-            <Trash2 class="size-4" />
-        </Button>
     </div>
 </template>

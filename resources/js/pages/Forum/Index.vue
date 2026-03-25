@@ -3,12 +3,14 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import EmptyState from '@/components/EmptyState.vue';
 import Pagination from '@/components/Pagination.vue';
 import ThreadCard from '@/components/Forum/ThreadCard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, MessageCircle } from 'lucide-vue-next';
+import { MessagesSquare, Plus, Search } from 'lucide-vue-next';
 import type { BreadcrumbItem, ForumCategory, ForumThread, PaginatedData } from '@/types';
 
 const props = defineProps<{
@@ -49,18 +51,19 @@ function filterByCategory(slug: string) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Forum" />
 
-        <div class="mx-auto max-w-4xl space-y-6 p-6">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold">Forum Diskusi</h1>
-                <Button as-child>
-                    <Link href="/forum/create">
-                        <Plus class="mr-2 size-4" />
-                        Buat Thread
-                    </Link>
-                </Button>
-            </div>
+            <PageHeader title="Forum Diskusi" description="Diskusi dan berbagi informasi" :icon="MessagesSquare">
+                <template #actions>
+                    <Button as-child>
+                        <Link href="/forum/create">
+                            <Plus class="mr-2 size-4" />
+                            Buat Thread
+                        </Link>
+                    </Button>
+                </template>
+            </PageHeader>
 
             <!-- Search & Filter -->
             <div class="space-y-3">
@@ -69,7 +72,7 @@ function filterByCategory(slug: string) {
                     <Input
                         v-model="search"
                         placeholder="Cari thread..."
-                        class="pl-10"
+                        class="h-11 pl-10"
                     />
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -98,17 +101,22 @@ function filterByCategory(slug: string) {
                 <ThreadCard v-for="thread in threads.data" :key="thread.id" :thread="thread" />
                 <Pagination :links="threads.links" :from="threads.from" :to="threads.to" :total="threads.total" />
             </div>
-            <div v-else class="text-center py-12">
-                <MessageCircle class="mx-auto size-12 text-muted-foreground/50" />
-                <h3 class="mt-4 text-lg font-medium">Belum ada diskusi</h3>
-                <p class="mt-1 text-sm text-muted-foreground">Mulai diskusi pertama di forum!</p>
-                <Button as-child class="mt-4">
-                    <Link href="/forum/create">
-                        <Plus class="mr-2 size-4" />
-                        Buat Thread
-                    </Link>
-                </Button>
-            </div>
+
+            <EmptyState
+                v-else
+                :icon="MessagesSquare"
+                title="Belum ada diskusi"
+                description="Mulai diskusi pertama di forum!"
+            >
+                <template #action>
+                    <Button as-child>
+                        <Link href="/forum/create">
+                            <Plus class="mr-2 size-4" />
+                            Buat Thread
+                        </Link>
+                    </Button>
+                </template>
+            </EmptyState>
         </div>
     </AppLayout>
 </template>

@@ -9,6 +9,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Lock, MessagesSquare, Pin, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, DiscussionReply, DiscussionThread, PaginatedData } from '@/types';
@@ -86,29 +87,30 @@ function timeAgo(date: string) {
 
                 <EmptyState v-if="replies.data.length === 0" :icon="MessagesSquare" title="Belum ada balasan" description="Jadilah yang pertama membalas thread ini." />
 
-                <Card v-for="r in replies.data" :key="r.id">
-                    <CardContent class="p-4 space-y-1">
-                        <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium">{{ r.user?.name }}</p>
-                            <div class="flex items-center gap-2">
-                                <p class="text-xs text-muted-foreground">{{ timeAgo(r.created_at) }}</p>
-                                <ConfirmDialog v-if="r.user_id === currentUserId" title="Hapus Balasan?" description="Balasan ini akan dihapus." confirm-label="Ya, Hapus" @confirm="deleteReply(r.id)">
-                                    <Button variant="ghost" size="icon-sm">
-                                        <Trash2 class="size-3 text-destructive" />
-                                    </Button>
-                                </ConfirmDialog>
+                <div v-for="r in replies.data" :key="r.id" class="border-l-2 border-primary/20 py-4 pl-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                {{ r.user?.name?.charAt(0)?.toUpperCase() ?? '?' }}
                             </div>
+                            <p class="text-sm font-medium">{{ r.user?.name }}</p>
+                            <span class="text-xs text-muted-foreground">{{ timeAgo(r.created_at) }}</span>
                         </div>
-                        <p class="text-sm whitespace-pre-wrap">{{ r.content }}</p>
-                    </CardContent>
-                </Card>
+                        <ConfirmDialog v-if="r.user_id === currentUserId" title="Hapus Balasan?" description="Balasan ini akan dihapus." confirm-label="Ya, Hapus" @confirm="deleteReply(r.id)">
+                            <Button variant="ghost" size="icon-sm">
+                                <Trash2 class="size-3 text-destructive" />
+                            </Button>
+                        </ConfirmDialog>
+                    </div>
+                    <p class="mt-2 whitespace-pre-wrap text-sm">{{ r.content }}</p>
+                </div>
 
                 <Pagination :links="replies.links" :from="replies.from" :to="replies.to" :total="replies.total" />
             </div>
 
             <Card v-if="!thread.is_locked">
-                <CardContent class="p-4 space-y-2">
-                    <p class="font-medium text-sm">Balas</p>
+                <CardContent class="space-y-2 p-4">
+                    <Label class="text-sm font-medium">Balas</Label>
                     <form @submit.prevent="submitReply" class="space-y-2">
                         <Textarea v-model="replyForm.content" placeholder="Tulis balasan..." rows="3" />
                         <p v-if="replyForm.errors.content" class="text-xs text-destructive">{{ replyForm.errors.content }}</p>

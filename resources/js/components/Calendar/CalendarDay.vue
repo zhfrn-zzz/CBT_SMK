@@ -15,21 +15,21 @@ const emit = defineEmits<{
 
 const typeColors: Record<string, string> = {
     exam: 'bg-red-500',
-    assignment: 'bg-yellow-500',
+    assignment: 'bg-amber-500',
     attendance: 'bg-blue-500',
 };
 </script>
 
 <template>
     <div
-        class="min-h-[80px] border rounded-md p-1 cursor-pointer transition-colors hover:bg-muted/50"
+        class="min-h-[80px] cursor-pointer border-b border-r p-2 transition-colors hover:bg-muted/50 sm:min-h-[100px]"
         :class="{
-            'opacity-40': !isCurrentMonth,
-            'ring-2 ring-primary': isToday,
+            'text-muted-foreground/30': !isCurrentMonth,
+            'bg-primary/5': isToday,
         }"
         @click="emit('select', date)"
     >
-        <div class="text-xs font-medium mb-1" :class="isToday ? 'text-primary font-bold' : 'text-muted-foreground'">
+        <div class="mb-1 text-xs font-medium" :class="isToday ? 'font-bold text-primary' : ''">
             {{ day }}
         </div>
         <div class="space-y-0.5">
@@ -38,10 +38,10 @@ const typeColors: Record<string, string> = {
                 :key="idx"
                 class="flex items-center gap-1"
             >
-                <div class="size-1.5 rounded-full shrink-0" :class="typeColors[event.type] ?? 'bg-gray-500'" />
-                <span class="text-xs truncate">{{ event.title }}</span>
+                <div class="size-2 shrink-0 rounded-full" :class="typeColors[event.type] ?? 'bg-gray-500'" />
+                <span class="truncate text-[10px] leading-tight sm:text-xs">{{ event.title }}</span>
             </div>
-            <div v-if="events.length > 3" class="text-xs text-muted-foreground">
+            <div v-if="events.length > 3" class="text-[10px] text-muted-foreground">
                 +{{ events.length - 3 }} lainnya
             </div>
         </div>

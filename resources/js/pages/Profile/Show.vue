@@ -75,7 +75,7 @@ function formatDate(dateStr: string): string {
             <!-- Profile Header -->
             <Card>
                 <CardContent class="flex flex-col items-center gap-6 p-6 sm:flex-row sm:items-start">
-                    <Avatar class="h-24 w-24 shrink-0">
+                    <Avatar class="h-20 w-20 shrink-0 ring-4 ring-primary/10">
                         <AvatarImage
                             v-if="user.photo_url"
                             :src="user.photo_url"
@@ -117,75 +117,77 @@ function formatDate(dateStr: string): string {
 
             <!-- Siswa Profile -->
             <template v-if="siswa">
-                <!-- Classrooms -->
-                <Card v-if="siswa.classrooms.length > 0">
-                    <CardHeader>
-                        <CardTitle>Kelas</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="flex flex-wrap gap-2">
-                            <Badge
-                                v-for="classroom in siswa.classrooms"
-                                :key="classroom.id"
-                                variant="outline"
-                            >
-                                {{ classroom.name }}
-                                <span
-                                    v-if="classroom.department"
-                                    class="text-muted-foreground"
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <!-- Left: Info Detail -->
+                    <Card v-if="siswa.classrooms.length > 0">
+                        <CardHeader>
+                            <CardTitle>Kelas</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="flex flex-wrap gap-2">
+                                <Badge
+                                    v-for="classroom in siswa.classrooms"
+                                    :key="classroom.id"
+                                    variant="outline"
                                 >
-                                    &mdash; {{ classroom.department }}
-                                </span>
-                            </Badge>
-                        </div>
-                    </CardContent>
-                </Card>
+                                    {{ classroom.name }}
+                                    <span
+                                        v-if="classroom.department"
+                                        class="text-muted-foreground"
+                                    >
+                                        &mdash; {{ classroom.department }}
+                                    </span>
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                <!-- Attendance Summary -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Rekap Kehadiran</CardTitle>
-                        <CardDescription>
-                            Total {{ siswa.attendance.total }} pertemuan
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
-                            <div class="text-center">
-                                <p class="text-2xl font-bold text-green-600">
-                                    {{ siswa.attendance.hadir }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">Hadir</p>
+                    <!-- Right: Statistik Kehadiran -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Rekap Kehadiran</CardTitle>
+                            <CardDescription>
+                                Total {{ siswa.attendance.total }} pertemuan
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-green-600">
+                                        {{ siswa.attendance.hadir }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">Hadir</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-blue-600">
+                                        {{ siswa.attendance.izin }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">Izin</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-yellow-600">
+                                        {{ siswa.attendance.sakit }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">Sakit</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-red-600">
+                                        {{ siswa.attendance.alfa }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">Alfa</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold">
+                                        {{ siswa.attendance.percentage }}%
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">Persentase</p>
+                                </div>
                             </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold text-blue-600">
-                                    {{ siswa.attendance.izin }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">Izin</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold text-yellow-600">
-                                    {{ siswa.attendance.sakit }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">Sakit</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold text-red-600">
-                                    {{ siswa.attendance.alfa }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">Alfa</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold">
-                                    {{ siswa.attendance.percentage }}%
-                                </p>
-                                <p class="text-xs text-muted-foreground">Persentase</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </div>
 
-                <!-- Exam Results -->
+                <!-- Exam Results (full width) -->
                 <Card v-if="siswa.exam_results.length > 0">
                     <CardHeader>
                         <CardTitle>Hasil Ujian</CardTitle>
@@ -194,100 +196,102 @@ function formatDate(dateStr: string): string {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Ujian</TableHead>
-                                    <TableHead>Mata Pelajaran</TableHead>
-                                    <TableHead class="text-center">Nilai</TableHead>
-                                    <TableHead class="text-center">KKM</TableHead>
-                                    <TableHead class="text-center">Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow
-                                    v-for="(result, index) in siswa.exam_results"
-                                    :key="index"
-                                >
-                                    <TableCell class="font-medium">
-                                        {{ result.exam_name }}
-                                    </TableCell>
-                                    <TableCell>{{ result.subject }}</TableCell>
-                                    <TableCell class="text-center">
-                                        {{ result.score !== null ? result.score : '-' }}
-                                    </TableCell>
-                                    <TableCell class="text-center">
-                                        {{ result.kkm }}
-                                    </TableCell>
-                                    <TableCell class="text-center">
-                                        <Badge
-                                            v-if="result.pass_status"
-                                            :variant="
-                                                result.pass_status === 'lulus'
-                                                    ? 'default'
-                                                    : 'destructive'
-                                            "
-                                        >
-                                            {{
-                                                result.pass_status === 'lulus'
-                                                    ? 'Lulus'
-                                                    : 'Remedial'
-                                            }}
-                                        </Badge>
-                                        <span v-else class="text-muted-foreground"
-                                            >-</span
-                                        >
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
+                        <div class="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Ujian</TableHead>
+                                        <TableHead>Mata Pelajaran</TableHead>
+                                        <TableHead class="text-center">Nilai</TableHead>
+                                        <TableHead class="text-center">KKM</TableHead>
+                                        <TableHead class="text-center">Status</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow
+                                        v-for="(result, index) in siswa.exam_results"
+                                        :key="index"
+                                    >
+                                        <TableCell class="font-medium">
+                                            {{ result.exam_name }}
+                                        </TableCell>
+                                        <TableCell>{{ result.subject }}</TableCell>
+                                        <TableCell class="text-center">
+                                            {{ result.score !== null ? result.score : '-' }}
+                                        </TableCell>
+                                        <TableCell class="text-center">
+                                            {{ result.kkm }}
+                                        </TableCell>
+                                        <TableCell class="text-center">
+                                            <Badge
+                                                v-if="result.pass_status"
+                                                :variant="
+                                                    result.pass_status === 'lulus'
+                                                        ? 'default'
+                                                        : 'destructive'
+                                                "
+                                            >
+                                                {{
+                                                    result.pass_status === 'lulus'
+                                                        ? 'Lulus'
+                                                        : 'Remedial'
+                                                }}
+                                            </Badge>
+                                            <span v-else class="text-muted-foreground">-</span>
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
                     </CardContent>
                 </Card>
             </template>
 
             <!-- Guru Profile -->
             <template v-if="guru">
-                <!-- Subjects -->
-                <Card v-if="guru.subjects.length > 0">
-                    <CardHeader>
-                        <CardTitle>Mata Pelajaran yang Diampu</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="flex flex-wrap gap-2">
-                            <Badge
-                                v-for="subject in guru.subjects"
-                                :key="subject.id"
-                                variant="outline"
-                            >
-                                {{ subject.name }}
-                            </Badge>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Classrooms -->
-                <Card v-if="guru.classrooms.length > 0">
-                    <CardHeader>
-                        <CardTitle>Kelas yang Diajar</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="flex flex-wrap gap-2">
-                            <Badge
-                                v-for="classroom in guru.classrooms"
-                                :key="classroom.id"
-                                variant="outline"
-                            >
-                                {{ classroom.name }}
-                                <span
-                                    v-if="classroom.department"
-                                    class="text-muted-foreground"
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <!-- Subjects -->
+                    <Card v-if="guru.subjects.length > 0">
+                        <CardHeader>
+                            <CardTitle>Mata Pelajaran yang Diampu</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="flex flex-wrap gap-2">
+                                <Badge
+                                    v-for="subject in guru.subjects"
+                                    :key="subject.id"
+                                    variant="outline"
                                 >
-                                    &mdash; {{ classroom.department }}
-                                </span>
-                            </Badge>
-                        </div>
-                    </CardContent>
-                </Card>
+                                    {{ subject.name }}
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Classrooms -->
+                    <Card v-if="guru.classrooms.length > 0">
+                        <CardHeader>
+                            <CardTitle>Kelas yang Diajar</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="flex flex-wrap gap-2">
+                                <Badge
+                                    v-for="classroom in guru.classrooms"
+                                    :key="classroom.id"
+                                    variant="outline"
+                                >
+                                    {{ classroom.name }}
+                                    <span
+                                        v-if="classroom.department"
+                                        class="text-muted-foreground"
+                                    >
+                                        &mdash; {{ classroom.department }}
+                                    </span>
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </template>
         </div>
     </AppLayout>

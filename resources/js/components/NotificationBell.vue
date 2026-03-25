@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Bell } from 'lucide-vue-next';
+import { Award, Bell, Calendar, ClipboardList, Info, Megaphone, MessageCircle, UserCheck } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,30 +59,42 @@ function timeAgo(dateStr: string): string {
     return `${Math.floor(hrs / 24)} hari lalu`;
 }
 
-const typeIcons: Record<string, string> = {
-    ujian_dijadwalkan: '📝',
-    deadline_tugas: '⏰',
-    nilai_dipublikasi: '🎯',
-    materi_baru: '📚',
-    pengumuman_baru: '📢',
+const typeIcons: Record<string, typeof Calendar> = {
+    ujian_dijadwalkan: Calendar,
+    deadline_tugas: ClipboardList,
+    nilai_dipublikasi: Award,
+    materi_baru: Info,
+    pengumuman_baru: Megaphone,
+    forum_reply: MessageCircle,
+    presensi: UserCheck,
+};
+
+const typeColors: Record<string, string> = {
+    ujian_dijadwalkan: 'text-blue-500',
+    deadline_tugas: 'text-amber-500',
+    nilai_dipublikasi: 'text-emerald-500',
+    materi_baru: 'text-blue-500',
+    pengumuman_baru: 'text-purple-500',
+    forum_reply: 'text-blue-500',
+    presensi: 'text-emerald-500',
 };
 </script>
 
 <template>
     <DropdownMenu @update:open="onOpenChange">
         <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon" class="relative">
+            <Button variant="ghost" size="icon" class="relative rounded-lg p-2 hover:bg-accent">
                 <Bell class="h-5 w-5" />
-                <Badge
+                <span
                     v-if="unreadCount > 0"
-                    class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px]"
+                    class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
                 >
                     {{ unreadCount > 99 ? '99+' : unreadCount }}
-                </Badge>
+                </span>
             </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent class="w-80" align="end">
+        <DropdownMenuContent class="w-80 max-h-96 overflow-y-auto" align="end">
             <DropdownMenuLabel class="flex items-center justify-between">
                 <span>Notifikasi</span>
                 <Button
@@ -109,14 +121,18 @@ const typeIcons: Record<string, string> = {
                 <DropdownMenuItem
                     v-for="notif in notifications"
                     :key="notif.id"
-                    class="flex cursor-pointer items-start gap-2 px-3 py-2"
+                    class="flex cursor-pointer items-start gap-2 rounded-lg px-3 py-2 transition-colors"
+                    :class="{ 'bg-primary/5 border-l-2 border-l-primary': !notif.read_at }"
                     @click="markAsRead(notif)"
                 >
-                    <span class="mt-0.5 text-base">{{ typeIcons[notif.data.type] ?? '🔔' }}</span>
+                    <component
+                        :is="typeIcons[notif.data.type] ?? Bell"
+                        class="mt-0.5 size-4 shrink-0"
+                        :class="typeColors[notif.data.type] ?? 'text-muted-foreground'"
+                    />
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-1">
                             <span class="truncate text-sm font-medium">{{ notif.data.title }}</span>
-                            <span v-if="!notif.read_at" class="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
                         </div>
                         <p class="line-clamp-2 text-xs text-muted-foreground">{{ notif.data.message }}</p>
                         <p class="mt-0.5 text-[10px] text-muted-foreground">{{ timeAgo(notif.created_at) }}</p>

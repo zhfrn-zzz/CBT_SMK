@@ -3,17 +3,21 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import Pagination from '@/components/Pagination.vue';
 import CategoryBadge from '@/components/Forum/CategoryBadge.vue';
 import ReplyItem from '@/components/Forum/ReplyItem.vue';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Eye, Lock, MessageCircle, Pin, Trash2 } from 'lucide-vue-next';
+import { Eye, Lock, MessageCircle, MessagesSquare, Pin, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, ForumPermissions, ForumReply, ForumThread, PaginatedData } from '@/types';
 
 const props = defineProps<{
@@ -58,10 +62,16 @@ function executeDelete() {
     deleteDialogOpen.value = false;
 }
 
-function roleBadgeVariant(role: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-    if (role === 'admin') return 'destructive';
-    if (role === 'guru') return 'default';
-    return 'secondary';
+function roleClasses(role: string): string {
+    if (role === 'admin') return 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400';
+    if (role === 'guru') return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400';
+    return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400';
+}
+
+function roleLabel(role: string): string {
+    if (role === 'admin') return 'Admin';
+    if (role === 'guru') return 'Guru';
+    return 'Siswa';
 }
 
 function formatDate(dateStr: string): string {
@@ -76,35 +86,12 @@ function formatDate(dateStr: string): string {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head :title="thread.title" />
 
-        <div class="mx-auto max-w-4xl space-y-6 p-6">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <!-- Thread Header -->
-            <div class="rounded-lg border p-6">
-                <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 flex-wrap mb-2">
-                            <Pin v-if="thread.is_pinned" class="size-4 text-primary" />
-                            <Lock v-if="thread.is_locked" class="size-4 text-muted-foreground" />
-                            <h1 class="text-2xl font-bold">{{ thread.title }}</h1>
-                        </div>
-
-                        <div class="flex items-center gap-2 flex-wrap text-sm text-muted-foreground">
-                            <CategoryBadge :category="thread.category" />
-                            <span v-if="thread.user">
-                                oleh <span class="font-medium">{{ thread.user.name }}</span>
-                            </span>
-                            <Badge v-if="thread.user" :variant="roleBadgeVariant(thread.user.role)" class="text-xs">
-                                {{ thread.user.role === 'admin' ? 'Admin' : thread.user.role === 'guru' ? 'Guru' : 'Siswa' }}
-                            </Badge>
-                            <span>&middot;</span>
-                            <span>{{ formatDate(thread.created_at) }}</span>
-                            <span>&middot;</span>
-                            <span class="flex items-center gap-1"><Eye class="size-3" /> {{ thread.view_count }}</span>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2 shrink-0">
+            <PageHeader :title="thread.title" :icon="MessagesSquare">
+                <template #actions>
+                    <div class="flex items-center gap-2">
                         <Button v-if="can.pin" variant="outline" size="sm" @click="router.post(`/forum/${thread.id}/toggle-pin`)">
                             <Pin class="mr-1 size-4" /> {{ thread.is_pinned ? 'Unpin' : 'Pin' }}
                         </Button>
@@ -115,50 +102,100 @@ function formatDate(dateStr: string): string {
                             <Trash2 class="mr-1 size-4" /> Hapus
                         </Button>
                     </div>
-                </div>
+                </template>
+            </PageHeader>
 
-                <div class="mt-4 prose prose-sm dark:prose-invert max-w-none" v-html="thread.content" />
-            </div>
+            <!-- Thread Content Card -->
+            <Card class="mx-auto w-full max-w-4xl">
+                <CardContent class="space-y-4 p-6">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <CategoryBadge :category="thread.category" />
+                        <Pin v-if="thread.is_pinned" class="size-4 text-blue-500" />
+                        <Lock v-if="thread.is_locked" class="size-4 text-muted-foreground" />
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                            {{ thread.user?.name?.charAt(0)?.toUpperCase() ?? '?' }}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium">{{ thread.user?.name }}</span>
+                                <span
+                                    v-if="thread.user"
+                                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                                    :class="roleClasses(thread.user.role)"
+                                >
+                                    {{ roleLabel(thread.user.role) }}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span>{{ formatDate(thread.created_at) }}</span>
+                                <span>&middot;</span>
+                                <span class="flex items-center gap-1"><Eye class="size-3" /> {{ thread.view_count }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    <div class="prose prose-sm max-w-none dark:prose-invert" v-html="thread.content" />
+                </CardContent>
+            </Card>
 
             <!-- Replies -->
-            <div class="rounded-lg border p-6">
-                <h2 class="text-lg font-semibold flex items-center gap-2 mb-4">
-                    <MessageCircle class="size-5" />
-                    Balasan ({{ thread.reply_count }})
-                </h2>
+            <Card class="mx-auto w-full max-w-4xl">
+                <CardContent class="p-6">
+                    <h2 class="flex items-center gap-2 text-lg font-semibold">
+                        <MessageCircle class="size-5" />
+                        {{ thread.reply_count }} Balasan
+                    </h2>
 
-                <div v-if="replies.data.length">
-                    <ReplyItem
-                        v-for="reply in replies.data"
-                        :key="reply.id"
-                        :reply="reply"
-                        @delete="confirmDelete('reply', $event)"
-                    />
-                    <Pagination :links="replies.links" :from="replies.from" :to="replies.to" :total="replies.total" />
-                </div>
-                <p v-else class="text-sm text-muted-foreground">Belum ada balasan.</p>
-            </div>
+                    <Separator class="my-4" />
+
+                    <div v-if="replies.data.length" class="space-y-1">
+                        <ReplyItem
+                            v-for="reply in replies.data"
+                            :key="reply.id"
+                            :reply="reply"
+                            @delete="confirmDelete('reply', $event)"
+                        />
+                        <Pagination :links="replies.links" :from="replies.from" :to="replies.to" :total="replies.total" />
+                    </div>
+                    <p v-else class="py-4 text-center text-sm text-muted-foreground">Belum ada balasan.</p>
+                </CardContent>
+            </Card>
 
             <!-- Reply Form -->
-            <div v-if="can.reply" class="rounded-lg border p-6">
-                <h3 class="text-lg font-semibold mb-3">Tulis Balasan</h3>
-                <form @submit.prevent="submitReply" class="space-y-3">
-                    <Textarea
-                        v-model="replyForm.content"
-                        placeholder="Tulis balasan..."
-                        rows="4"
-                        :class="{ 'border-destructive': replyForm.errors.content }"
-                    />
-                    <p v-if="replyForm.errors.content" class="text-sm text-destructive">{{ replyForm.errors.content }}</p>
-                    <Button type="submit" :disabled="replyForm.processing">
-                        {{ replyForm.processing ? 'Mengirim...' : 'Kirim Balasan' }}
-                    </Button>
-                </form>
-            </div>
-            <div v-else class="rounded-lg border p-6 text-center text-muted-foreground">
-                <Lock class="mx-auto size-6 mb-2" />
-                <p>Thread ini sudah dikunci. Tidak bisa mengirim balasan.</p>
-            </div>
+            <Card v-if="can.reply" class="mx-auto w-full max-w-4xl">
+                <CardContent class="p-6">
+                    <h3 class="mb-3 text-lg font-semibold">Tulis Balasan</h3>
+                    <form @submit.prevent="submitReply" class="space-y-3">
+                        <div class="space-y-2">
+                            <Label for="reply-content">Balasan</Label>
+                            <Textarea
+                                id="reply-content"
+                                v-model="replyForm.content"
+                                placeholder="Tulis balasan..."
+                                rows="4"
+                                :class="{ 'border-destructive': replyForm.errors.content }"
+                            />
+                            <p v-if="replyForm.errors.content" class="text-sm text-destructive">{{ replyForm.errors.content }}</p>
+                        </div>
+                        <div class="flex justify-end">
+                            <LoadingButton type="submit" :loading="replyForm.processing">
+                                Kirim Balasan
+                            </LoadingButton>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+            <Card v-else class="mx-auto w-full max-w-4xl">
+                <CardContent class="p-6 text-center text-muted-foreground">
+                    <Lock class="mx-auto size-6 mb-2" />
+                    <p>Thread ini sudah dikunci. Tidak bisa mengirim balasan.</p>
+                </CardContent>
+            </Card>
 
             <!-- Delete Dialog -->
             <AlertDialog v-model:open="deleteDialogOpen">

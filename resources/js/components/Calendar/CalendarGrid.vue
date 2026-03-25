@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import MonthNavigator from './MonthNavigator.vue';
 import CalendarDay from './CalendarDay.vue';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { CalendarEvent } from '@/types';
 
 const props = defineProps<{
@@ -111,7 +112,7 @@ function goToToday() {
     currentMonth.value = n.getMonth();
 }
 
-function prevMonth() {
+function prevMonthFn() {
     if (currentMonth.value === 0) {
         currentMonth.value = 11;
         currentYear.value--;
@@ -120,7 +121,7 @@ function prevMonth() {
     }
 }
 
-function nextMonth() {
+function nextMonthFn() {
     if (currentMonth.value === 11) {
         currentMonth.value = 0;
         currentYear.value++;
@@ -139,17 +140,17 @@ watch([currentYear, currentMonth], () => {
 
 const typeLabels: Record<string, { label: string; color: string }> = {
     exam: { label: 'Ujian', color: 'bg-red-500' },
-    assignment: { label: 'Deadline Tugas', color: 'bg-yellow-500' },
+    assignment: { label: 'Deadline Tugas', color: 'bg-amber-500' },
     attendance: { label: 'Presensi', color: 'bg-blue-500' },
 };
 </script>
 
 <template>
     <div>
-        <MonthNavigator :month-label="monthLabel" @prev="prevMonth" @next="nextMonth" @today="goToToday" />
+        <MonthNavigator :month-label="monthLabel" @prev="prevMonthFn" @next="nextMonthFn" @today="goToToday" />
 
         <!-- Legend -->
-        <div class="flex gap-4 mb-3 text-sm">
+        <div class="mb-3 flex gap-4 text-sm">
             <div v-for="(info, type) in typeLabels" :key="type" class="flex items-center gap-1.5">
                 <div class="size-2.5 rounded-full" :class="info.color" />
                 <span class="text-muted-foreground">{{ info.label }}</span>
@@ -157,41 +158,40 @@ const typeLabels: Record<string, { label: string; color: string }> = {
         </div>
 
         <!-- Day Headers -->
-        <div class="grid grid-cols-7 gap-1 mb-1">
-            <div v-for="name in dayNames" :key="name" class="text-center text-xs font-medium text-muted-foreground py-1">
+        <div class="grid grid-cols-7 border-l border-t">
+            <div v-for="name in dayNames" :key="name" class="border-b border-r py-2 text-center text-xs font-semibold uppercase text-muted-foreground">
                 {{ name }}
             </div>
         </div>
 
         <!-- Calendar Grid -->
-        <div class="grid grid-cols-7 gap-1">
-            <CalendarDay
-                v-for="(cell, idx) in days"
-                :key="idx"
-                :day="cell.day"
-                :date="cell.date"
-                :is-current-month="cell.isCurrentMonth"
-                :is-today="cell.isToday"
-                :events="cell.events"
-                @select="selectDate"
-            />
-        </div>
-
-        <!-- Selected Date Events -->
-        <div v-if="selectedDate && selectedEvents.length" class="mt-4 rounded-lg border p-4">
-            <h3 class="font-semibold mb-2">
-                {{ new Date(selectedDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
-            </h3>
-            <div class="space-y-2">
-                <div v-for="event in selectedEvents" :key="`${event.type}-${event.id}`" class="flex items-center gap-2 text-sm">
-                    <div class="size-2.5 rounded-full" :class="typeLabels[event.type]?.color ?? 'bg-gray-500'" />
-                    <Badge :variant="event.type === 'exam' ? 'destructive' : event.type === 'assignment' ? 'default' : 'secondary'" class="text-xs">
-                        {{ typeLabels[event.type]?.label ?? event.type }}
-                    </Badge>
-                    <span>{{ event.title }}</span>
-                    <span v-if="event.subject" class="text-muted-foreground">({{ event.subject }})</span>
-                </div>
-            </div>
+        <div class="grid grid-cols-7 border-l">
+            <Popover v-for="(cell, idx) in days" :key="idx">
+                <PopoverTrigger as-child>
+                    <CalendarDay
+                        :day="cell.day"
+                        :date="cell.date"
+                        :is-current-month="cell.isCurrentMonth"
+                        :is-today="cell.isToday"
+                        :events="cell.events"
+                        @select="selectDate"
+                    />
+                </PopoverTrigger>
+                <PopoverContent v-if="cell.events.length > 0" class="w-64 max-h-60 overflow-y-auto p-3" align="start">
+                    <h4 class="mb-2 text-sm font-semibold">
+                        {{ new Date(cell.date + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) }}
+                    </h4>
+                    <div class="space-y-2">
+                        <div v-for="event in cell.events" :key="`${event.type}-${event.id}`" class="flex items-center gap-2 text-sm">
+                            <div class="size-2.5 shrink-0 rounded-full" :class="typeLabels[event.type]?.color ?? 'bg-gray-500'" />
+                            <Badge :variant="event.type === 'exam' ? 'destructive' : event.type === 'assignment' ? 'default' : 'secondary'" class="text-xs">
+                                {{ typeLabels[event.type]?.label ?? event.type }}
+                            </Badge>
+                            <span class="truncate">{{ event.title }}</span>
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
         </div>
     </div>
 </template>

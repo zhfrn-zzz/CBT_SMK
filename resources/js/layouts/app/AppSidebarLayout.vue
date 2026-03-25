@@ -23,5 +23,5 @@ withDefaults(defineProps<Props>(), {
             <slot />
         </AppContent>
     </AppShell>
-    <Toaster />
+    <Toaster position="top-right" :toast-options="{ duration: 5000 }" />
 </template>

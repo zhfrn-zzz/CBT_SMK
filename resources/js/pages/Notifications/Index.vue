@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
+import { ref, computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import EmptyState from '@/components/EmptyState.vue';
 import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Award, Bell, Calendar, ClipboardList, Info, Megaphone, MessageCircle, Trash2, UserCheck } from 'lucide-vue-next';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
 import type { NotificationItem } from '@/types/notification';
 
@@ -18,12 +23,33 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Notifikasi', href: '/notifications/list' },
 ];
 
-const typeIcons: Record<string, string> = {
-    ujian_dijadwalkan: '📝',
-    deadline_tugas: '⏰',
-    nilai_dipublikasi: '🎯',
-    materi_baru: '📚',
-    pengumuman_baru: '📢',
+const filter = ref<'all' | 'unread'>('all');
+
+const filteredNotifications = computed(() => {
+    if (filter.value === 'unread') {
+        return props.notifications.data.filter((n) => !n.read_at);
+    }
+    return props.notifications.data;
+});
+
+const typeIcons: Record<string, typeof Calendar> = {
+    ujian_dijadwalkan: Calendar,
+    deadline_tugas: ClipboardList,
+    nilai_dipublikasi: Award,
+    materi_baru: Info,
+    pengumuman_baru: Megaphone,
+    forum_reply: MessageCircle,
+    presensi: UserCheck,
+};
+
+const typeColors: Record<string, string> = {
+    ujian_dijadwalkan: 'text-blue-500',
+    deadline_tugas: 'text-amber-500',
+    nilai_dipublikasi: 'text-emerald-500',
+    materi_baru: 'text-blue-500',
+    pengumuman_baru: 'text-purple-500',
+    forum_reply: 'text-blue-500',
+    presensi: 'text-emerald-500',
 };
 
 const typeBadgeVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -40,7 +66,6 @@ function markAllAsRead() {
 
 function openNotification(notif: NotificationItem) {
     if (!notif.read_at) {
-        // Fire-and-forget mark as read before navigating
         axios.post(`/notifications/${notif.id}/read`).catch(() => {});
     }
     router.visit(notif.data.action_url);
@@ -65,56 +90,82 @@ function timeAgo(dateStr: string): string {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Notifikasi" />
 
-        <div class="space-y-6 p-6">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold">Notifikasi</h1>
-                <Button variant="outline" size="sm" @click="markAllAsRead">
-                    Tandai semua dibaca
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+            <FlashMessage />
+
+            <PageHeader title="Notifikasi" description="Semua notifikasi Anda" :icon="Bell">
+                <template #actions>
+                    <Button variant="outline" size="sm" @click="markAllAsRead">
+                        Tandai semua dibaca
+                    </Button>
+                </template>
+            </PageHeader>
+
+            <!-- Filter tabs -->
+            <div class="flex gap-2">
+                <Button
+                    :variant="filter === 'all' ? 'default' : 'outline'"
+                    size="sm"
+                    @click="filter = 'all'"
+                >
+                    Semua
+                </Button>
+                <Button
+                    :variant="filter === 'unread' ? 'default' : 'outline'"
+                    size="sm"
+                    @click="filter = 'unread'"
+                >
+                    Belum Dibaca
                 </Button>
             </div>
 
-            <FlashMessage />
-
-            <div class="space-y-2">
+            <!-- Notifications List -->
+            <div v-if="filteredNotifications.length > 0" class="space-y-2">
                 <div
-                    v-if="notifications.data.length === 0"
-                    class="rounded-lg border p-8 text-center text-muted-foreground"
-                >
-                    Belum ada notifikasi
-                </div>
-
-                <div
-                    v-for="notif in notifications.data"
+                    v-for="notif in filteredNotifications"
                     :key="notif.id"
-                    :class="[
-                        'flex items-start gap-4 rounded-lg border p-4 transition-colors',
-                        notif.read_at ? 'bg-background' : 'bg-muted/50',
-                    ]"
+                    class="flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors hover:bg-muted/50"
+                    :class="{
+                        'border-l-2 border-l-primary bg-primary/5': !notif.read_at,
+                    }"
+                    @click="openNotification(notif)"
                 >
-                    <span class="mt-0.5 text-2xl">{{ typeIcons[notif.data.type] ?? '🔔' }}</span>
+                    <div class="mt-0.5 shrink-0">
+                        <component
+                            :is="typeIcons[notif.data.type] ?? Bell"
+                            class="size-5"
+                            :class="typeColors[notif.data.type] ?? 'text-muted-foreground'"
+                        />
+                    </div>
 
                     <div class="min-w-0 flex-1">
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="font-medium">{{ notif.data.title }}</span>
+                            <span class="font-medium" :class="{ 'font-semibold': !notif.read_at }">{{ notif.data.title }}</span>
                             <Badge :variant="typeBadgeVariant[notif.data.type] ?? 'outline'" class="text-xs">
                                 {{ notif.data.type.replace(/_/g, ' ') }}
                             </Badge>
-                            <span v-if="!notif.read_at" class="h-2 w-2 rounded-full bg-blue-500" />
                         </div>
                         <p class="mt-1 text-sm text-muted-foreground">{{ notif.data.message }}</p>
                         <p class="mt-1 text-xs text-muted-foreground">{{ timeAgo(notif.created_at) }}</p>
                     </div>
 
-                    <div class="flex shrink-0 gap-2">
-                        <Button variant="outline" size="sm" @click="openNotification(notif)">
-                            Buka
-                        </Button>
-                        <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="deleteNotification(notif.id)">
-                            Hapus
-                        </Button>
-                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        class="shrink-0 text-muted-foreground hover:text-destructive"
+                        @click.stop="deleteNotification(notif.id)"
+                    >
+                        <Trash2 class="size-4" />
+                    </Button>
                 </div>
             </div>
+
+            <EmptyState
+                v-else
+                :icon="Bell"
+                :title="filter === 'unread' ? 'Tidak ada notifikasi belum dibaca' : 'Belum ada notifikasi'"
+                :description="filter === 'unread' ? 'Semua notifikasi sudah dibaca.' : 'Notifikasi akan muncul di sini.'"
+            />
 
             <Pagination
                 :links="notifications.links"

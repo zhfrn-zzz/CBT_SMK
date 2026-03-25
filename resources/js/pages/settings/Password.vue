@@ -14,7 +14,7 @@ import { ref } from 'vue';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: 'Password settings',
+        title: 'Pengaturan password',
         href: edit(),
     },
 ];
@@ -39,16 +39,16 @@ function logoutOtherDevices() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Password settings" />
+        <Head title="Pengaturan password" />
 
-        <h1 class="sr-only">Password settings</h1>
+        <h1 class="sr-only">Pengaturan password</h1>
 
         <SettingsLayout>
             <div class="space-y-6">
                 <Heading
                     variant="small"
-                    title="Update password"
-                    description="Ensure your account is using a long, random password to stay secure"
+                    title="Perbarui password"
+                    description="Pastikan akun Anda menggunakan password yang panjang dan acak agar tetap aman"
                 />
 
                 <Form
@@ -66,39 +66,39 @@ function logoutOtherDevices() {
                     v-slot="{ errors, processing, recentlySuccessful }"
                 >
                     <div class="grid gap-2">
-                        <Label for="current_password">Current password</Label>
+                        <Label for="current_password">Password saat ini</Label>
                         <PasswordInput
                             id="current_password"
                             name="current_password"
                             class="mt-1 block w-full"
                             autocomplete="current-password"
-                            placeholder="Current password"
+                            placeholder="Password saat ini"
                         />
                         <InputError :message="errors.current_password" />
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="password">New password</Label>
+                        <Label for="password">Password baru</Label>
                         <PasswordInput
                             id="password"
                             name="password"
                             class="mt-1 block w-full"
                             autocomplete="new-password"
-                            placeholder="New password"
+                            placeholder="Password baru"
                         />
                         <InputError :message="errors.password" />
                     </div>
 
                     <div class="grid gap-2">
                         <Label for="password_confirmation"
-                            >Confirm password</Label
+                            >Konfirmasi password</Label
                         >
                         <PasswordInput
                             id="password_confirmation"
                             name="password_confirmation"
                             class="mt-1 block w-full"
                             autocomplete="new-password"
-                            placeholder="Confirm password"
+                            placeholder="Konfirmasi password"
                         />
                         <InputError :message="errors.password_confirmation" />
                     </div>
@@ -107,7 +107,7 @@ function logoutOtherDevices() {
                         <Button
                             :disabled="processing"
                             data-test="update-password-button"
-                            >Save password</Button
+                            >Simpan password</Button
                         >
 
                         <Transition
@@ -120,7 +120,7 @@ function logoutOtherDevices() {
                                 v-show="recentlySuccessful"
                                 class="text-sm text-neutral-600"
                             >
-                                Saved.
+                                Tersimpan.
                             </p>
                         </Transition>
                     </div>

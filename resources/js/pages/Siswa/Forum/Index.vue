@@ -141,19 +141,25 @@ function timeAgo(date: string | null) {
 
             <EmptyState v-if="!classroomId || !subjectId" :icon="MessagesSquare" title="Pilih kelas dan mata pelajaran" description="Pilih kelas dan mata pelajaran untuk melihat forum." />
 
-            <div v-else-if="threads && threads.data.length > 0" class="space-y-2">
+            <div v-else-if="threads && threads.data.length > 0" class="space-y-3">
                 <Link v-for="t in threads.data" :key="t.id" :href="`/siswa/forum/${t.id}`"
-                    class="flex items-start gap-3 rounded-xl border bg-card p-4 shadow-sm hover:bg-slate-50/50 transition-colors">
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-1">
-                            <Pin v-if="t.is_pinned" class="size-3 text-primary shrink-0" />
-                            <Lock v-if="t.is_locked" class="size-3 text-muted-foreground shrink-0" />
-                            <p class="font-medium truncate">{{ t.title }}</p>
+                    class="block rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm"
+                    :class="{ 'border-blue-100 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/30': t.is_pinned }">
+                    <div class="flex items-start gap-3">
+                        <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                            {{ t.user?.name?.charAt(0)?.toUpperCase() ?? '?' }}
                         </div>
-                        <p class="text-xs text-muted-foreground mt-1">{{ t.user?.name }} · {{ timeAgo(t.created_at) }}</p>
-                    </div>
-                    <div class="flex items-center gap-1 shrink-0 text-muted-foreground text-sm">
-                        <MessageCircle class="size-4" />{{ t.reply_count }}
+                        <div class="min-w-0 flex-1">
+                            <div class="mb-1 flex flex-wrap items-center gap-2">
+                                <Pin v-if="t.is_pinned" class="size-4 shrink-0 text-blue-500" />
+                                <Lock v-if="t.is_locked" class="size-4 shrink-0 text-muted-foreground" />
+                                <p class="text-base font-semibold">{{ t.title }}</p>
+                            </div>
+                            <p class="text-sm text-muted-foreground">{{ t.user?.name }} · {{ timeAgo(t.created_at) }}</p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
+                            <MessageCircle class="size-4" />{{ t.reply_count }}
+                        </div>
                     </div>
                 </Link>
             </div>

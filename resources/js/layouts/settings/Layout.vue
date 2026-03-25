@@ -9,24 +9,29 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
+import { UserCircle, KeyRound, ShieldCheck, Palette } from 'lucide-vue-next';
 import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: 'Profil',
         href: editProfile(),
+        icon: UserCircle,
     },
     {
         title: 'Password',
         href: editPassword(),
+        icon: KeyRound,
     },
     {
-        title: 'Two-factor auth',
+        title: 'Autentikasi 2 Faktor',
         href: show(),
+        icon: ShieldCheck,
     },
     {
-        title: 'Appearance',
+        title: 'Tampilan',
         href: editAppearance(),
+        icon: Palette,
     },
 ];
 
@@ -36,8 +41,8 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
 <template>
     <div class="px-4 py-6">
         <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
+            title="Pengaturan"
+            description="Kelola profil dan pengaturan akun Anda"
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">

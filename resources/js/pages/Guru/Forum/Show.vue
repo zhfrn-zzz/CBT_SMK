@@ -7,7 +7,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import LoadingButton from '@/components/LoadingButton.vue';
 import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Lock, MessagesSquare, Pin, Trash2 } from 'lucide-vue-next';
@@ -98,36 +98,37 @@ function timeAgo(date: string) {
                     Belum ada balasan. Jadilah yang pertama membalas.
                 </div>
 
-                <Card v-for="r in replies.data" :key="r.id">
-                    <CardContent class="p-3 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium">{{ r.user?.name }}</p>
-                            <div class="flex items-center gap-2">
-                                <p class="text-xs text-muted-foreground">{{ timeAgo(r.created_at) }}</p>
-                                <ConfirmDialog
-                                    title="Hapus Balasan"
-                                    description="Balasan ini akan dihapus permanen."
-                                    confirm-label="Hapus"
-                                    variant="destructive"
-                                    @confirm="deleteReply(r.id)"
-                                >
-                                    <Button variant="ghost" size="icon-sm">
-                                        <Trash2 class="size-3 text-destructive" />
-                                    </Button>
-                                </ConfirmDialog>
+                <div v-for="r in replies.data" :key="r.id" class="border-l-2 border-primary/20 py-4 pl-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                {{ r.user?.name?.charAt(0)?.toUpperCase() ?? '?' }}
                             </div>
+                            <p class="text-sm font-medium">{{ r.user?.name }}</p>
+                            <span class="text-xs text-muted-foreground">{{ timeAgo(r.created_at) }}</span>
                         </div>
-                        <p class="text-sm whitespace-pre-wrap">{{ r.content }}</p>
-                    </CardContent>
-                </Card>
+                        <ConfirmDialog
+                            title="Hapus Balasan"
+                            description="Balasan ini akan dihapus permanen."
+                            confirm-label="Hapus"
+                            variant="destructive"
+                            @confirm="deleteReply(r.id)"
+                        >
+                            <Button variant="ghost" size="icon-sm">
+                                <Trash2 class="size-3 text-destructive" />
+                            </Button>
+                        </ConfirmDialog>
+                    </div>
+                    <p class="mt-2 whitespace-pre-wrap text-sm">{{ r.content }}</p>
+                </div>
 
                 <Pagination :links="replies.links" :from="replies.from" :to="replies.to" :total="replies.total" />
             </div>
 
             <!-- Reply form -->
             <Card v-if="!thread.is_locked">
-                <CardContent class="p-4 space-y-2">
-                    <p class="font-semibold text-sm">Balas</p>
+                <CardContent class="space-y-2 p-4">
+                    <Label class="font-semibold text-sm">Balas</Label>
                     <form @submit.prevent="submitReply" class="space-y-2">
                         <Textarea v-model="replyForm.content" placeholder="Tulis balasan..." rows="3" />
                         <p v-if="replyForm.errors.content" class="text-xs text-destructive">{{ replyForm.errors.content }}</p>
