@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import DataTableToolbar from '@/Components/DataTableToolbar.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -8,6 +11,7 @@ import {
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { BarChart3 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { ClassroomStat } from '@/types/analytics';
 
@@ -45,44 +49,44 @@ function applyFilter(key: string, value: string | null) {
     <Head title="Analitik" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold">Analitik Nilai</h1>
-            </div>
+            <PageHeader title="Analitik" description="Statistik dan performa akademik" :icon="BarChart3" />
 
             <!-- Filters -->
-            <div class="flex flex-wrap gap-4">
-                <div class="min-w-48">
-                    <Select
-                        :model-value="filters.academic_year_id?.toString()"
-                        @update:model-value="val => applyFilter('academic_year_id', val)"
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Pilih Tahun Ajaran" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem v-for="ay in academicYears" :key="ay.id" :value="ay.id.toString()">
-                                {{ ay.name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div class="min-w-48">
-                    <Select
-                        :model-value="filters.department_id?.toString() ?? 'all'"
-                        @update:model-value="val => applyFilter('department_id', val === 'all' ? null : val)"
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Semua Jurusan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua Jurusan</SelectItem>
-                            <SelectItem v-for="dept in departments" :key="dept.id" :value="dept.id.toString()">
-                                {{ dept.name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
+            <DataTableToolbar>
+                <template #filters>
+                    <div class="min-w-48">
+                        <Select
+                            :model-value="filters.academic_year_id?.toString()"
+                            @update:model-value="val => applyFilter('academic_year_id', val)"
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Pilih Tahun Ajaran" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="ay in academicYears" :key="ay.id" :value="ay.id.toString()">
+                                    {{ ay.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div class="min-w-48">
+                        <Select
+                            :model-value="filters.department_id?.toString() ?? 'all'"
+                            @update:model-value="val => applyFilter('department_id', val === 'all' ? null : val)"
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Semua Jurusan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Jurusan</SelectItem>
+                                <SelectItem v-for="dept in departments" :key="dept.id" :value="dept.id.toString()">
+                                    {{ dept.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </template>
+            </DataTableToolbar>
 
             <!-- Classroom Stats Table -->
             <Card>
@@ -90,23 +94,26 @@ function applyFilter(key: string, value: string | null) {
                     <CardTitle>Rekap Per Kelas</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="classroomStats.length === 0" class="py-8 text-center text-muted-foreground">
-                        Belum ada data untuk filter yang dipilih.
-                    </div>
+                    <EmptyState
+                        v-if="classroomStats.length === 0"
+                        :icon="BarChart3"
+                        title="Belum ada data"
+                        description="Belum ada data untuk filter yang dipilih."
+                    />
                     <Table v-else>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Kelas</TableHead>
-                                <TableHead class="text-center">Siswa</TableHead>
-                                <TableHead class="text-center">Ujian</TableHead>
-                                <TableHead class="text-center">Rata-rata</TableHead>
-                                <TableHead class="text-center">Tertinggi</TableHead>
-                                <TableHead class="text-center">Terendah</TableHead>
-                                <TableHead></TableHead>
+                            <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
+                                <TableHead class="text-xs font-medium uppercase tracking-wider">Kelas</TableHead>
+                                <TableHead class="text-center text-xs font-medium uppercase tracking-wider">Siswa</TableHead>
+                                <TableHead class="text-center text-xs font-medium uppercase tracking-wider">Ujian</TableHead>
+                                <TableHead class="text-center text-xs font-medium uppercase tracking-wider">Rata-rata</TableHead>
+                                <TableHead class="text-center text-xs font-medium uppercase tracking-wider">Tertinggi</TableHead>
+                                <TableHead class="text-center text-xs font-medium uppercase tracking-wider">Terendah</TableHead>
+                                <TableHead class="text-xs font-medium uppercase tracking-wider"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="stat in classroomStats" :key="stat.classroom_id">
+                            <TableRow v-for="(stat, index) in classroomStats" :key="stat.classroom_id" class="transition-colors hover:bg-muted/50" :class="index % 2 === 1 ? 'bg-muted/30' : ''">
                                 <TableCell class="font-medium">{{ stat.classroom_name }}</TableCell>
                                 <TableCell class="text-center">{{ stat.student_count }}</TableCell>
                                 <TableCell class="text-center">{{ stat.exam_count }}</TableCell>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import { Card, CardContent } from '@/components/ui/card';
+import { BarChart3 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 
 const props = defineProps<{
@@ -21,8 +24,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head :title="`Detail Kelas - ${classroom.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
-            <h1 class="text-2xl font-bold">Detail Kelas: {{ classroom.name }}</h1>
-            <p class="text-muted-foreground">Data tren nilai per bulan</p>
+            <PageHeader :title="`Detail Kelas: ${classroom.name}`" description="Data tren nilai per bulan" :icon="BarChart3" />
+
+            <Card>
+                <CardContent class="p-6">
+                    <p class="text-sm text-muted-foreground">Data tren nilai akan ditampilkan di sini.</p>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

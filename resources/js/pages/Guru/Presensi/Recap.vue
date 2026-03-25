@@ -2,7 +2,9 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
+import PageHeader from '@/components/PageHeader.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,7 +13,7 @@ import {
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Download } from 'lucide-vue-next';
+import { CalendarCheck, Download } from 'lucide-vue-next';
 import type { AttendanceRecap, BreadcrumbItem } from '@/types';
 
 interface TeachingAssignment {
@@ -71,12 +73,14 @@ function exportExcel() {
     <Head title="Rekap Presensi" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Rekap Presensi</h2>
-                <Button size="sm" variant="outline" :disabled="!subjectId || !classroomId" @click="exportExcel">
-                    <Download class="size-4" />Export Excel
-                </Button>
-            </div>
+            <PageHeader title="Rekap Presensi" description="Ringkasan kehadiran siswa" :icon="CalendarCheck">
+                <template #actions>
+                    <LoadingButton variant="outline" size="sm" :disabled="!subjectId || !classroomId" @click="exportExcel">
+                        <Download class="size-4" />
+                        Export Excel
+                    </LoadingButton>
+                </template>
+            </PageHeader>
 
             <div class="flex flex-wrap gap-3">
                 <Select v-model="subjectId">
@@ -103,21 +107,21 @@ function exportExcel() {
                 Pilih mata pelajaran dan kelas untuk melihat rekap.
             </div>
 
-            <div v-else-if="recap && recap.length > 0" class="rounded-md border">
+            <div v-else-if="recap && recap.length > 0" class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Nama</TableHead>
-                            <TableHead>Username</TableHead>
-                            <TableHead class="text-center">Hadir</TableHead>
-                            <TableHead class="text-center">Izin</TableHead>
-                            <TableHead class="text-center">Sakit</TableHead>
-                            <TableHead class="text-center">Alfa</TableHead>
-                            <TableHead class="text-center">% Kehadiran</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Username</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Hadir</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Izin</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Sakit</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Alfa</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">% Kehadiran</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="r in recap" :key="r.user.id">
+                        <TableRow v-for="r in recap" :key="r.user.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell class="font-medium">{{ r.user.name }}</TableCell>
                             <TableCell class="text-muted-foreground">{{ r.user.username }}</TableCell>
                             <TableCell class="text-center text-green-600 font-medium">{{ r.hadir }}</TableCell>
@@ -133,9 +137,13 @@ function exportExcel() {
                     </TableBody>
                 </Table>
             </div>
-            <div v-else-if="recap" class="text-center text-muted-foreground py-8">
-                Tidak ada data presensi untuk filter yang dipilih.
-            </div>
+
+            <EmptyState
+                v-else-if="recap"
+                :icon="CalendarCheck"
+                title="Tidak ada data presensi"
+                description="Tidak ada data presensi untuk filter yang dipilih."
+            />
         </div>
     </AppLayout>
 </template>

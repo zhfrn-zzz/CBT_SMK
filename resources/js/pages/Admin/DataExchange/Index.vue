@@ -2,13 +2,14 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
-import { Button } from '@/components/ui/button';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { Download, Upload, FileText } from 'lucide-vue-next';
+import { ArrowLeftRight, Download, Upload, FileText } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import { ref } from 'vue';
 
@@ -61,7 +62,7 @@ function submitImport() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
             <FlashMessage />
-            <h1 class="text-2xl font-bold">Data Exchange</h1>
+            <PageHeader title="Pertukaran Data" description="Import dan export data" :icon="ArrowLeftRight" />
 
             <div class="grid gap-6 lg:grid-cols-2">
                 <!-- Export Data Siswa -->
@@ -75,9 +76,9 @@ function submitImport() {
                     </CardHeader>
                     <CardContent class="flex flex-col gap-4">
                         <div>
-                            <Label>Kelas (Opsional)</Label>
+                            <Label class="font-semibold">Kelas (Opsional)</Label>
                             <Select v-model="exportForm.classroom_id">
-                                <SelectTrigger>
+                                <SelectTrigger class="h-11">
                                     <SelectValue placeholder="Semua Kelas" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -89,9 +90,9 @@ function submitImport() {
                             </Select>
                         </div>
                         <div>
-                            <Label>Tahun Ajaran (Opsional)</Label>
+                            <Label class="font-semibold">Tahun Ajaran (Opsional)</Label>
                             <Select v-model="exportForm.academic_year_id">
-                                <SelectTrigger>
+                                <SelectTrigger class="h-11">
                                     <SelectValue placeholder="Semua Tahun Ajaran" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -102,10 +103,10 @@ function submitImport() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Button @click="submitExport" class="w-full">
+                        <LoadingButton @click="submitExport" class="w-full">
                             <Download class="mr-2 h-4 w-4" />
                             Download Excel
-                        </Button>
+                        </LoadingButton>
                     </CardContent>
                 </Card>
 
@@ -120,9 +121,9 @@ function submitImport() {
                     </CardHeader>
                     <CardContent class="flex flex-col gap-4">
                         <div>
-                            <Label>Kelas</Label>
+                            <Label class="font-semibold">Kelas</Label>
                             <Select v-model="raporForm.classroom_id">
-                                <SelectTrigger>
+                                <SelectTrigger class="h-11">
                                     <SelectValue placeholder="Pilih Kelas" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -133,9 +134,9 @@ function submitImport() {
                             </Select>
                         </div>
                         <div>
-                            <Label>Tahun Ajaran</Label>
+                            <Label class="font-semibold">Tahun Ajaran</Label>
                             <Select v-model="raporForm.academic_year_id">
-                                <SelectTrigger>
+                                <SelectTrigger class="h-11">
                                     <SelectValue placeholder="Pilih Tahun Ajaran" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -145,14 +146,15 @@ function submitImport() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Button
+                        <LoadingButton
                             @click="submitRapor"
-                            :disabled="raporForm.processing || !raporForm.classroom_id || !raporForm.academic_year_id"
+                            :loading="raporForm.processing"
+                            :disabled="!raporForm.classroom_id || !raporForm.academic_year_id"
                             class="w-full"
                         >
                             <FileText class="mr-2 h-4 w-4" />
                             Generate Rapor
-                        </Button>
+                        </LoadingButton>
                     </CardContent>
                 </Card>
 
@@ -172,7 +174,7 @@ function submitImport() {
                             </a>
                         </div>
                         <div>
-                            <Label>File Excel/CSV</Label>
+                            <Label class="font-semibold">File Excel/CSV</Label>
                             <input
                                 ref="fileInput"
                                 type="file"
@@ -180,10 +182,10 @@ function submitImport() {
                                 class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:cursor-pointer"
                             />
                         </div>
-                        <Button @click="submitImport" :disabled="importForm.processing" class="w-full">
+                        <LoadingButton @click="submitImport" :loading="importForm.processing" class="w-full">
                             <Upload class="mr-2 h-4 w-4" />
-                            {{ importForm.processing ? 'Mengimport...' : 'Import Siswa' }}
-                        </Button>
+                            Import Siswa
+                        </LoadingButton>
                     </CardContent>
                 </Card>
             </div>

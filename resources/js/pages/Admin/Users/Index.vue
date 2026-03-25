@@ -4,8 +4,11 @@ import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import DataTableToolbar from '@/Components/DataTableToolbar.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -22,18 +25,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Plus, Trash2, Upload } from 'lucide-vue-next';
+import { MoreHorizontal, Pencil, Plus, Trash2, Upload, Users } from 'lucide-vue-next';
 import type { BreadcrumbItem, Classroom, Department, PaginatedData, User } from '@/types';
 
 const props = defineProps<{
@@ -128,9 +126,8 @@ const colSpan = computed(() => {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Manajemen Pengguna</h2>
-                <div class="flex gap-2">
+            <PageHeader title="Manajemen Pengguna" description="Kelola data pengguna sistem" :icon="Users">
+                <template #actions>
                     <Button variant="outline" size="sm" as-child>
                         <Link href="/admin/users/create?import=true">
                             <Upload class="size-4" />
@@ -143,79 +140,75 @@ const colSpan = computed(() => {
                             Tambah Pengguna
                         </Link>
                     </Button>
-                </div>
-            </div>
-
-            <div class="flex flex-wrap gap-3">
-                <Input
-                    v-model="search"
-                    placeholder="Cari nama, username, atau email..."
-                    class="max-w-sm"
-                />
-                <Select v-model="roleFilter">
-                    <SelectTrigger class="w-[180px]">
-                        <SelectValue placeholder="Semua Role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Role</SelectItem>
-                        <SelectItem v-for="role in roles" :key="role.value" :value="role.value">
-                            {{ role.label }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-
-                <!-- Siswa filters: Jurusan & Kelas -->
-                <template v-if="isSiswaView">
-                    <Select v-model="departmentFilter">
-                        <SelectTrigger class="w-[180px]">
-                            <SelectValue placeholder="Semua Jurusan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua Jurusan</SelectItem>
-                            <SelectItem
-                                v-for="dept in departments"
-                                :key="dept.id"
-                                :value="String(dept.id)"
-                            >
-                                {{ dept.name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Select v-model="classroomFilter">
-                        <SelectTrigger class="w-[180px]">
-                            <SelectValue placeholder="Semua Kelas" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua Kelas</SelectItem>
-                            <SelectItem
-                                v-for="cls in filteredClassroomOptions"
-                                :key="cls.id"
-                                :value="String(cls.id)"
-                            >
-                                {{ cls.name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
                 </template>
-            </div>
+            </PageHeader>
 
-            <div class="rounded-md border">
+            <DataTableToolbar v-model="search" search-placeholder="Cari nama, username, atau email...">
+                <template #filters>
+                    <Select v-model="roleFilter">
+                        <SelectTrigger class="w-[180px]">
+                            <SelectValue placeholder="Semua Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Role</SelectItem>
+                            <SelectItem v-for="role in roles" :key="role.value" :value="role.value">
+                                {{ role.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <template v-if="isSiswaView">
+                        <Select v-model="departmentFilter">
+                            <SelectTrigger class="w-[180px]">
+                                <SelectValue placeholder="Semua Jurusan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Jurusan</SelectItem>
+                                <SelectItem
+                                    v-for="dept in departments"
+                                    :key="dept.id"
+                                    :value="String(dept.id)"
+                                >
+                                    {{ dept.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select v-model="classroomFilter">
+                            <SelectTrigger class="w-[180px]">
+                                <SelectValue placeholder="Semua Kelas" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Kelas</SelectItem>
+                                <SelectItem
+                                    v-for="cls in filteredClassroomOptions"
+                                    :key="cls.id"
+                                    :value="String(cls.id)"
+                                >
+                                    {{ cls.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </template>
+                </template>
+            </DataTableToolbar>
+
+            <div class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Nama</TableHead>
-                            <TableHead>Username</TableHead>
-                            <TableHead v-if="!isSiswaView && !isGuruView">Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead v-if="isSiswaView">Jurusan</TableHead>
-                            <TableHead v-if="isSiswaView">Kelas</TableHead>
-                            <TableHead v-if="isGuruView">Mengajar</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead class="w-[100px]">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Username</TableHead>
+                            <TableHead v-if="!isSiswaView && !isGuruView" class="text-xs font-semibold uppercase tracking-wider">Email</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Role</TableHead>
+                            <TableHead v-if="isSiswaView" class="text-xs font-semibold uppercase tracking-wider">Jurusan</TableHead>
+                            <TableHead v-if="isSiswaView" class="text-xs font-semibold uppercase tracking-wider">Kelas</TableHead>
+                            <TableHead v-if="isGuruView" class="text-xs font-semibold uppercase tracking-wider">Mengajar</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                            <TableHead class="w-[100px] text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="user in users.data" :key="user.id">
+                        <TableRow v-for="user in users.data" :key="user.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell class="font-medium">{{ user.name }}</TableCell>
                             <TableCell>{{ user.username }}</TableCell>
                             <TableCell v-if="!isSiswaView && !isGuruView">{{ user.email ?? '-' }}</TableCell>
@@ -249,42 +242,33 @@ const colSpan = computed(() => {
                                 </Badge>
                             </TableCell>
                             <TableCell>
-                                <div class="flex gap-1">
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/admin/users/${user.id}/edit`">
-                                            <Pencil class="size-4" />
-                                        </Link>
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger as-child>
-                                            <Button variant="ghost" size="icon-sm">
-                                                <Trash2 class="size-4 text-destructive" />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Hapus Pengguna</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Apakah Anda yakin ingin menghapus <strong>{{ user.name }}</strong>? Tindakan ini tidak dapat dibatalkan.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    class="bg-destructive text-white hover:bg-destructive/90"
-                                                    @click="deleteUser(user.id)"
-                                                >
-                                                    Hapus
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon-sm">
+                                            <MoreHorizontal class="size-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/admin/users/${user.id}/edit`">
+                                                <Pencil class="mr-2 size-4" />Edit
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <ConfirmDialog
+                                            @confirm="deleteUser(user.id)"
+                                            :description="`Apakah Anda yakin ingin menghapus ${user.name}? Tindakan ini tidak dapat dibatalkan.`"
+                                        >
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @select.prevent>
+                                                <Trash2 class="mr-2 size-4" />Hapus
+                                            </DropdownMenuItem>
+                                        </ConfirmDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                         <TableRow v-if="users.data.length === 0">
-                            <TableCell :colspan="colSpan" class="text-center text-muted-foreground">
-                                Tidak ada data pengguna.
+                            <TableCell :colspan="colSpan" class="p-0">
+                                <EmptyState title="Tidak ada pengguna" description="Belum ada data pengguna yang sesuai filter." />
                             </TableCell>
                         </TableRow>
                     </TableBody>

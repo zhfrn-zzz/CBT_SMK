@@ -2,13 +2,17 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { ClipboardCheck } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 
 interface TeachingAssignment {
@@ -57,67 +61,72 @@ function submit() {
 <template>
     <Head title="Buka Sesi Presensi" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="mx-auto max-w-xl p-4">
-            <h2 class="mb-4 text-xl font-semibold">Buka Sesi Presensi</h2>
-            <form @submit.prevent="submit" class="space-y-4">
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-1">
-                        <Label>Mata Pelajaran <span class="text-destructive">*</span></Label>
-                        <Select v-model="form.subject_id">
-                            <SelectTrigger><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p v-if="form.errors.subject_id" class="text-xs text-destructive">{{ form.errors.subject_id }}</p>
-                    </div>
-                    <div class="space-y-1">
-                        <Label>Kelas <span class="text-destructive">*</span></Label>
-                        <Select v-model="form.classroom_id" :disabled="!form.subject_id">
-                            <SelectTrigger><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p v-if="form.errors.classroom_id" class="text-xs text-destructive">{{ form.errors.classroom_id }}</p>
-                    </div>
-                </div>
+        <div class="mx-auto max-w-2xl p-4">
+            <PageHeader title="Buat Sesi Presensi" :icon="ClipboardCheck" />
 
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-1">
-                        <Label>Tanggal</Label>
-                        <Input v-model="form.meeting_date" type="date" />
-                        <p v-if="form.errors.meeting_date" class="text-xs text-destructive">{{ form.errors.meeting_date }}</p>
-                    </div>
-                    <div class="space-y-1">
-                        <Label>Pertemuan Ke-</Label>
-                        <Input v-model.number="form.meeting_number" type="number" min="1" />
-                    </div>
-                </div>
+            <Card class="mt-4">
+                <CardContent class="p-6">
+                    <form @submit.prevent="submit" class="space-y-4">
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Mata Pelajaran <span class="text-destructive">*</span></Label>
+                                <Select v-model="form.subject_id">
+                                    <SelectTrigger class="h-11"><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="s in uniqueSubjects" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p v-if="form.errors.subject_id" class="text-xs text-destructive">{{ form.errors.subject_id }}</p>
+                            </div>
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Kelas <span class="text-destructive">*</span></Label>
+                                <Select v-model="form.classroom_id" :disabled="!form.subject_id">
+                                    <SelectTrigger class="h-11"><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p v-if="form.errors.classroom_id" class="text-xs text-destructive">{{ form.errors.classroom_id }}</p>
+                            </div>
+                        </div>
 
-                <div class="space-y-1">
-                    <Label>Durasi Kode Akses</Label>
-                    <Select v-model.number="(form.duration_minutes as any)">
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem :value="(15 as any)">15 menit</SelectItem>
-                            <SelectItem :value="(30 as any)">30 menit</SelectItem>
-                            <SelectItem :value="(60 as any)">60 menit</SelectItem>
-                            <SelectItem :value="(0 as any)">Sampai ditutup manual</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Tanggal</Label>
+                                <Input v-model="form.meeting_date" type="date" class="h-11" />
+                                <p v-if="form.errors.meeting_date" class="text-xs text-destructive">{{ form.errors.meeting_date }}</p>
+                            </div>
+                            <div class="space-y-1">
+                                <Label class="font-semibold text-sm">Pertemuan Ke-</Label>
+                                <Input v-model.number="form.meeting_number" type="number" min="1" class="h-11" />
+                            </div>
+                        </div>
 
-                <div class="space-y-1">
-                    <Label>Catatan (opsional)</Label>
-                    <Textarea v-model="form.note" rows="2" />
-                </div>
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Durasi Kode Akses</Label>
+                            <Select v-model.number="(form.duration_minutes as any)">
+                                <SelectTrigger class="h-11"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem :value="(15 as any)">15 menit</SelectItem>
+                                    <SelectItem :value="(30 as any)">30 menit</SelectItem>
+                                    <SelectItem :value="(60 as any)">60 menit</SelectItem>
+                                    <SelectItem :value="(0 as any)">Sampai ditutup manual</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                <div class="flex gap-2">
-                    <Button type="submit" :disabled="form.processing">{{ form.processing ? 'Membuka...' : 'Buka Sesi Presensi' }}</Button>
-                    <Button variant="outline" as-child><Link href="/guru/presensi">Batal</Link></Button>
-                </div>
-            </form>
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Catatan (opsional)</Label>
+                            <Textarea v-model="form.note" rows="2" />
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3 pt-4">
+                            <Button variant="outline" as-child><Link href="/guru/presensi">Batal</Link></Button>
+                            <LoadingButton :loading="form.processing" type="submit">Buka Sesi Presensi</LoadingButton>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

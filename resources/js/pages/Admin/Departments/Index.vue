@@ -3,6 +3,9 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -13,17 +16,12 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Building2, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, Department, PaginatedData } from '@/types';
 
 defineProps<{
@@ -47,70 +45,62 @@ function deleteItem(id: number) {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Jurusan</h2>
-                <Button size="sm" as-child>
-                    <Link href="/admin/departments/create">
-                        <Plus class="size-4" />
-                        Tambah Jurusan
-                    </Link>
-                </Button>
-            </div>
+            <PageHeader title="Jurusan" description="Kelola data jurusan" :icon="Building2">
+                <template #actions>
+                    <Button size="sm" as-child>
+                        <Link href="/admin/departments/create">
+                            <Plus class="size-4" />
+                            Tambah Jurusan
+                        </Link>
+                    </Button>
+                </template>
+            </PageHeader>
 
-            <div class="rounded-md border">
+            <div class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Kode</TableHead>
-                            <TableHead>Nama Jurusan</TableHead>
-                            <TableHead>Jumlah Kelas</TableHead>
-                            <TableHead>Jumlah Mapel</TableHead>
-                            <TableHead class="w-[100px]">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Kode</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Jurusan</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Jumlah Kelas</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Jumlah Mapel</TableHead>
+                            <TableHead class="w-[100px] text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="dept in departments.data" :key="dept.id">
+                        <TableRow v-for="dept in departments.data" :key="dept.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell class="font-mono font-medium">{{ dept.code }}</TableCell>
                             <TableCell>{{ dept.name }}</TableCell>
                             <TableCell>{{ dept.classrooms_count ?? 0 }}</TableCell>
                             <TableCell>{{ dept.subjects_count ?? 0 }}</TableCell>
                             <TableCell>
-                                <div class="flex gap-1">
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/admin/departments/${dept.id}/edit`">
-                                            <Pencil class="size-4" />
-                                        </Link>
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger as-child>
-                                            <Button variant="ghost" size="icon-sm">
-                                                <Trash2 class="size-4 text-destructive" />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Hapus Jurusan</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Apakah Anda yakin ingin menghapus jurusan <strong>{{ dept.name }}</strong>?
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    class="bg-destructive text-white hover:bg-destructive/90"
-                                                    @click="deleteItem(dept.id)"
-                                                >
-                                                    Hapus
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon-sm">
+                                            <MoreHorizontal class="size-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/admin/departments/${dept.id}/edit`">
+                                                <Pencil class="mr-2 size-4" />Edit
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <ConfirmDialog
+                                            @confirm="deleteItem(dept.id)"
+                                            :description="`Apakah Anda yakin ingin menghapus jurusan ${dept.name}?`"
+                                        >
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @select.prevent>
+                                                <Trash2 class="mr-2 size-4" />Hapus
+                                            </DropdownMenuItem>
+                                        </ConfirmDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                         <TableRow v-if="departments.data.length === 0">
-                            <TableCell :colspan="5" class="text-center text-muted-foreground">
-                                Belum ada data jurusan.
+                            <TableCell :colspan="5" class="p-0">
+                                <EmptyState title="Tidak ada jurusan" description="Belum ada data jurusan." />
                             </TableCell>
                         </TableRow>
                     </TableBody>

@@ -2,7 +2,10 @@
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import CalendarGrid from '@/components/Calendar/CalendarGrid.vue';
+import { Card, CardContent } from '@/components/ui/card';
+import { CalendarDays } from 'lucide-vue-next';
 import type { BreadcrumbItem, CalendarEvent } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -31,14 +34,18 @@ async function fetchEvents(year: number, month: number) {
         <Head title="Kalender Akademik" />
 
         <div class="mx-auto max-w-5xl space-y-6 p-6">
-            <h1 class="text-2xl font-bold">Kalender Akademik</h1>
+            <PageHeader title="Kalender" description="Jadwal kegiatan" :icon="CalendarDays" />
 
-            <div class="relative">
-                <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center bg-background/50">
-                    <div class="text-sm text-muted-foreground">Memuat...</div>
-                </div>
-                <CalendarGrid :events="events" @month-change="fetchEvents" />
-            </div>
+            <Card>
+                <CardContent class="p-6">
+                    <div class="relative">
+                        <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center bg-background/50">
+                            <div class="text-sm text-muted-foreground">Memuat...</div>
+                        </div>
+                        <CalendarGrid :events="events" @month-change="fetchEvents" />
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

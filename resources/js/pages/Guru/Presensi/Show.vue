@@ -3,6 +3,9 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -13,11 +16,7 @@ import {
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { RefreshCw, XCircle } from 'lucide-vue-next';
+import { ClipboardCheck, RefreshCw } from 'lucide-vue-next';
 import type { Attendance, AttendanceRecord, BreadcrumbItem } from '@/types';
 
 interface Student {
@@ -87,34 +86,20 @@ const statusColor = (status: string) => {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h2 class="text-xl font-semibold">
-                        Presensi Pertemuan {{ attendance.meeting_number }}
-                    </h2>
-                    <p class="text-sm text-muted-foreground">
-                        {{ attendance.subject?.name }} · {{ attendance.classroom?.name }} ·
-                        {{ new Date(attendance.meeting_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
-                    </p>
-                </div>
-                <AlertDialog v-if="attendance.is_open">
-                    <AlertDialogTrigger as-child>
+            <PageHeader title="Sesi Presensi" :description="`${attendance.subject?.name} · ${attendance.classroom?.name} · ${new Date(attendance.meeting_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`" :icon="ClipboardCheck">
+                <template #actions>
+                    <ConfirmDialog
+                        v-if="attendance.is_open"
+                        title="Tutup Sesi Presensi"
+                        description="Siswa yang belum presensi akan otomatis ditandai Alfa. Lanjutkan?"
+                        confirm-label="Tutup"
+                        variant="destructive"
+                        @confirm="closeSession"
+                    >
                         <Button variant="destructive" size="sm">Tutup Sesi</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Tutup Sesi Presensi</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Siswa yang belum presensi akan otomatis ditandai <strong>Alfa</strong>. Lanjutkan?
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                            <AlertDialogAction class="bg-destructive text-white hover:bg-destructive/90" @click="closeSession">Tutup</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </div>
+                    </ConfirmDialog>
+                </template>
+            </PageHeader>
 
             <!-- Kode Akses -->
             <div v-if="attendance.is_open" class="rounded-lg border bg-muted/30 p-4 space-y-3">
@@ -138,10 +123,10 @@ const statusColor = (status: string) => {
                             <SelectItem :value="(0 as any)">Manual</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button variant="outline" size="sm" @click="regenerateCode" :disabled="regenerateForm.processing">
+                    <LoadingButton variant="outline" size="sm" :loading="regenerateForm.processing" @click="regenerateCode">
                         <RefreshCw class="size-4" />
                         Generate Kode Baru
-                    </Button>
+                    </LoadingButton>
                 </div>
             </div>
 
@@ -152,19 +137,19 @@ const statusColor = (status: string) => {
             </div>
 
             <!-- Students table -->
-            <div class="rounded-md border">
+            <div class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Nama</TableHead>
-                            <TableHead>Username</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Check-in</TableHead>
-                            <TableHead v-if="attendance.is_open">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Username</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Check-in</TableHead>
+                            <TableHead v-if="attendance.is_open" class="text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="s in students" :key="s.id">
+                        <TableRow v-for="s in students" :key="s.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell class="font-medium">{{ s.name }}</TableCell>
                             <TableCell class="text-muted-foreground">{{ s.username }}</TableCell>
                             <TableCell>
@@ -187,6 +172,10 @@ const statusColor = (status: string) => {
                         </TableRow>
                     </TableBody>
                 </Table>
+            </div>
+
+            <div v-if="attendance.is_open" class="flex items-center justify-end">
+                <LoadingButton size="sm" @click="saveAllStatuses">Simpan Semua</LoadingButton>
             </div>
         </div>
     </AppLayout>

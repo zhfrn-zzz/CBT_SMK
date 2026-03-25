@@ -14,6 +14,7 @@ export type AuditLogEntry = {
 };
 
 export type AuditFilters = {
+    search: string | null;
     user_id: number | null;
     action: string | null;
     auditable_type: string | null;

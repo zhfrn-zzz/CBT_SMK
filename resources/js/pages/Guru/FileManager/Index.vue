@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import PageHeader from '@/components/PageHeader.vue';
+import StatsCard from '@/components/StatsCard.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import {
     Table,
     TableBody,
@@ -25,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowDownAZ, ArrowUpDown, FolderOpen, Trash2 } from 'lucide-vue-next';
+import { ArrowDownAZ, ArrowUpDown, File, FolderOpen, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, FileManagerFilters, GuruFile } from '@/types';
 import type { AcceptableValue } from 'reka-ui';
 import { computed, ref } from 'vue';
@@ -92,7 +89,6 @@ function toggleDirection() {
 
 function handleDelete(file: GuruFile) {
     if (file.is_used) return;
-    if (!confirm(`Hapus file "${file.name}"? Tindakan ini tidak dapat dibatalkan.`)) return;
     router.delete(`/guru/file-manager/${file.type}/${file.id}`);
 }
 
@@ -117,116 +113,101 @@ const sortOptions = [
     <Head title="File Manager" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-col gap-6 p-6">
-            <!-- Header -->
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight">File Manager</h1>
-                <p class="text-muted-foreground">Kelola semua file yang Anda upload.</p>
-            </div>
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+            <PageHeader title="File Manager" description="Kelola file Anda" :icon="FolderOpen" />
 
             <!-- Summary -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardDescription>Total File</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">{{ totalFiles }}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardDescription>Total Ukuran</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">{{ formatBytes(totalSize) }}</div>
-                    </CardContent>
-                </Card>
+                <StatsCard title="Total File" :value="totalFiles" :icon="File" />
+                <StatsCard title="Total Ukuran" :value="formatBytes(totalSize)" :icon="FolderOpen" />
             </div>
 
             <!-- Filters -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <FolderOpen class="h-5 w-5" />
-                        Daftar File
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="mb-4 flex flex-wrap items-center gap-3">
-                        <Select :model-value="currentType" @update:model-value="handleTypeChange">
-                            <SelectTrigger class="w-[160px]">
-                                <SelectValue placeholder="Filter tipe" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="opt in typeOptions" :key="opt.value" :value="opt.value">
-                                    {{ opt.label }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+            <div class="flex flex-wrap items-center gap-3">
+                <Select :model-value="currentType" @update:model-value="handleTypeChange">
+                    <SelectTrigger class="w-[160px]">
+                        <SelectValue placeholder="Filter tipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem v-for="opt in typeOptions" :key="opt.value" :value="opt.value">
+                            {{ opt.label }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
 
-                        <Select :model-value="currentSort" @update:model-value="handleSortChange">
-                            <SelectTrigger class="w-[140px]">
-                                <ArrowDownAZ class="mr-2 h-4 w-4" />
-                                <SelectValue placeholder="Urutkan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="opt in sortOptions" :key="opt.value" :value="opt.value">
-                                    {{ opt.label }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                <Select :model-value="currentSort" @update:model-value="handleSortChange">
+                    <SelectTrigger class="w-[140px]">
+                        <ArrowDownAZ class="mr-2 h-4 w-4" />
+                        <SelectValue placeholder="Urutkan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem v-for="opt in sortOptions" :key="opt.value" :value="opt.value">
+                            {{ opt.label }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
 
-                        <Button variant="outline" size="sm" @click="toggleDirection">
-                            <ArrowUpDown class="mr-1 h-4 w-4" />
-                            {{ currentDirection === 'desc' ? 'Terbaru' : 'Terlama' }}
-                        </Button>
-                    </div>
+                <Button variant="outline" size="sm" @click="toggleDirection">
+                    <ArrowUpDown class="mr-1 h-4 w-4" />
+                    {{ currentDirection === 'desc' ? 'Terbaru' : 'Terlama' }}
+                </Button>
+            </div>
 
-                    <Table v-if="files.length > 0">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Nama File</TableHead>
-                                <TableHead>Tipe</TableHead>
-                                <TableHead class="text-right">Ukuran</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Tanggal</TableHead>
-                                <TableHead class="text-right">Aksi</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="file in files" :key="`${file.type}-${file.id}`">
-                                <TableCell class="max-w-xs truncate font-medium">{{ file.name }}</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">{{ file.type_label }}</Badge>
-                                </TableCell>
-                                <TableCell class="text-right">{{ formatBytes(file.size) }}</TableCell>
-                                <TableCell>
-                                    <Badge :variant="file.is_used ? 'default' : 'outline'">
-                                        {{ file.usage_info }}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>{{ formatDate(file.created_at) }}</TableCell>
-                                <TableCell class="text-right">
+            <div v-if="files.length > 0" class="overflow-hidden rounded-xl border bg-card">
+                <Table>
+                    <TableHeader>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama File</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Tipe</TableHead>
+                            <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">Ukuran</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Tanggal</TableHead>
+                            <TableHead class="w-[60px] text-xs font-semibold uppercase tracking-wider" />
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="file in files" :key="`${file.type}-${file.id}`" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
+                            <TableCell class="max-w-xs truncate font-medium">{{ file.name }}</TableCell>
+                            <TableCell>
+                                <Badge variant="secondary">{{ file.type_label }}</Badge>
+                            </TableCell>
+                            <TableCell class="text-right">{{ formatBytes(file.size) }}</TableCell>
+                            <TableCell>
+                                <Badge :variant="file.is_used ? 'default' : 'outline'">
+                                    {{ file.usage_info }}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>{{ formatDate(file.created_at) }}</TableCell>
+                            <TableCell class="text-right">
+                                <ConfirmDialog
+                                    v-if="!file.is_used"
+                                    :title="`Hapus file &quot;${file.name}&quot;?`"
+                                    description="Tindakan ini tidak dapat dibatalkan."
+                                    confirm-label="Hapus"
+                                    variant="destructive"
+                                    @confirm="handleDelete(file)"
+                                >
                                     <Button
-                                        v-if="!file.is_used"
                                         variant="ghost"
                                         size="sm"
                                         class="text-destructive hover:text-destructive"
-                                        @click="handleDelete(file)"
                                     >
                                         <Trash2 class="h-4 w-4" />
                                     </Button>
-                                    <span v-else class="text-muted-foreground text-xs">Sedang dipakai</span>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                    <p v-else class="text-muted-foreground py-8 text-center text-sm">
-                        Tidak ada file ditemukan.
-                    </p>
-                </CardContent>
-            </Card>
+                                </ConfirmDialog>
+                                <span v-else class="text-muted-foreground text-xs">Sedang dipakai</span>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
+
+            <EmptyState
+                v-else
+                :icon="FolderOpen"
+                title="Tidak ada file ditemukan"
+                description="Belum ada file yang Anda upload."
+            />
         </div>
     </AppLayout>
 </template>

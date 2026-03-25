@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { School } from 'lucide-vue-next';
 import type { AcademicYear, BreadcrumbItem, Classroom, Department } from '@/types';
 
 const props = defineProps<{
@@ -44,23 +47,22 @@ function submit() {
     <Head title="Edit Kelas" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+            <PageHeader title="Edit Kelas" :icon="School" />
+
             <Card class="max-w-2xl">
-                <CardHeader>
-                    <CardTitle>Edit Kelas: {{ classroom.name }}</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent class="p-6">
                     <form @submit.prevent="submit" class="space-y-4">
                         <div class="space-y-2">
-                            <Label for="name">Nama Kelas</Label>
-                            <Input id="name" v-model="form.name" />
+                            <Label for="name" class="font-semibold text-sm">Nama Kelas <span class="text-destructive">*</span></Label>
+                            <Input id="name" v-model="form.name" class="h-11" />
                             <InputError :message="form.errors.name" />
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="academic_year_id">Tahun Ajaran</Label>
+                            <Label for="academic_year_id" class="font-semibold text-sm">Tahun Ajaran <span class="text-destructive">*</span></Label>
                             <Select v-model="form.academic_year_id">
-                                <SelectTrigger>
+                                <SelectTrigger class="h-11">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -77,9 +79,9 @@ function submit() {
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="department_id">Jurusan</Label>
+                            <Label for="department_id" class="font-semibold text-sm">Jurusan <span class="text-destructive">*</span></Label>
                             <Select v-model="form.department_id">
-                                <SelectTrigger>
+                                <SelectTrigger class="h-11">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -96,9 +98,9 @@ function submit() {
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="grade_level">Tingkat</Label>
+                            <Label for="grade_level" class="font-semibold text-sm">Tingkat <span class="text-destructive">*</span></Label>
                             <Select v-model="form.grade_level">
-                                <SelectTrigger>
+                                <SelectTrigger class="h-11">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -114,11 +116,13 @@ function submit() {
                             <InputError :message="form.errors.grade_level" />
                         </div>
 
-                        <div class="flex gap-2 pt-2">
-                            <Button type="submit" :disabled="form.processing">Perbarui</Button>
-                            <Button variant="outline" as-child>
+                        <div class="flex items-center justify-end gap-3 pt-4">
+                            <Button variant="outline" type="button" as-child>
                                 <Link href="/admin/classrooms">Batal</Link>
                             </Button>
+                            <LoadingButton type="submit" :loading="form.processing">
+                                Simpan
+                            </LoadingButton>
                         </div>
                     </form>
                 </CardContent>

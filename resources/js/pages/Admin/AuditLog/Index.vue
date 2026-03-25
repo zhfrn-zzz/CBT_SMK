@@ -3,6 +3,9 @@ import { Head, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import DataTableToolbar from '@/Components/DataTableToolbar.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,6 +17,7 @@ import {
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { ScrollText } from 'lucide-vue-next';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
 import type { AuditFilters, AuditLogEntry } from '@/types/audit';
 
@@ -30,6 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Log Audit', href: '/admin/audit-log' },
 ];
 
+const search = ref(props.filters.search ?? '');
 const userFilter = ref(String(props.filters.user_id ?? 'all'));
 const actionFilter = ref(props.filters.action ?? 'all');
 const auditableTypeFilter = ref(props.filters.auditable_type ?? 'all');
@@ -43,6 +48,7 @@ function applyFilters() {
     router.get(
         '/admin/audit-log',
         {
+            search: search.value || undefined,
             user_id: userFilter.value === 'all' ? undefined : userFilter.value,
             action: actionFilter.value === 'all' ? undefined : actionFilter.value,
             auditable_type: auditableTypeFilter.value === 'all' ? undefined : auditableTypeFilter.value,
@@ -54,6 +60,12 @@ function applyFilters() {
 }
 
 watch([userFilter, actionFilter, auditableTypeFilter], applyFilters);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(search, () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applyFilters, 400);
+});
 
 let dateTimeout: ReturnType<typeof setTimeout>;
 watch([dateFrom, dateTo], () => {
@@ -87,74 +99,81 @@ function formatDate(dateStr: string): string {
     <Head title="Log Audit" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Log Audit</h2>
-            </div>
+            <PageHeader title="Log Audit" description="Riwayat aktivitas pengguna" :icon="ScrollText" />
 
-            <!-- Filters -->
-            <div class="flex flex-wrap gap-3">
-                <Select v-model="userFilter">
-                    <SelectTrigger class="w-[180px]">
-                        <SelectValue placeholder="Semua Pengguna" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Pengguna</SelectItem>
-                        <SelectItem v-for="user in users" :key="user.id" :value="String(user.id)">
-                            {{ user.name }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+            <!-- Toolbar -->
+            <DataTableToolbar
+                v-model="search"
+                searchPlaceholder="Cari log audit..."
+            >
+                <template #filters>
+                    <Select v-model="userFilter">
+                        <SelectTrigger class="w-[180px]">
+                            <SelectValue placeholder="Semua Pengguna" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Pengguna</SelectItem>
+                            <SelectItem v-for="user in users" :key="user.id" :value="String(user.id)">
+                                {{ user.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                <Select v-model="actionFilter">
-                    <SelectTrigger class="w-[160px]">
-                        <SelectValue placeholder="Semua Aksi" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Aksi</SelectItem>
-                        <SelectItem v-for="action in actionTypes" :key="action" :value="action">
-                            {{ action }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+                    <Select v-model="actionFilter">
+                        <SelectTrigger class="w-[160px]">
+                            <SelectValue placeholder="Semua Aksi" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Aksi</SelectItem>
+                            <SelectItem v-for="action in actionTypes" :key="action" :value="action">
+                                {{ action }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                <Select v-model="auditableTypeFilter">
-                    <SelectTrigger class="w-[180px]">
-                        <SelectValue placeholder="Semua Model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Model</SelectItem>
-                        <SelectItem v-for="(label, type) in auditableTypes" :key="type" :value="type">
-                            {{ label }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+                    <Select v-model="auditableTypeFilter">
+                        <SelectTrigger class="w-[180px]">
+                            <SelectValue placeholder="Semua Model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Model</SelectItem>
+                            <SelectItem v-for="(label, type) in auditableTypes" :key="type" :value="type">
+                                {{ label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                <Input v-model="dateFrom" type="date" class="w-[160px]" />
-                <Input v-model="dateTo" type="date" class="w-[160px]" />
-            </div>
+                    <Input v-model="dateFrom" type="date" class="w-[160px]" />
+                    <Input v-model="dateTo" type="date" class="w-[160px]" />
+                </template>
+            </DataTableToolbar>
 
             <!-- Table -->
             <div class="rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Waktu</TableHead>
-                            <TableHead>Pengguna</TableHead>
-                            <TableHead>Aksi</TableHead>
-                            <TableHead>Model</TableHead>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Deskripsi</TableHead>
-                            <TableHead>IP</TableHead>
+                        <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
+                            <TableHead class="text-xs font-medium uppercase tracking-wider">Waktu</TableHead>
+                            <TableHead class="text-xs font-medium uppercase tracking-wider">Pengguna</TableHead>
+                            <TableHead class="text-xs font-medium uppercase tracking-wider">Aksi</TableHead>
+                            <TableHead class="text-xs font-medium uppercase tracking-wider">Model</TableHead>
+                            <TableHead class="text-xs font-medium uppercase tracking-wider">ID</TableHead>
+                            <TableHead class="text-xs font-medium uppercase tracking-wider">Deskripsi</TableHead>
+                            <TableHead class="text-xs font-medium uppercase tracking-wider">IP</TableHead>
                             <TableHead class="w-[80px]"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         <TableRow v-if="auditLogs.data.length === 0">
-                            <TableCell colspan="8" class="text-center text-muted-foreground py-8">
-                                Tidak ada log audit.
+                            <TableCell colspan="8" class="p-0">
+                                <EmptyState
+                                    :icon="ScrollText"
+                                    title="Tidak ada log audit"
+                                    description="Belum ada aktivitas yang tercatat untuk filter yang dipilih."
+                                />
                             </TableCell>
                         </TableRow>
-                        <TableRow v-for="log in auditLogs.data" :key="log.id">
+                        <TableRow v-for="(log, index) in auditLogs.data" :key="log.id" class="transition-colors hover:bg-muted/50" :class="index % 2 === 1 ? 'bg-muted/30' : ''">
                             <TableCell class="whitespace-nowrap text-sm">{{ formatDate(log.created_at) }}</TableCell>
                             <TableCell class="text-sm">{{ log.user?.name ?? '—' }}</TableCell>
                             <TableCell>

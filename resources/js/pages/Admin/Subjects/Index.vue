@@ -2,6 +2,10 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import DataTableToolbar from '@/Components/DataTableToolbar.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,18 +17,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { BookOpen, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, PaginatedData, Subject } from '@/types';
 
 defineProps<{
@@ -48,28 +47,35 @@ function deleteItem(id: number) {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Mata Pelajaran</h2>
-                <Button size="sm" as-child>
-                    <Link href="/admin/subjects/create">
-                        <Plus class="size-4" />
-                        Tambah Mapel
-                    </Link>
-                </Button>
-            </div>
+            <PageHeader title="Mata Pelajaran" description="Kelola data mata pelajaran" :icon="BookOpen">
+                <template #actions>
+                    <Button size="sm" as-child>
+                        <Link href="/admin/subjects/create">
+                            <Plus class="size-4" />
+                            Tambah Mapel
+                        </Link>
+                    </Button>
+                </template>
+            </PageHeader>
 
-            <div class="rounded-md border">
+            <DataTableToolbar />
+
+            <div v-if="subjects.data.length > 0" class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Kode</TableHead>
-                            <TableHead>Nama</TableHead>
-                            <TableHead>Jurusan</TableHead>
-                            <TableHead class="w-[100px]">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Kode</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Jurusan</TableHead>
+                            <TableHead class="w-[80px] text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="subject in subjects.data" :key="subject.id">
+                        <TableRow
+                            v-for="subject in subjects.data"
+                            :key="subject.id"
+                            class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors"
+                        >
                             <TableCell class="font-mono font-medium">{{ subject.code }}</TableCell>
                             <TableCell>{{ subject.name }}</TableCell>
                             <TableCell>
@@ -79,47 +85,51 @@ function deleteItem(id: number) {
                                 <span v-else class="text-muted-foreground">Umum</span>
                             </TableCell>
                             <TableCell>
-                                <div class="flex gap-1">
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/admin/subjects/${subject.id}/edit`">
-                                            <Pencil class="size-4" />
-                                        </Link>
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger as-child>
-                                            <Button variant="ghost" size="icon-sm">
-                                                <Trash2 class="size-4 text-destructive" />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Hapus Mata Pelajaran</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Apakah Anda yakin ingin menghapus <strong>{{ subject.name }}</strong>?
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    class="bg-destructive text-white hover:bg-destructive/90"
-                                                    @click="deleteItem(subject.id)"
-                                                >
-                                                    Hapus
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow v-if="subjects.data.length === 0">
-                            <TableCell :colspan="4" class="text-center text-muted-foreground">
-                                Belum ada data mata pelajaran.
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon-sm">
+                                            <MoreHorizontal class="size-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/admin/subjects/${subject.id}/edit`">
+                                                <Pencil class="mr-2 size-4" />Edit
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <ConfirmDialog
+                                            title="Hapus Mata Pelajaran"
+                                            :description="`Apakah Anda yakin ingin menghapus ${subject.name}?`"
+                                            confirm-label="Ya, Hapus"
+                                            @confirm="deleteItem(subject.id)"
+                                        >
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @select.prevent>
+                                                <Trash2 class="mr-2 size-4" />Hapus
+                                            </DropdownMenuItem>
+                                        </ConfirmDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
             </div>
+
+            <EmptyState
+                v-else
+                :icon="BookOpen"
+                title="Belum ada mata pelajaran"
+                description="Belum ada data mata pelajaran yang tersedia saat ini."
+            >
+                <template #action>
+                    <Button size="sm" as-child>
+                        <Link href="/admin/subjects/create">
+                            <Plus class="size-4" />
+                            Tambah Mapel
+                        </Link>
+                    </Button>
+                </template>
+            </EmptyState>
 
             <Pagination
                 :links="subjects.links"

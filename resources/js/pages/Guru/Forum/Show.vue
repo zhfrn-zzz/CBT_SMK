@@ -2,11 +2,15 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Lock, Pin, Trash2 } from 'lucide-vue-next';
+import { Card, CardContent } from '@/components/ui/card';
+import { Lock, MessagesSquare, Pin, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, DiscussionReply, DiscussionThread, PaginatedData } from '@/types';
 
 const props = defineProps<{
@@ -30,9 +34,7 @@ function deleteReply(replyId: number) {
 }
 
 function deleteThread() {
-    if (confirm('Hapus thread ini beserta semua balasannya?')) {
-        router.delete(`/guru/forum/${props.thread.id}`);
-    }
+    router.delete(`/guru/forum/${props.thread.id}`);
 }
 
 function togglePin() {
@@ -60,29 +62,33 @@ function timeAgo(date: string) {
         <div class="mx-auto max-w-3xl p-4 space-y-4">
             <FlashMessage />
 
-            <!-- Thread header -->
-            <div class="rounded-lg border p-4 space-y-3">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <Pin v-if="thread.is_pinned" class="size-4 text-primary" />
-                            <Lock v-if="thread.is_locked" class="size-4 text-muted-foreground" />
-                            <h2 class="text-xl font-semibold">{{ thread.title }}</h2>
-                        </div>
-                        <p class="text-sm text-muted-foreground">
-                            Oleh <strong>{{ thread.user?.name }}</strong> · {{ timeAgo(thread.created_at) }}
-                        </p>
+            <PageHeader :title="thread.title" :icon="MessagesSquare">
+                <template #actions>
+                    <Button variant="outline" size="sm" @click="togglePin">{{ thread.is_pinned ? 'Unpin' : 'Pin' }}</Button>
+                    <Button variant="outline" size="sm" @click="toggleLock">{{ thread.is_locked ? 'Buka' : 'Kunci' }}</Button>
+                    <ConfirmDialog
+                        title="Hapus Thread"
+                        description="Thread ini beserta semua balasannya akan dihapus permanen."
+                        confirm-label="Hapus"
+                        variant="destructive"
+                        @confirm="deleteThread"
+                    >
+                        <Button variant="ghost" size="icon-sm"><Trash2 class="size-4 text-destructive" /></Button>
+                    </ConfirmDialog>
+                </template>
+            </PageHeader>
+
+            <!-- Thread content -->
+            <Card>
+                <CardContent class="p-4 space-y-3">
+                    <p class="text-sm text-muted-foreground">
+                        Oleh <strong>{{ thread.user?.name }}</strong> · {{ timeAgo(thread.created_at) }}
+                    </p>
+                    <div class="prose prose-sm max-w-none text-sm">
+                        {{ thread.content }}
                     </div>
-                    <div class="flex gap-1 shrink-0">
-                        <Button variant="outline" size="sm" @click="togglePin">{{ thread.is_pinned ? 'Unpin' : 'Pin' }}</Button>
-                        <Button variant="outline" size="sm" @click="toggleLock">{{ thread.is_locked ? 'Buka' : 'Kunci' }}</Button>
-                        <Button variant="ghost" size="icon-sm" @click="deleteThread"><Trash2 class="size-4 text-destructive" /></Button>
-                    </div>
-                </div>
-                <div class="prose prose-sm max-w-none text-sm">
-                    {{ thread.content }}
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
             <!-- Replies -->
             <div class="space-y-3">
@@ -92,31 +98,45 @@ function timeAgo(date: string) {
                     Belum ada balasan. Jadilah yang pertama membalas.
                 </div>
 
-                <div v-for="r in replies.data" :key="r.id" class="rounded-md border p-3 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <p class="text-sm font-medium">{{ r.user?.name }}</p>
-                        <div class="flex items-center gap-2">
-                            <p class="text-xs text-muted-foreground">{{ timeAgo(r.created_at) }}</p>
-                            <Button variant="ghost" size="icon-sm" @click="deleteReply(r.id)">
-                                <Trash2 class="size-3 text-destructive" />
-                            </Button>
+                <Card v-for="r in replies.data" :key="r.id">
+                    <CardContent class="p-3 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium">{{ r.user?.name }}</p>
+                            <div class="flex items-center gap-2">
+                                <p class="text-xs text-muted-foreground">{{ timeAgo(r.created_at) }}</p>
+                                <ConfirmDialog
+                                    title="Hapus Balasan"
+                                    description="Balasan ini akan dihapus permanen."
+                                    confirm-label="Hapus"
+                                    variant="destructive"
+                                    @confirm="deleteReply(r.id)"
+                                >
+                                    <Button variant="ghost" size="icon-sm">
+                                        <Trash2 class="size-3 text-destructive" />
+                                    </Button>
+                                </ConfirmDialog>
+                            </div>
                         </div>
-                    </div>
-                    <p class="text-sm whitespace-pre-wrap">{{ r.content }}</p>
-                </div>
+                        <p class="text-sm whitespace-pre-wrap">{{ r.content }}</p>
+                    </CardContent>
+                </Card>
 
                 <Pagination :links="replies.links" :from="replies.from" :to="replies.to" :total="replies.total" />
             </div>
 
             <!-- Reply form -->
-            <div v-if="!thread.is_locked" class="rounded-lg border p-4 space-y-2">
-                <p class="font-medium text-sm">Balas</p>
-                <form @submit.prevent="submitReply" class="space-y-2">
-                    <Textarea v-model="replyForm.content" placeholder="Tulis balasan..." rows="3" />
-                    <p v-if="replyForm.errors.content" class="text-xs text-destructive">{{ replyForm.errors.content }}</p>
-                    <Button type="submit" size="sm" :disabled="replyForm.processing">Kirim Balasan</Button>
-                </form>
-            </div>
+            <Card v-if="!thread.is_locked">
+                <CardContent class="p-4 space-y-2">
+                    <p class="font-semibold text-sm">Balas</p>
+                    <form @submit.prevent="submitReply" class="space-y-2">
+                        <Textarea v-model="replyForm.content" placeholder="Tulis balasan..." rows="3" />
+                        <p v-if="replyForm.errors.content" class="text-xs text-destructive">{{ replyForm.errors.content }}</p>
+                        <div class="flex justify-end">
+                            <LoadingButton :loading="replyForm.processing" type="submit" size="sm">Kirim Balasan</LoadingButton>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
             <div v-else class="rounded-lg border border-dashed p-4 text-center text-muted-foreground text-sm">
                 Thread ini sudah dikunci, tidak bisa dibalas.
             </div>

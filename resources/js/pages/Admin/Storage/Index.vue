@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import StatsCard from '@/Components/StatsCard.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import {
     Card,
     CardContent,
@@ -16,9 +20,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, FileWarning, HardDrive, Loader2, RefreshCw, Trash2 } from 'lucide-vue-next';
+import { AlertTriangle, FileWarning, HardDrive, RefreshCw, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, OrphanedFile, StorageCategoryBreakdown, StorageTopFile } from '@/types';
 import { ref } from 'vue';
 
@@ -34,6 +37,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Manajemen Storage', href: '/admin/storage' },
 ];
 
+const isScanning = ref(false);
 const isCleaningUp = ref(false);
 
 function formatBytes(bytes: number): string {
@@ -60,7 +64,6 @@ function formatDate(date: string | null): string {
 }
 
 function handleCleanup() {
-    if (!confirm('Apakah Anda yakin ingin menghapus semua file orphan? Tindakan ini tidak dapat dibatalkan.')) return;
     isCleaningUp.value = true;
     router.post('/admin/storage/cleanup', {}, {
         onFinish: () => { isCleaningUp.value = false; },
@@ -68,7 +71,10 @@ function handleCleanup() {
 }
 
 function handleScan() {
-    router.get('/admin/storage/scan');
+    isScanning.value = true;
+    router.get('/admin/storage/scan', {}, {
+        onFinish: () => { isScanning.value = false; },
+    });
 }
 
 const totalOrphanSize = props.orphanedFiles.reduce((sum, f) => sum + f.size, 0);
@@ -87,29 +93,31 @@ const categoryColors: Record<string, string> = {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-6 p-6">
             <!-- Header -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Manajemen Storage</h1>
-                    <p class="text-muted-foreground">Pantau penggunaan storage dan kelola file orphan.</p>
-                </div>
-                <Button variant="outline" @click="handleScan">
-                    <RefreshCw class="mr-2 h-4 w-4" />
-                    Scan Ulang
-                </Button>
-            </div>
+            <PageHeader title="Penyimpanan" description="Kelola ruang penyimpanan server" :icon="HardDrive">
+                <template #actions>
+                    <LoadingButton variant="outline" :loading="isScanning" @click="handleScan">
+                        <RefreshCw class="mr-2 h-4 w-4" />
+                        Scan Ulang
+                    </LoadingButton>
+                </template>
+            </PageHeader>
 
-            <!-- Total Storage Card -->
-            <Card>
-                <CardHeader class="pb-3">
-                    <CardTitle class="flex items-center gap-2">
-                        <HardDrive class="h-5 w-5" />
-                        Total Storage Terpakai
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-3xl font-bold">{{ formatBytes(totalUsed) }}</div>
-                </CardContent>
-            </Card>
+            <!-- Storage Stats -->
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <StatsCard
+                    title="Total Storage Terpakai"
+                    :value="formatBytes(totalUsed)"
+                    :icon="HardDrive"
+                />
+                <StatsCard
+                    v-for="cat in breakdown"
+                    :key="cat.category"
+                    :title="cat.label"
+                    :value="formatBytes(cat.size)"
+                    :icon="HardDrive"
+                    :iconColor="cat.category === 'materials' ? 'bg-blue-100 text-blue-600' : cat.category === 'questions' ? 'bg-amber-100 text-amber-600' : cat.category === 'assignments' ? 'bg-green-100 text-green-600' : 'bg-purple-100 text-purple-600'"
+                />
+            </div>
 
             <!-- Breakdown per Category -->
             <Card>
@@ -143,15 +151,15 @@ const categoryColors: Record<string, string> = {
                 <CardContent>
                     <Table v-if="topFiles.length > 0">
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Nama File</TableHead>
-                                <TableHead>Kategori</TableHead>
-                                <TableHead class="text-right">Ukuran</TableHead>
-                                <TableHead>Tanggal</TableHead>
+                            <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
+                                <TableHead class="text-xs font-medium uppercase tracking-wider">Nama File</TableHead>
+                                <TableHead class="text-xs font-medium uppercase tracking-wider">Kategori</TableHead>
+                                <TableHead class="text-right text-xs font-medium uppercase tracking-wider">Ukuran</TableHead>
+                                <TableHead class="text-xs font-medium uppercase tracking-wider">Tanggal</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="(file, idx) in topFiles" :key="idx">
+                            <TableRow v-for="(file, idx) in topFiles" :key="idx" class="transition-colors hover:bg-muted/50" :class="idx % 2 === 1 ? 'bg-muted/30' : ''">
                                 <TableCell class="max-w-xs truncate font-medium">{{ file.name }}</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">{{ file.category }}</Badge>
@@ -178,16 +186,21 @@ const categoryColors: Record<string, string> = {
                                 File yang ada di disk tetapi tidak terkait dengan record database.
                             </CardDescription>
                         </div>
-                        <Button
-                            v-if="orphanedFiles.length > 0"
-                            variant="destructive"
-                            :disabled="isCleaningUp"
-                            @click="handleCleanup"
+                        <ConfirmDialog
+                            title="Cleanup File Orphan"
+                            description="Apakah Anda yakin ingin menghapus semua file orphan? Tindakan ini tidak dapat dibatalkan."
+                            confirmLabel="Ya, Hapus Semua"
+                            @confirm="handleCleanup"
                         >
-                            <Loader2 v-if="isCleaningUp" class="mr-2 h-4 w-4 animate-spin" />
-                            <Trash2 v-else class="mr-2 h-4 w-4" />
-                            Cleanup ({{ formatBytes(totalOrphanSize) }})
-                        </Button>
+                            <LoadingButton
+                                v-if="orphanedFiles.length > 0"
+                                variant="destructive"
+                                :loading="isCleaningUp"
+                            >
+                                <Trash2 class="mr-2 h-4 w-4" />
+                                Cleanup ({{ formatBytes(totalOrphanSize) }})
+                            </LoadingButton>
+                        </ConfirmDialog>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -201,14 +214,14 @@ const categoryColors: Record<string, string> = {
                         </div>
                         <Table>
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Path</TableHead>
-                                    <TableHead class="text-right">Ukuran</TableHead>
-                                    <TableHead>Terakhir Dimodifikasi</TableHead>
+                                <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
+                                    <TableHead class="text-xs font-medium uppercase tracking-wider">Path</TableHead>
+                                    <TableHead class="text-right text-xs font-medium uppercase tracking-wider">Ukuran</TableHead>
+                                    <TableHead class="text-xs font-medium uppercase tracking-wider">Terakhir Dimodifikasi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="(file, idx) in orphanedFiles" :key="idx">
+                                <TableRow v-for="(file, idx) in orphanedFiles" :key="idx" class="transition-colors hover:bg-muted/50" :class="idx % 2 === 1 ? 'bg-muted/30' : ''">
                                     <TableCell class="max-w-sm truncate font-mono text-sm">{{ file.path }}</TableCell>
                                     <TableCell class="text-right">{{ formatBytes(file.size) }}</TableCell>
                                     <TableCell>{{ formatDate(file.last_modified) }}</TableCell>

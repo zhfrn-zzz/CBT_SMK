@@ -3,6 +3,10 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,12 +18,8 @@ import {
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Plus, Trash2 } from 'lucide-vue-next';
+import { Edit, MessageSquare, Plus, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, ForumCategory } from '@/types';
 
 const props = defineProps<{
@@ -32,9 +32,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const dialogOpen = ref(false);
-const deleteDialogOpen = ref(false);
 const editingCategory = ref<ForumCategory | null>(null);
-const deletingId = ref<number | null>(null);
 
 const form = useForm({
     name: '',
@@ -74,17 +72,8 @@ function submit() {
     }
 }
 
-function confirmDelete(id: number) {
-    deletingId.value = id;
-    deleteDialogOpen.value = true;
-}
-
-function executeDelete() {
-    if (deletingId.value) {
-        form.delete(`/admin/forum-categories/${deletingId.value}`, {
-            onSuccess: () => { deleteDialogOpen.value = false; },
-        });
-    }
+function executeDelete(id: number) {
+    form.delete(`/admin/forum-categories/${id}`);
 }
 </script>
 
@@ -95,28 +84,44 @@ function executeDelete() {
         <div class="mx-auto max-w-4xl space-y-6 p-6">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold">Kategori Forum</h1>
-                <Button @click="openCreate">
-                    <Plus class="mr-2 size-4" />
-                    Tambah Kategori
-                </Button>
-            </div>
+            <PageHeader title="Kategori Forum" description="Kelola kategori diskusi forum" :icon="MessageSquare">
+                <template #actions>
+                    <Button @click="openCreate">
+                        <Plus class="mr-2 size-4" />
+                        Tambah Kategori
+                    </Button>
+                </template>
+            </PageHeader>
 
+            <EmptyState
+                v-if="categories.length === 0"
+                :icon="MessageSquare"
+                title="Belum ada kategori forum"
+                description="Tambahkan kategori untuk mengorganisir diskusi forum."
+            >
+                <template #action>
+                    <Button @click="openCreate">
+                        <Plus class="mr-2 size-4" />
+                        Tambah Kategori
+                    </Button>
+                </template>
+            </EmptyState>
+
+            <div v-else class="rounded-lg border">
             <Table>
                 <TableHeader>
-                    <TableRow>
-                        <TableHead>Warna</TableHead>
-                        <TableHead>Nama</TableHead>
-                        <TableHead>Deskripsi</TableHead>
-                        <TableHead class="text-center">Urutan</TableHead>
-                        <TableHead class="text-center">Threads</TableHead>
-                        <TableHead class="text-center">Status</TableHead>
-                        <TableHead class="text-right">Aksi</TableHead>
+                    <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
+                        <TableHead class="text-xs font-medium uppercase tracking-wider">Warna</TableHead>
+                        <TableHead class="text-xs font-medium uppercase tracking-wider">Nama</TableHead>
+                        <TableHead class="text-xs font-medium uppercase tracking-wider">Deskripsi</TableHead>
+                        <TableHead class="text-center text-xs font-medium uppercase tracking-wider">Urutan</TableHead>
+                        <TableHead class="text-center text-xs font-medium uppercase tracking-wider">Threads</TableHead>
+                        <TableHead class="text-center text-xs font-medium uppercase tracking-wider">Status</TableHead>
+                        <TableHead class="text-right text-xs font-medium uppercase tracking-wider">Aksi</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <TableRow v-for="cat in categories" :key="cat.id">
+                    <TableRow v-for="(cat, index) in categories" :key="cat.id" class="transition-colors hover:bg-muted/50" :class="index % 2 === 1 ? 'bg-muted/30' : ''">
                         <TableCell>
                             <div class="size-6 rounded-full border" :style="{ backgroundColor: cat.color ?? '#ccc' }" />
                         </TableCell>
@@ -134,19 +139,22 @@ function executeDelete() {
                                 <Button variant="ghost" size="icon" @click="openEdit(cat)">
                                     <Edit class="size-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" class="text-destructive" @click="confirmDelete(cat.id)">
-                                    <Trash2 class="size-4" />
-                                </Button>
+                                <ConfirmDialog
+                                    title="Hapus Kategori"
+                                    description="Thread di kategori ini akan dipindahkan ke 'Umum'. Lanjutkan?"
+                                    confirmLabel="Hapus"
+                                    @confirm="executeDelete(cat.id)"
+                                >
+                                    <Button variant="ghost" size="icon" class="text-destructive">
+                                        <Trash2 class="size-4" />
+                                    </Button>
+                                </ConfirmDialog>
                             </div>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow v-if="!categories.length">
-                        <TableCell colspan="7" class="text-center py-8 text-muted-foreground">
-                            Belum ada kategori forum.
                         </TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
+            </div>
 
             <!-- Create/Edit Dialog -->
             <Dialog v-model:open="dialogOpen">
@@ -179,29 +187,15 @@ function executeDelete() {
                             <Label for="is_active">Aktif</Label>
                         </div>
                         <DialogFooter>
-                            <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
-                            </Button>
+                            <LoadingButton type="submit" :loading="form.processing">
+                                Simpan
+                            </LoadingButton>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
-            <!-- Delete Dialog -->
-            <AlertDialog v-model:open="deleteDialogOpen">
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Kategori</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Thread di kategori ini akan dipindahkan ke "Umum". Lanjutkan?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction variant="destructive" @click="executeDelete">Hapus</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+
         </div>
     </AppLayout>
 </template>

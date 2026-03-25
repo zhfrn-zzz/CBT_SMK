@@ -4,6 +4,8 @@ import { ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -21,20 +23,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, UserPlus } from 'lucide-vue-next';
+import { Pencil, Plus, School, Trash2, UserPlus } from 'lucide-vue-next';
 import type { BreadcrumbItem, Classroom, Subject, User } from '@/types';
 
 const props = defineProps<{
@@ -109,6 +100,9 @@ function removeTeacher(assignmentId: number) {
         preserveScroll: true,
     });
 }
+function deleteClassroom() {
+    router.delete(`/admin/classrooms/${props.classroom.id}`);
+}
 </script>
 
 <template>
@@ -118,14 +112,27 @@ function removeTeacher(assignmentId: number) {
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
             <FlashMessage />
 
-            <!-- Header -->
-            <div>
-                <h2 class="text-xl font-semibold">{{ classroom.name }}</h2>
-                <p class="text-sm text-muted-foreground">
-                    {{ classroom.department?.name }} &middot;
-                    {{ classroom.academic_year?.name }} ({{ classroom.academic_year?.semester }})
-                </p>
-            </div>
+            <PageHeader :title="classroom.name" description="Detail kelas" :icon="School">
+                <template #actions>
+                    <Button variant="outline" size="sm" as-child>
+                        <Link :href="`/admin/classrooms/${classroom.id}/edit`">
+                            <Pencil class="size-4" />
+                            Edit
+                        </Link>
+                    </Button>
+                    <ConfirmDialog
+                        title="Hapus Kelas?"
+                        :description="`Kelas ${classroom.name} dan semua data terkait akan dihapus permanen. Lanjutkan?`"
+                        confirm-label="Ya, Hapus"
+                        @confirm="deleteClassroom"
+                    >
+                        <Button variant="destructive" size="sm">
+                            <Trash2 class="size-4" />
+                            Hapus
+                        </Button>
+                    </ConfirmDialog>
+                </template>
+            </PageHeader>
 
             <div class="grid gap-6 lg:grid-cols-2">
                 <!-- Daftar Siswa -->
@@ -170,44 +177,34 @@ function removeTeacher(assignmentId: number) {
                         <Separator />
 
                         <!-- Student list -->
-                        <div class="rounded-md border">
+                        <div class="overflow-hidden rounded-xl border bg-card">
                             <Table>
                                 <TableHeader>
-                                    <TableRow>
-                                        <TableHead>NIS</TableHead>
-                                        <TableHead>Nama</TableHead>
+                                    <TableRow class="bg-slate-50">
+                                        <TableHead class="text-xs font-semibold uppercase tracking-wider">NIS</TableHead>
+                                        <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
                                         <TableHead class="w-[60px]"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    <TableRow v-for="student in classroom.students" :key="student.id">
+                                    <TableRow
+                                        v-for="student in classroom.students"
+                                        :key="student.id"
+                                        class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors"
+                                    >
                                         <TableCell class="font-mono">{{ student.username }}</TableCell>
                                         <TableCell>{{ student.name }}</TableCell>
                                         <TableCell>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger as-child>
-                                                    <Button variant="ghost" size="icon-sm">
-                                                        <Trash2 class="size-4 text-destructive" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Hapus Siswa dari Kelas</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Hapus <strong>{{ student.name }}</strong> dari kelas {{ classroom.name }}?
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                        <AlertDialogAction
-                                                            class="bg-destructive text-white hover:bg-destructive/90"
-                                                            @click="removeStudent(student.id)"
-                                                        >
-                                                            Hapus
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
+                                            <ConfirmDialog
+                                                title="Hapus Siswa dari Kelas"
+                                                :description="`Hapus ${student.name} dari kelas ${classroom.name}?`"
+                                                confirm-label="Ya, Hapus"
+                                                @confirm="removeStudent(student.id)"
+                                            >
+                                                <Button variant="ghost" size="icon-sm">
+                                                    <Trash2 class="size-4 text-destructive" />
+                                                </Button>
+                                            </ConfirmDialog>
                                         </TableCell>
                                     </TableRow>
                                     <TableRow v-if="!classroom.students?.length">
@@ -272,47 +269,37 @@ function removeTeacher(assignmentId: number) {
                         <Separator />
 
                         <!-- Teaching assignments list -->
-                        <div class="rounded-md border">
+                        <div class="overflow-hidden rounded-xl border bg-card">
                             <Table>
                                 <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Guru</TableHead>
-                                        <TableHead>Mata Pelajaran</TableHead>
+                                    <TableRow class="bg-slate-50">
+                                        <TableHead class="text-xs font-semibold uppercase tracking-wider">Guru</TableHead>
+                                        <TableHead class="text-xs font-semibold uppercase tracking-wider">Mata Pelajaran</TableHead>
                                         <TableHead class="w-[60px]"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    <TableRow v-for="assignment in teachingAssignments" :key="assignment.id">
+                                    <TableRow
+                                        v-for="assignment in teachingAssignments"
+                                        :key="assignment.id"
+                                        class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors"
+                                    >
                                         <TableCell>{{ assignment.teacher_name }}</TableCell>
                                         <TableCell>
                                             {{ assignment.subject_name }}
                                             <Badge variant="outline" class="ml-1">{{ assignment.subject_code }}</Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger as-child>
-                                                    <Button variant="ghost" size="icon-sm">
-                                                        <Trash2 class="size-4 text-destructive" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Hapus Penugasan</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Hapus penugasan <strong>{{ assignment.teacher_name }}</strong> untuk <strong>{{ assignment.subject_name }}</strong>?
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                        <AlertDialogAction
-                                                            class="bg-destructive text-white hover:bg-destructive/90"
-                                                            @click="removeTeacher(assignment.id)"
-                                                        >
-                                                            Hapus
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
+                                            <ConfirmDialog
+                                                title="Hapus Penugasan"
+                                                :description="`Hapus penugasan ${assignment.teacher_name} untuk ${assignment.subject_name}?`"
+                                                confirm-label="Ya, Hapus"
+                                                @confirm="removeTeacher(assignment.id)"
+                                            >
+                                                <Button variant="ghost" size="icon-sm">
+                                                    <Trash2 class="size-4 text-destructive" />
+                                                </Button>
+                                            </ConfirmDialog>
                                         </TableCell>
                                     </TableRow>
                                     <TableRow v-if="teachingAssignments.length === 0">

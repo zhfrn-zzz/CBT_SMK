@@ -4,8 +4,10 @@ import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import InputError from '@/components/InputError.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import LoadingButton from '@/Components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -18,7 +20,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2 } from 'lucide-vue-next';
+import { Plus, Trash2, UserPlus } from 'lucide-vue-next';
 import type { AcademicYear, Classroom, Department, Subject, BreadcrumbItem } from '@/types';
 
 const props = defineProps<{
@@ -131,42 +133,41 @@ function handleFileChange(e: Event) {
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
             <FlashMessage />
 
+            <PageHeader title="Tambah Pengguna" :icon="UserPlus" />
+
             <div class="grid gap-6 lg:grid-cols-2">
                 <!-- Form Tambah Manual -->
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Tambah Pengguna</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                    <CardContent class="p-6">
                         <form @submit.prevent="submit" class="space-y-4">
                             <div class="space-y-2">
-                                <Label for="name">Nama</Label>
-                                <Input id="name" v-model="form.name" placeholder="Nama lengkap" />
+                                <Label for="name" class="font-semibold text-sm">Nama <span class="text-destructive">*</span></Label>
+                                <Input id="name" v-model="form.name" placeholder="Nama lengkap" class="h-11" />
                                 <InputError :message="form.errors.name" />
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="username">Username (NIS/NIP)</Label>
-                                <Input id="username" v-model="form.username" placeholder="NIS atau NIP" />
+                                <Label for="username" class="font-semibold text-sm">Username (NIS/NIP) <span class="text-destructive">*</span></Label>
+                                <Input id="username" v-model="form.username" placeholder="NIS atau NIP" class="h-11" />
                                 <InputError :message="form.errors.username" />
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="email">Email (opsional)</Label>
-                                <Input id="email" v-model="form.email" type="email" placeholder="email@contoh.com" />
+                                <Label for="email" class="font-semibold text-sm">Email (opsional)</Label>
+                                <Input id="email" v-model="form.email" type="email" placeholder="email@contoh.com" class="h-11" />
                                 <InputError :message="form.errors.email" />
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="password">Password</Label>
-                                <Input id="password" v-model="form.password" type="password" placeholder="Minimal 8 karakter" />
+                                <Label for="password" class="font-semibold text-sm">Password <span class="text-destructive">*</span></Label>
+                                <Input id="password" v-model="form.password" type="password" placeholder="Minimal 8 karakter" class="h-11" />
                                 <InputError :message="form.errors.password" />
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="role">Role</Label>
+                                <Label for="role" class="font-semibold text-sm">Role <span class="text-destructive">*</span></Label>
                                 <Select v-model="form.role">
-                                    <SelectTrigger>
+                                    <SelectTrigger class="h-11">
                                         <SelectValue placeholder="Pilih role" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -180,7 +181,7 @@ function handleFileChange(e: Event) {
 
                             <div class="flex items-center gap-2">
                                 <Checkbox id="is_active" v-model="form.is_active" />
-                                <Label for="is_active">Aktif</Label>
+                                <Label for="is_active" class="font-semibold text-sm">Aktif</Label>
                             </div>
 
                             <!-- Siswa: Cascading Dropdown (Tahun Ajaran → Jurusan → Kelas) -->
@@ -189,9 +190,9 @@ function handleFileChange(e: Event) {
                                 <p class="text-sm font-medium">Penempatan Kelas</p>
 
                                 <div class="space-y-2">
-                                    <Label>Tahun Ajaran</Label>
+                                    <Label class="font-semibold text-sm">Tahun Ajaran</Label>
                                     <Select v-model="selectedAcademicYearId">
-                                        <SelectTrigger>
+                                        <SelectTrigger class="h-11">
                                             <SelectValue placeholder="Pilih tahun ajaran" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -208,9 +209,9 @@ function handleFileChange(e: Event) {
                                 </div>
 
                                 <div class="space-y-2">
-                                    <Label>Jurusan</Label>
+                                    <Label class="font-semibold text-sm">Jurusan</Label>
                                     <Select v-model="selectedDepartmentId" :disabled="!selectedAcademicYearId">
-                                        <SelectTrigger>
+                                        <SelectTrigger class="h-11">
                                             <SelectValue placeholder="Pilih jurusan" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -226,9 +227,9 @@ function handleFileChange(e: Event) {
                                 </div>
 
                                 <div class="space-y-2">
-                                    <Label>Kelas</Label>
+                                    <Label class="font-semibold text-sm">Kelas</Label>
                                     <Select v-model="form.classroom_id" :disabled="!selectedDepartmentId">
-                                        <SelectTrigger>
+                                        <SelectTrigger class="h-11">
                                             <SelectValue placeholder="Pilih kelas" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -349,13 +350,13 @@ function handleFileChange(e: Event) {
                                 </p>
                             </template>
 
-                            <div class="flex gap-2 pt-2">
-                                <Button type="submit" :disabled="form.processing">
-                                    Simpan
-                                </Button>
+                            <div class="flex items-center justify-end gap-3 pt-4">
                                 <Button variant="outline" as-child>
                                     <Link href="/admin/users">Batal</Link>
                                 </Button>
+                                <LoadingButton :loading="form.processing" type="submit">
+                                    Simpan
+                                </LoadingButton>
                             </div>
                         </form>
                     </CardContent>
@@ -363,10 +364,8 @@ function handleFileChange(e: Event) {
 
                 <!-- Form Import Excel -->
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Import Siswa dari Excel</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                    <CardContent class="p-6">
+                        <h3 class="text-lg font-semibold mb-4">Import Siswa dari Excel</h3>
                         <div class="space-y-4">
                             <p class="text-sm text-muted-foreground">
                                 Upload file Excel (.xlsx, .xls) atau CSV dengan kolom:
@@ -383,19 +382,22 @@ function handleFileChange(e: Event) {
 
                             <form @submit.prevent="submitImport" class="space-y-4">
                                 <div class="space-y-2">
-                                    <Label for="import-file">File Excel/CSV</Label>
+                                    <Label for="import-file" class="font-semibold text-sm">File Excel/CSV <span class="text-destructive">*</span></Label>
                                     <Input
                                         id="import-file"
                                         type="file"
                                         accept=".xlsx,.xls,.csv"
+                                        class="h-11"
                                         @change="handleFileChange"
                                     />
                                     <InputError :message="importForm.errors.file" />
                                 </div>
 
-                                <Button type="submit" :disabled="importForm.processing || !importForm.file">
-                                    Import
-                                </Button>
+                                <div class="flex items-center justify-end pt-4">
+                                    <LoadingButton :loading="importForm.processing" :disabled="!importForm.file" type="submit">
+                                        Import
+                                    </LoadingButton>
+                                </div>
                             </form>
                         </div>
                     </CardContent>

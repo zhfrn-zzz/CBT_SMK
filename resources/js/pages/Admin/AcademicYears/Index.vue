@@ -3,6 +3,9 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import Pagination from '@/components/Pagination.vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -13,18 +16,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { CalendarDays, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import type { AcademicYear, BreadcrumbItem, PaginatedData } from '@/types';
 
 defineProps<{
@@ -53,30 +51,31 @@ function formatDate(val: string): string {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Tahun Ajaran</h2>
-                <Button size="sm" as-child>
-                    <Link href="/admin/academic-years/create">
-                        <Plus class="size-4" />
-                        Tambah Tahun Ajaran
-                    </Link>
-                </Button>
-            </div>
+            <PageHeader title="Tahun Ajaran" description="Kelola tahun ajaran dan semester" :icon="CalendarDays">
+                <template #actions>
+                    <Button size="sm" as-child>
+                        <Link href="/admin/academic-years/create">
+                            <Plus class="size-4" />
+                            Tambah Tahun Ajaran
+                        </Link>
+                    </Button>
+                </template>
+            </PageHeader>
 
-            <div class="rounded-md border">
+            <div class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Nama</TableHead>
-                            <TableHead>Semester</TableHead>
-                            <TableHead>Periode</TableHead>
-                            <TableHead>Jumlah Kelas</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead class="w-[100px]">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Semester</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Periode</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Jumlah Kelas</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                            <TableHead class="w-[100px] text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="item in academicYears.data" :key="item.id">
+                        <TableRow v-for="item in academicYears.data" :key="item.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
                             <TableCell class="font-medium">{{ item.name }}</TableCell>
                             <TableCell class="capitalize">{{ item.semester }}</TableCell>
                             <TableCell>{{ formatDate(item.starts_at) }} — {{ formatDate(item.ends_at) }}</TableCell>
@@ -87,42 +86,33 @@ function formatDate(val: string): string {
                                 </Badge>
                             </TableCell>
                             <TableCell>
-                                <div class="flex gap-1">
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/admin/academic-years/${item.id}/edit`">
-                                            <Pencil class="size-4" />
-                                        </Link>
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger as-child>
-                                            <Button variant="ghost" size="icon-sm">
-                                                <Trash2 class="size-4 text-destructive" />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Hapus Tahun Ajaran</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Apakah Anda yakin ingin menghapus <strong>{{ item.name }}</strong>? Semua kelas terkait juga akan dihapus.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    class="bg-destructive text-white hover:bg-destructive/90"
-                                                    @click="deleteItem(item.id)"
-                                                >
-                                                    Hapus
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon-sm">
+                                            <MoreHorizontal class="size-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/admin/academic-years/${item.id}/edit`">
+                                                <Pencil class="mr-2 size-4" />Edit
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <ConfirmDialog
+                                            @confirm="deleteItem(item.id)"
+                                            :description="`Apakah Anda yakin ingin menghapus ${item.name}? Semua kelas terkait juga akan dihapus.`"
+                                        >
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @select.prevent>
+                                                <Trash2 class="mr-2 size-4" />Hapus
+                                            </DropdownMenuItem>
+                                        </ConfirmDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                         <TableRow v-if="academicYears.data.length === 0">
-                            <TableCell :colspan="6" class="text-center text-muted-foreground">
-                                Belum ada data tahun ajaran.
+                            <TableCell :colspan="6" class="p-0">
+                                <EmptyState title="Tidak ada tahun ajaran" description="Belum ada data tahun ajaran." />
                             </TableCell>
                         </TableRow>
                     </TableBody>

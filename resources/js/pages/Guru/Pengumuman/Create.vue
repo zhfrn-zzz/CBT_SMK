@@ -2,14 +2,18 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { Megaphone } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 
 interface TeachingAssignment {
@@ -52,46 +56,51 @@ function submit() {
     <Head title="Buat Pengumuman" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto max-w-2xl p-4">
-            <h2 class="mb-4 text-xl font-semibold">Buat Pengumuman</h2>
-            <form @submit.prevent="submit" class="space-y-4">
-                <div class="space-y-1">
-                    <Label>Judul <span class="text-destructive">*</span></Label>
-                    <Input v-model="form.title" />
-                    <p v-if="form.errors.title" class="text-xs text-destructive">{{ form.errors.title }}</p>
-                </div>
+            <PageHeader title="Buat Pengumuman" :icon="Megaphone" />
 
-                <div class="space-y-1">
-                    <Label>Isi Pengumuman <span class="text-destructive">*</span></Label>
-                    <Textarea v-model="form.content" rows="6" />
-                    <p v-if="form.errors.content" class="text-xs text-destructive">{{ form.errors.content }}</p>
-                </div>
+            <Card class="mt-4">
+                <CardContent class="p-6">
+                    <form @submit.prevent="submit" class="space-y-4">
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Judul <span class="text-destructive">*</span></Label>
+                            <Input v-model="form.title" class="h-11" />
+                            <p v-if="form.errors.title" class="text-xs text-destructive">{{ form.errors.title }}</p>
+                        </div>
 
-                <div class="space-y-1">
-                    <Label>Target Kelas</Label>
-                    <Select v-model="form.classroom_id">
-                        <SelectTrigger><SelectValue placeholder="Semua Kelas (Broadcast)" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua Kelas</SelectItem>
-                            <SelectItem v-for="c in uniqueClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Isi Pengumuman <span class="text-destructive">*</span></Label>
+                            <Textarea v-model="form.content" rows="6" />
+                            <p v-if="form.errors.content" class="text-xs text-destructive">{{ form.errors.content }}</p>
+                        </div>
 
-                <div class="space-y-1">
-                    <Label>Jadwal Publish</Label>
-                    <Input v-model="form.published_at" type="datetime-local" />
-                </div>
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Target Kelas</Label>
+                            <Select v-model="form.classroom_id">
+                                <SelectTrigger class="h-11"><SelectValue placeholder="Semua Kelas (Broadcast)" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Semua Kelas</SelectItem>
+                                    <SelectItem v-for="c in uniqueClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                <div class="flex items-center gap-2">
-                    <Checkbox id="is_pinned" v-model="form.is_pinned" />
-                    <Label for="is_pinned">Pin pengumuman</Label>
-                </div>
+                        <div class="space-y-1">
+                            <Label class="font-semibold text-sm">Jadwal Publish</Label>
+                            <Input v-model="form.published_at" type="datetime-local" class="h-11" />
+                        </div>
 
-                <div class="flex gap-2">
-                    <Button type="submit" :disabled="form.processing">{{ form.processing ? 'Menyimpan...' : 'Publish' }}</Button>
-                    <Button variant="outline" as-child><Link href="/guru/pengumuman">Batal</Link></Button>
-                </div>
-            </form>
+                        <div class="flex items-center gap-2">
+                            <Checkbox id="is_pinned" v-model="form.is_pinned" />
+                            <Label for="is_pinned">Pin pengumuman</Label>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3 pt-4">
+                            <Button variant="outline" as-child><Link href="/guru/pengumuman">Batal</Link></Button>
+                            <LoadingButton :loading="form.processing" type="submit">Publish</LoadingButton>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>
