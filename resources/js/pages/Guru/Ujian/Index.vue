@@ -3,9 +3,13 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import DataTableToolbar from '@/components/DataTableToolbar.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import StatusBadge from '@/components/StatusBadge.vue';
 import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -22,18 +26,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { ClipboardList, Eye, MonitorCheck, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, ExamSession, ExamStatus, PaginatedData } from '@/types';
 
 const props = defineProps<{
@@ -90,6 +89,17 @@ function statusVariant(status: ExamStatus) {
     };
     return map[status] ?? 'secondary';
 }
+
+function statusLabel(status: ExamStatus) {
+    const map: Record<ExamStatus, string> = {
+        draft: 'Draf',
+        scheduled: 'Dijadwalkan',
+        active: 'Berlangsung',
+        completed: 'Selesai',
+        archived: 'Diarsipkan',
+    };
+    return map[status] ?? status;
+}
 </script>
 
 <template>
@@ -99,54 +109,56 @@ function statusVariant(status: ExamStatus) {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Sesi Ujian</h2>
-                <Button size="sm" as-child>
-                    <Link href="/guru/ujian/create">
-                        <Plus class="size-4" />
-                        Buat Ujian
-                    </Link>
-                </Button>
-            </div>
+            <PageHeader title="Ujian" description="Kelola sesi ujian" :icon="ClipboardList">
+                <template #actions>
+                    <Button size="sm" as-child>
+                        <Link href="/guru/ujian/create">
+                            <Plus class="size-4" />
+                            Buat Ujian
+                        </Link>
+                    </Button>
+                </template>
+            </PageHeader>
 
-            <div class="flex gap-3">
-                <Input
-                    v-model="search"
-                    placeholder="Cari ujian..."
-                    class="max-w-xs"
-                />
-                <Select v-model="statusFilter">
-                    <SelectTrigger class="w-[200px]">
-                        <SelectValue placeholder="Semua Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Status</SelectItem>
-                        <SelectItem
-                            v-for="s in statuses"
-                            :key="s.value"
-                            :value="s.value"
-                        >
-                            {{ s.label }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+            <DataTableToolbar v-model="search" search-placeholder="Cari ujian...">
+                <template #filters>
+                    <Select v-model="statusFilter">
+                        <SelectTrigger class="w-[200px]">
+                            <SelectValue placeholder="Semua Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Status</SelectItem>
+                            <SelectItem
+                                v-for="s in statuses"
+                                :key="s.value"
+                                :value="s.value"
+                            >
+                                {{ s.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </template>
+            </DataTableToolbar>
 
-            <div class="rounded-md border">
+            <div v-if="examSessions.data.length > 0" class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Nama Ujian</TableHead>
-                            <TableHead>Mata Pelajaran</TableHead>
-                            <TableHead>Waktu</TableHead>
-                            <TableHead class="text-center">Durasi</TableHead>
-                            <TableHead class="text-center">Peserta</TableHead>
-                            <TableHead class="text-center">Status</TableHead>
-                            <TableHead class="w-[120px]">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Ujian</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Mata Pelajaran</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Waktu</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Durasi</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Peserta</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                            <TableHead class="w-[60px] text-xs font-semibold uppercase tracking-wider" />
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="exam in examSessions.data" :key="exam.id">
+                        <TableRow
+                            v-for="exam in examSessions.data"
+                            :key="exam.id"
+                            class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors"
+                        >
                             <TableCell>
                                 <p class="font-medium">{{ exam.name }}</p>
                                 <p class="text-xs text-muted-foreground">
@@ -169,61 +181,65 @@ function statusVariant(status: ExamStatus) {
                                 {{ exam.attempts_count ?? 0 }}
                             </TableCell>
                             <TableCell class="text-center">
-                                <Badge :variant="statusVariant(exam.status)">
-                                    {{ exam.status === 'draft' ? 'Draf' :
-                                       exam.status === 'scheduled' ? 'Dijadwalkan' :
-                                       exam.status === 'active' ? 'Berlangsung' :
-                                       exam.status === 'completed' ? 'Selesai' : 'Diarsipkan' }}
-                                </Badge>
+                                <StatusBadge :label="statusLabel(exam.status)" :variant="statusVariant(exam.status)" />
                             </TableCell>
                             <TableCell>
-                                <div class="flex gap-1">
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/guru/ujian/${exam.id}`">
-                                            <Eye class="size-4" />
-                                        </Link>
-                                    </Button>
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/guru/ujian/${exam.id}/edit`">
-                                            <Pencil class="size-4" />
-                                        </Link>
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger as-child>
-                                            <Button variant="ghost" size="icon-sm">
-                                                <Trash2 class="size-4 text-destructive" />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Hapus Sesi Ujian</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Apakah Anda yakin ingin menghapus <strong>{{ exam.name }}</strong>?
-                                                    Semua data attempt siswa akan ikut terhapus.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    class="bg-destructive text-white hover:bg-destructive/90"
-                                                    @click="deleteItem(exam.id)"
-                                                >
-                                                    Hapus
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow v-if="examSessions.data.length === 0">
-                            <TableCell :colspan="7" class="text-center text-muted-foreground">
-                                Belum ada sesi ujian. Klik "Buat Ujian" untuk memulai.
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon-sm">
+                                            <MoreHorizontal class="size-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/guru/ujian/${exam.id}`">
+                                                <Eye class="mr-2 size-4" />Lihat
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/guru/ujian/${exam.id}/edit`">
+                                                <Pencil class="mr-2 size-4" />Edit
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem v-if="exam.status === 'active'" as-child>
+                                            <Link :href="`/guru/ujian/${exam.id}/proctor`">
+                                                <MonitorCheck class="mr-2 size-4" />Proctor
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <ConfirmDialog
+                                            title="Hapus Sesi Ujian"
+                                            :description="`Apakah Anda yakin ingin menghapus ${exam.name}? Semua data attempt siswa akan ikut terhapus.`"
+                                            confirm-label="Hapus"
+                                            variant="destructive"
+                                            @confirm="deleteItem(exam.id)"
+                                        >
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @select.prevent>
+                                                <Trash2 class="mr-2 size-4" />Hapus
+                                            </DropdownMenuItem>
+                                        </ConfirmDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
             </div>
+
+            <EmptyState
+                v-else
+                :icon="ClipboardList"
+                title="Belum ada ujian"
+                description="Buat sesi ujian pertama Anda untuk mulai menyelenggarakan ujian."
+            >
+                <template #action>
+                    <Button size="sm" as-child>
+                        <Link href="/guru/ujian/create">
+                            <Plus class="size-4" />
+                            Buat Ujian
+                        </Link>
+                    </Button>
+                </template>
+            </EmptyState>
 
             <Pagination
                 :links="examSessions.links"

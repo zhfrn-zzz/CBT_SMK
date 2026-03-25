@@ -3,9 +3,12 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import DataTableToolbar from '@/components/DataTableToolbar.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -22,18 +25,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Database, Eye, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, PaginatedData, QuestionBank, Subject } from '@/types';
 
 const props = defineProps<{
@@ -82,51 +80,56 @@ function deleteItem(id: number) {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Bank Soal</h2>
-                <Button size="sm" as-child>
-                    <Link href="/guru/bank-soal/create">
-                        <Plus class="size-4" />
-                        Buat Bank Soal
-                    </Link>
-                </Button>
-            </div>
+            <PageHeader title="Bank Soal" description="Kelola bank soal ujian" :icon="Database">
+                <template #actions>
+                    <Button size="sm" as-child>
+                        <Link href="/guru/bank-soal/create">
+                            <Plus class="size-4" />
+                            Buat Bank Soal
+                        </Link>
+                    </Button>
+                </template>
+            </PageHeader>
 
-            <div class="flex gap-3">
-                <Input
-                    v-model="search"
-                    placeholder="Cari bank soal..."
-                    class="max-w-xs"
-                />
-                <Select v-model="subjectFilter">
-                    <SelectTrigger class="w-[220px]">
-                        <SelectValue placeholder="Semua Mata Pelajaran" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Mata Pelajaran</SelectItem>
-                        <SelectItem
-                            v-for="subject in subjects"
-                            :key="subject.id"
-                            :value="String(subject.id)"
-                        >
-                            {{ subject.name }} ({{ subject.code }})
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+            <DataTableToolbar
+                v-model="search"
+                search-placeholder="Cari bank soal..."
+            >
+                <template #filters>
+                    <Select v-model="subjectFilter">
+                        <SelectTrigger class="w-[220px]">
+                            <SelectValue placeholder="Semua Mata Pelajaran" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Mata Pelajaran</SelectItem>
+                            <SelectItem
+                                v-for="subject in subjects"
+                                :key="subject.id"
+                                :value="String(subject.id)"
+                            >
+                                {{ subject.name }} ({{ subject.code }})
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </template>
+            </DataTableToolbar>
 
-            <div class="rounded-md border">
+            <div v-if="questionBanks.data.length > 0" class="overflow-hidden rounded-xl border bg-card">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Nama Bank Soal</TableHead>
-                            <TableHead>Mata Pelajaran</TableHead>
-                            <TableHead class="text-center">Jumlah Soal</TableHead>
-                            <TableHead class="w-[120px]">Aksi</TableHead>
+                        <TableRow class="bg-slate-50">
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Bank Soal</TableHead>
+                            <TableHead class="text-xs font-semibold uppercase tracking-wider">Mata Pelajaran</TableHead>
+                            <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Jumlah Soal</TableHead>
+                            <TableHead class="w-[80px] text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="bank in questionBanks.data" :key="bank.id">
+                        <TableRow
+                            v-for="bank in questionBanks.data"
+                            :key="bank.id"
+                            class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors"
+                        >
                             <TableCell>
                                 <div>
                                     <p class="font-medium">{{ bank.name }}</p>
@@ -144,53 +147,54 @@ function deleteItem(id: number) {
                                 {{ bank.questions_count ?? 0 }}
                             </TableCell>
                             <TableCell>
-                                <div class="flex gap-1">
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/guru/bank-soal/${bank.id}`">
-                                            <Eye class="size-4" />
-                                        </Link>
-                                    </Button>
-                                    <Button variant="ghost" size="icon-sm" as-child>
-                                        <Link :href="`/guru/bank-soal/${bank.id}/edit`">
-                                            <Pencil class="size-4" />
-                                        </Link>
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger as-child>
-                                            <Button variant="ghost" size="icon-sm">
-                                                <Trash2 class="size-4 text-destructive" />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Hapus Bank Soal</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Apakah Anda yakin ingin menghapus <strong>{{ bank.name }}</strong>?
-                                                    Semua soal di dalam bank ini akan ikut terhapus.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    class="bg-destructive text-white hover:bg-destructive/90"
-                                                    @click="deleteItem(bank.id)"
-                                                >
-                                                    Hapus
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow v-if="questionBanks.data.length === 0">
-                            <TableCell :colspan="4" class="text-center text-muted-foreground">
-                                Belum ada bank soal. Klik "Buat Bank Soal" untuk memulai.
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon-sm">
+                                            <MoreHorizontal class="size-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/guru/bank-soal/${bank.id}`">
+                                                <Eye class="mr-2 size-4" />Lihat
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="`/guru/bank-soal/${bank.id}/edit`">
+                                                <Pencil class="mr-2 size-4" />Edit
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <ConfirmDialog
+                                            @confirm="deleteItem(bank.id)"
+                                            :description="`Apakah Anda yakin ingin menghapus ${bank.name}? Semua soal di dalam bank ini akan ikut terhapus.`"
+                                        >
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @select.prevent>
+                                                <Trash2 class="mr-2 size-4" />Hapus
+                                            </DropdownMenuItem>
+                                        </ConfirmDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
             </div>
+
+            <EmptyState
+                v-else
+                :icon="Database"
+                title="Belum ada bank soal"
+                description="Buat bank soal pertama Anda untuk mulai menambahkan soal ujian."
+            >
+                <template #action>
+                    <Button size="sm" as-child>
+                        <Link href="/guru/bank-soal/create">
+                            <Plus class="size-4" />
+                            Buat Bank Soal
+                        </Link>
+                    </Button>
+                </template>
+            </EmptyState>
 
             <Pagination
                 :links="questionBanks.links"

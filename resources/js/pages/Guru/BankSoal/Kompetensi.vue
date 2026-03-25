@@ -2,6 +2,9 @@
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Pencil, Trash2, Plus } from 'lucide-vue-next';
+import { Target, Pencil, Trash2, Plus } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { CompetencyStandard } from '@/types/analytics';
 import { ref } from 'vue';
@@ -65,9 +68,7 @@ function submitEdit(id: number) {
 }
 
 function deleteComp(id: number) {
-    if (confirm('Hapus kompetensi dasar ini?')) {
-        router.delete(`/guru/bank-soal/${props.questionBank.id}/kompetensi/${id}`);
-    }
+    router.delete(`/guru/bank-soal/${props.questionBank.id}/kompetensi/${id}`);
 }
 
 const tagForms = ref<Record<number, number[]>>({});
@@ -97,8 +98,7 @@ function saveTag(questionId: number) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
             <FlashMessage />
-            <h1 class="text-2xl font-bold">Manajemen Kompetensi Dasar</h1>
-            <p class="text-muted-foreground">{{ questionBank.subject_name }}</p>
+            <PageHeader title="Kompetensi Dasar" :description="questionBank.subject_name" :icon="Target" />
 
             <div class="grid gap-6 lg:grid-cols-2">
                 <!-- Left: KD Management -->
@@ -112,18 +112,18 @@ function saveTag(questionId: number) {
                         <CardContent>
                             <form @submit.prevent="submitCreate" class="flex flex-col gap-3">
                                 <div>
-                                    <Label>Kode</Label>
-                                    <Input v-model="createForm.code" placeholder="KD 3.1" />
+                                    <Label class="font-semibold text-sm">Kode</Label>
+                                    <Input v-model="createForm.code" class="h-11" placeholder="KD 3.1" />
                                 </div>
                                 <div>
-                                    <Label>Nama Kompetensi</Label>
-                                    <Input v-model="createForm.name" placeholder="Nama kompetensi dasar" />
+                                    <Label class="font-semibold text-sm">Nama Kompetensi</Label>
+                                    <Input v-model="createForm.name" class="h-11" placeholder="Nama kompetensi dasar" />
                                 </div>
                                 <div>
-                                    <Label>Deskripsi (opsional)</Label>
+                                    <Label class="font-semibold text-sm">Deskripsi (opsional)</Label>
                                     <Textarea v-model="createForm.description" :rows="2" />
                                 </div>
-                                <Button type="submit" :disabled="createForm.processing">Tambah KD</Button>
+                                <LoadingButton type="submit" :loading="createForm.processing" :disabled="createForm.processing">Tambah KD</LoadingButton>
                             </form>
                         </CardContent>
                     </Card>
@@ -146,19 +146,27 @@ function saveTag(questionId: number) {
                                             <Button size="icon" variant="ghost" @click="startEdit(comp)">
                                                 <Pencil class="h-4 w-4" />
                                             </Button>
-                                            <Button size="icon" variant="ghost" @click="deleteComp(comp.id)">
-                                                <Trash2 class="h-4 w-4 text-destructive" />
-                                            </Button>
+                                            <ConfirmDialog
+                                                title="Hapus Kompetensi Dasar?"
+                                                description="Kompetensi dasar ini akan dihapus secara permanen."
+                                                confirm-label="Hapus"
+                                                variant="destructive"
+                                                @confirm="deleteComp(comp.id)"
+                                            >
+                                                <Button size="icon" variant="ghost">
+                                                    <Trash2 class="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </ConfirmDialog>
                                         </div>
                                     </div>
                                 </div>
                                 <div v-else>
                                     <form @submit.prevent="submitEdit(comp.id)" class="flex flex-col gap-2">
-                                        <Input v-model="editForm.code" placeholder="Kode" />
-                                        <Input v-model="editForm.name" placeholder="Nama" />
+                                        <Input v-model="editForm.code" class="h-11" placeholder="Kode" />
+                                        <Input v-model="editForm.name" class="h-11" placeholder="Nama" />
                                         <Textarea v-model="editForm.description" :rows="2" placeholder="Deskripsi" />
                                         <div class="flex gap-2">
-                                            <Button type="submit" size="sm" :disabled="editForm.processing">Simpan</Button>
+                                            <LoadingButton type="submit" size="sm" :loading="editForm.processing" :disabled="editForm.processing">Simpan</LoadingButton>
                                             <Button type="button" size="sm" variant="outline" @click="cancelEdit">Batal</Button>
                                         </div>
                                     </form>

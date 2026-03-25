@@ -2,6 +2,10 @@
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import StatusBadge from '@/components/StatusBadge.vue';
+import StatsCard from '@/components/StatsCard.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -18,18 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { BookOpen, Calendar, Clock, Copy, Hash, MonitorCheck, Pencil, Printer, Users } from 'lucide-vue-next';
+import { BookOpen, Calendar, ClipboardList, Clock, Copy, Hash, MonitorCheck, Pencil, Printer, Users } from 'lucide-vue-next';
 import type { BreadcrumbItem, ExamSession, ExamStatus } from '@/types';
 
 const props = defineProps<{
@@ -93,21 +86,15 @@ function copyToken() {
             <FlashMessage />
 
             <!-- Header -->
-            <div class="flex items-start justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold">{{ examSession.name }}</h2>
-                    <div class="mt-1 flex items-center gap-2">
-                        <Badge :variant="statusVariant(examSession.status)">
-                            {{ statusLabel(examSession.status) }}
-                        </Badge>
-                        <Badge variant="outline">{{ examSession.subject?.name }}</Badge>
-                    </div>
-                </div>
-                <div class="flex gap-2">
+            <PageHeader :title="examSession.name" :icon="ClipboardList">
+                <template #actions>
+                    <StatusBadge :label="statusLabel(examSession.status)" :variant="statusVariant(examSession.status)" />
+                    <Badge variant="outline">{{ examSession.subject?.name }}</Badge>
+
                     <Button variant="outline" size="sm" as-child>
-                        <a :href="`/guru/ujian/${examSession.id}/print-pdf`" target="_blank">
-                            <Printer class="size-4 mr-1" />
-                            Cetak Soal
+                        <a :href="`/guru/ujian/${examSession.id}/edit`">
+                            <Pencil class="size-4" />
+                            Edit
                         </a>
                     </Button>
                     <Button v-if="examSession.status === 'active'" size="sm" as-child>
@@ -117,36 +104,27 @@ function copyToken() {
                         </a>
                     </Button>
                     <Button variant="outline" size="sm" as-child>
-                        <a :href="`/guru/ujian/${examSession.id}/edit`">
-                            <Pencil class="size-4" />
-                            Edit
+                        <a :href="`/guru/ujian/${examSession.id}/print-pdf`" target="_blank">
+                            <Printer class="size-4 mr-1" />
+                            Cetak Soal
                         </a>
                     </Button>
                     <!-- Status actions -->
-                    <AlertDialog v-if="examSession.status === 'draft' || examSession.status === 'scheduled'">
-                        <AlertDialogTrigger as-child>
-                            <Button size="sm">Aktifkan Ujian</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Aktifkan Ujian</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Setelah diaktifkan, siswa dapat mulai mengerjakan ujian.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction @click="updateStatus('active')">
-                                    Aktifkan
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    <ConfirmDialog
+                        v-if="examSession.status === 'draft' || examSession.status === 'scheduled'"
+                        title="Aktifkan Ujian"
+                        description="Setelah diaktifkan, siswa dapat mulai mengerjakan ujian."
+                        confirm-label="Aktifkan"
+                        variant="default"
+                        @confirm="updateStatus('active')"
+                    >
+                        <Button size="sm">Aktifkan Ujian</Button>
+                    </ConfirmDialog>
                     <Button v-if="examSession.status === 'active'" variant="secondary" size="sm" @click="updateStatus('completed')">
                         Selesaikan Ujian
                     </Button>
-                </div>
-            </div>
+                </template>
+            </PageHeader>
 
             <!-- Info Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -167,46 +145,9 @@ function copyToken() {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <Clock class="size-4" />
-                            Durasi
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold">{{ examSession.duration_minutes }} menit</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <BookOpen class="size-4" />
-                            Jumlah Soal
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold">
-                            {{ examSession.pool_count ?? examSession.question_bank?.questions?.length ?? '?' }}
-                        </p>
-                        <p v-if="examSession.pool_count" class="text-xs text-muted-foreground">
-                            dari {{ examSession.question_bank?.questions?.length ?? '?' }} soal
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <Users class="size-4" />
-                            Peserta
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold">{{ examSession.attempts_count ?? 0 }}</p>
-                    </CardContent>
-                </Card>
+                <StatsCard title="Durasi" :value="examSession.duration_minutes + ' menit'" :icon="Clock" />
+                <StatsCard title="Jumlah Soal" :value="examSession.pool_count ?? examSession.question_bank?.questions?.length ?? '?'" :icon="BookOpen" />
+                <StatsCard title="Peserta" :value="examSession.attempts_count ?? 0" :icon="Users" />
             </div>
 
             <!-- Waktu -->
@@ -284,36 +225,38 @@ function copyToken() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Nama</TableHead>
-                                <TableHead>Mulai</TableHead>
-                                <TableHead>Selesai</TableHead>
-                                <TableHead class="text-center">Nilai</TableHead>
-                                <TableHead class="text-center">Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="attempt in attempts" :key="attempt.id">
-                                <TableCell class="font-medium">{{ attempt.user?.name }}</TableCell>
-                                <TableCell>{{ formatDate(attempt.started_at) }}</TableCell>
-                                <TableCell>{{ attempt.submitted_at ? formatDate(attempt.submitted_at) : '-' }}</TableCell>
-                                <TableCell class="text-center">
-                                    {{ attempt.score !== null ? attempt.score : '-' }}
-                                </TableCell>
-                                <TableCell class="text-center">
-                                    <Badge :variant="attempt.status === 'in_progress' ? 'default' : attempt.status === 'submitted' ? 'secondary' : 'outline'">
-                                        {{ attempt.status === 'in_progress' ? 'Mengerjakan' :
-                                           attempt.status === 'submitted' ? 'Dikumpulkan' : 'Dinilai' }}
-                                    </Badge>
-                                    <Badge v-if="attempt.is_force_submitted" variant="destructive" class="ml-1">
-                                        Auto
-                                    </Badge>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
+                    <div class="overflow-hidden rounded-xl border bg-card">
+                        <Table>
+                            <TableHeader>
+                                <TableRow class="bg-slate-50">
+                                    <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
+                                    <TableHead class="text-xs font-semibold uppercase tracking-wider">Mulai</TableHead>
+                                    <TableHead class="text-xs font-semibold uppercase tracking-wider">Selesai</TableHead>
+                                    <TableHead class="text-xs font-semibold uppercase tracking-wider text-center">Nilai</TableHead>
+                                    <TableHead class="text-xs font-semibold uppercase tracking-wider text-center">Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-for="attempt in attempts" :key="attempt.id" class="hover:bg-slate-50/50 even:bg-slate-50/30 transition-colors">
+                                    <TableCell class="font-medium">{{ attempt.user?.name }}</TableCell>
+                                    <TableCell>{{ formatDate(attempt.started_at) }}</TableCell>
+                                    <TableCell>{{ attempt.submitted_at ? formatDate(attempt.submitted_at) : '-' }}</TableCell>
+                                    <TableCell class="text-center">
+                                        {{ attempt.score !== null ? attempt.score : '-' }}
+                                    </TableCell>
+                                    <TableCell class="text-center">
+                                        <Badge :variant="attempt.status === 'in_progress' ? 'default' : attempt.status === 'submitted' ? 'secondary' : 'outline'">
+                                            {{ attempt.status === 'in_progress' ? 'Mengerjakan' :
+                                               attempt.status === 'submitted' ? 'Dikumpulkan' : 'Dinilai' }}
+                                        </Badge>
+                                        <Badge v-if="attempt.is_force_submitted" variant="destructive" class="ml-1">
+                                            Auto
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>

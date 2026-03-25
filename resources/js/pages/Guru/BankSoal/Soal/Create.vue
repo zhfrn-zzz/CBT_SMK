@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import QuestionForm from '@/components/Exam/QuestionForm.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { FileQuestion } from 'lucide-vue-next';
 import type { BreadcrumbItem, QuestionType, QuestionOptionForm, MatchingPairForm } from '@/types';
 
 const props = defineProps<{
@@ -50,18 +53,16 @@ function submit() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+            <PageHeader title="Tambah Soal" :icon="FileQuestion" />
             <Card class="max-w-3xl">
-                <CardHeader>
-                    <CardTitle>Tambah Soal</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent class="p-6">
                     <QuestionForm :form="form" @submit="submit">
                         <template #actions>
-                            <div class="flex gap-2 pt-2">
-                                <Button type="submit" :disabled="form.processing">Simpan</Button>
+                            <div class="flex items-center justify-end gap-3 pt-4">
                                 <Button variant="outline" as-child>
                                     <Link :href="`/guru/bank-soal/${questionBank.id}`">Batal</Link>
                                 </Button>
+                                <LoadingButton type="submit" :loading="form.processing" :disabled="form.processing">Simpan</LoadingButton>
                             </div>
                         </template>
                     </QuestionForm>

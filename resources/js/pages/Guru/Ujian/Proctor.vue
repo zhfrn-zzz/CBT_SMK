@@ -2,15 +2,12 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import StatsCard from '@/components/StatsCard.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -29,7 +26,6 @@ import {
 } from '@/components/ui/dialog';
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -221,18 +217,8 @@ function submitInvalidateQuestion() {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <!-- Header -->
-            <div class="flex items-start justify-between">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <MonitorCheck class="size-5" />
-                        <h2 class="text-xl font-semibold">Proctor Dashboard</h2>
-                    </div>
-                    <p class="text-sm text-muted-foreground">
-                        {{ exam_session.name }} &mdash; {{ exam_session.subject }}
-                    </p>
-                </div>
-                <div class="flex gap-2">
+            <PageHeader :title="'Proctor - ' + exam_session.name" :description="exam_session.subject" :icon="MonitorCheck">
+                <template #actions>
                     <Button variant="outline" size="sm" @click="openInvalidateDialog">
                         <XCircle class="mr-1 size-4" />
                         Batalkan Soal
@@ -247,55 +233,15 @@ function submitInvalidateQuestion() {
                             Kembali
                         </a>
                     </Button>
-                </div>
-            </div>
+                </template>
+            </PageHeader>
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <Users class="size-4" />
-                            Total Peserta
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold">{{ liveSummary.total }}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <Clock class="size-4" />
-                            Sedang Mengerjakan
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold text-blue-600">{{ liveSummary.in_progress }}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <UserCheck class="size-4" />
-                            Sudah Selesai
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold text-green-600">{{ liveSummary.submitted + liveSummary.graded }}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <UserX class="size-4" />
-                            Belum Mulai
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-2xl font-bold text-gray-500">{{ liveSummary.not_started }}</p>
-                    </CardContent>
-                </Card>
+                <StatsCard title="Total Peserta" :value="liveSummary.total" :icon="Users" />
+                <StatsCard title="Sedang Mengerjakan" :value="liveSummary.in_progress" :icon="Clock" iconColor="bg-blue-100 text-blue-600" />
+                <StatsCard title="Sudah Selesai" :value="liveSummary.submitted + liveSummary.graded" :icon="UserCheck" iconColor="bg-green-100 text-green-600" />
+                <StatsCard title="Belum Mulai" :value="liveSummary.not_started" :icon="UserX" iconColor="bg-gray-100 text-gray-500" />
             </div>
 
             <!-- Filters -->
@@ -323,18 +269,17 @@ function submitInvalidateQuestion() {
             </div>
 
             <!-- Student Table -->
-            <Card>
-                <CardContent class="p-0">
+            <div class="overflow-hidden rounded-xl border bg-card">
                     <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-[40px]">#</TableHead>
-                                <TableHead>Nama</TableHead>
-                                <TableHead class="text-center">Status</TableHead>
-                                <TableHead class="text-center">Progress</TableHead>
-                                <TableHead class="text-center">Sisa Waktu</TableHead>
-                                <TableHead class="text-center">Pelanggaran</TableHead>
-                                <TableHead class="text-center">Aksi</TableHead>
+                            <TableRow class="bg-slate-50 dark:bg-slate-800/50">
+                                <TableHead class="w-[40px] text-xs font-semibold uppercase tracking-wider">#</TableHead>
+                                <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
+                                <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                                <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Progress</TableHead>
+                                <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Sisa Waktu</TableHead>
+                                <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Pelanggaran</TableHead>
+                                <TableHead class="text-center text-xs font-semibold uppercase tracking-wider">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -409,8 +354,7 @@ function submitInvalidateQuestion() {
                             </TableRow>
                         </TableBody>
                     </Table>
-                </CardContent>
-            </Card>
+            </div>
         </div>
 
         <!-- Extend Time Dialog -->
@@ -436,9 +380,9 @@ function submitInvalidateQuestion() {
                 </div>
                 <DialogFooter>
                     <Button variant="outline" @click="showExtendDialog = false">Batal</Button>
-                    <Button @click="submitExtendTime" :disabled="extendForm.processing">
+                    <LoadingButton :loading="extendForm.processing" @click="submitExtendTime">
                         Tambah Waktu
-                    </Button>
+                    </LoadingButton>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -461,13 +405,13 @@ function submitInvalidateQuestion() {
                 </div>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Batal</AlertDialogCancel>
-                    <AlertDialogAction
-                        class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    <LoadingButton
+                        variant="destructive"
+                        :loading="terminateForm.processing"
                         @click="submitTerminate"
-                        :disabled="terminateForm.processing"
                     >
                         Terminasi
-                    </AlertDialogAction>
+                    </LoadingButton>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -504,9 +448,9 @@ function submitInvalidateQuestion() {
                 </div>
                 <DialogFooter>
                     <Button variant="outline" @click="showInvalidateDialog = false">Batal</Button>
-                    <Button variant="destructive" @click="submitInvalidateQuestion" :disabled="invalidateForm.processing || !invalidateForm.question_id">
+                    <LoadingButton variant="destructive" :loading="invalidateForm.processing" :disabled="!invalidateForm.question_id" @click="submitInvalidateQuestion">
                         Batalkan Soal
-                    </Button>
+                    </LoadingButton>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

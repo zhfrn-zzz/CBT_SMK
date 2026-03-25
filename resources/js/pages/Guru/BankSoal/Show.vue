@@ -3,9 +3,13 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import LoadingButton from '@/components/LoadingButton.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -17,18 +21,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Download, FileUp, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Database, Download, FileUp, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem, QuestionBank } from '@/types';
 import { questionTypeLabels } from '@/types/exam';
 
@@ -84,19 +77,19 @@ function stripHtml(html: string): string {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <FlashMessage />
 
-            <!-- Header -->
-            <div class="flex items-start justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold">{{ questionBank.name }}</h2>
-                    <p class="text-sm text-muted-foreground">
-                        {{ questionBank.subject?.name }} &middot;
-                        {{ questionBank.questions?.length ?? 0 }} soal
-                    </p>
-                    <p v-if="questionBank.description" class="mt-1 text-sm text-muted-foreground">
-                        {{ questionBank.description }}
-                    </p>
-                </div>
-                <div class="flex gap-2">
+            <PageHeader
+                :title="questionBank.name"
+                :description="questionBank.subject?.name + ' · ' + (questionBank.questions?.length ?? 0) + ' soal'"
+                :icon="Database"
+            >
+                <template #actions>
+                    <Button variant="outline" size="sm" as-child>
+                        <Link :href="`/guru/bank-soal/${questionBank.id}/edit`">
+                            <Pencil class="size-4" />
+                            Edit
+                        </Link>
+                    </Button>
+
                     <!-- Import Dialog -->
                     <Dialog v-model:open="importDialogOpen">
                         <DialogTrigger as-child>
@@ -135,12 +128,13 @@ function stripHtml(html: string): string {
                                 </div>
                             </div>
                             <DialogFooter>
-                                <Button
+                                <LoadingButton
+                                    :loading="importForm.processing"
+                                    :disabled="!importForm.file"
                                     @click="submitImport"
-                                    :disabled="!importForm.file || importForm.processing"
                                 >
                                     Import
-                                </Button>
+                                </LoadingButton>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -151,8 +145,8 @@ function stripHtml(html: string): string {
                             Tambah Soal
                         </Link>
                     </Button>
-                </div>
-            </div>
+                </template>
+            </PageHeader>
 
             <!-- Questions List -->
             <div v-if="questionBank.questions && questionBank.questions.length > 0" class="space-y-3">
@@ -176,30 +170,17 @@ function stripHtml(html: string): string {
                                         <Pencil class="size-4" />
                                     </Link>
                                 </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger as-child>
-                                        <Button variant="ghost" size="icon-sm">
-                                            <Trash2 class="size-4 text-destructive" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Hapus Soal</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Apakah Anda yakin ingin menghapus soal nomor {{ index + 1 }}?
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                                            <AlertDialogAction
-                                                class="bg-destructive text-white hover:bg-destructive/90"
-                                                @click="deleteQuestion(question.id)"
-                                            >
-                                                Hapus
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                <ConfirmDialog
+                                    title="Hapus Soal"
+                                    :description="`Apakah Anda yakin ingin menghapus soal nomor ${index + 1}?`"
+                                    confirm-label="Hapus"
+                                    variant="destructive"
+                                    @confirm="deleteQuestion(question.id)"
+                                >
+                                    <Button variant="ghost" size="icon-sm">
+                                        <Trash2 class="size-4 text-destructive" />
+                                    </Button>
+                                </ConfirmDialog>
                             </div>
                         </div>
                     </CardHeader>
@@ -244,23 +225,25 @@ function stripHtml(html: string): string {
             </div>
 
             <!-- Empty State -->
-            <Card v-else>
-                <CardContent class="flex flex-col items-center justify-center py-12 text-center">
-                    <p class="text-muted-foreground">Belum ada soal di bank soal ini.</p>
-                    <div class="mt-4 flex gap-2">
-                        <Button size="sm" as-child>
-                            <Link :href="`/guru/bank-soal/${questionBank.id}/soal/create`">
-                                <Plus class="size-4" />
-                                Tambah Soal
-                            </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" @click="importDialogOpen = true">
-                            <FileUp class="size-4" />
-                            Import dari Excel
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+            <EmptyState
+                v-else
+                :icon="Database"
+                title="Belum ada soal"
+                description="Tambahkan soal ke bank soal ini untuk mulai menyusun ujian."
+            >
+                <template #action>
+                    <Button size="sm" as-child>
+                        <Link :href="`/guru/bank-soal/${questionBank.id}/soal/create`">
+                            <Plus class="size-4" />
+                            Tambah Soal
+                        </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" @click="importDialogOpen = true">
+                        <FileUp class="size-4" />
+                        Import dari Excel
+                    </Button>
+                </template>
+            </EmptyState>
         </div>
     </AppLayout>
 </template>
