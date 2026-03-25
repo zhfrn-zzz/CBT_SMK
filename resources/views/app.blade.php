@@ -23,11 +23,11 @@
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
             html {
-                background-color: oklch(1 0 0);
+                background-color: hsl(210 40% 98%);
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: hsl(222.2 47.4% 8.2%);
             }
         </style>
 
@@ -37,9 +37,9 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-        {{-- F8.2: Self-hosted fonts — eliminates external CDN dependency and DNS lookup latency --}}
-        <link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-        <link rel="stylesheet" href="/fonts/instrument-sans.css">
+        {{-- Self-hosted Inter font --}}
+        <link rel="preload" href="/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+        <link rel="stylesheet" href="/fonts/inter.css">
 
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead
