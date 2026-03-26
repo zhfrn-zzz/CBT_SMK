@@ -13,6 +13,16 @@ class UpdateAppearanceSettingsRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        // FormData sends booleans as '1'/'0' strings — cast explicitly
+        if ($this->has('show_powered_by')) {
+            $this->merge([
+                'show_powered_by' => filter_var($this->input('show_powered_by'), FILTER_VALIDATE_BOOLEAN),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [

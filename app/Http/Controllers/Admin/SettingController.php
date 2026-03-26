@@ -60,6 +60,10 @@ class SettingController extends Controller
 
         // Save non-file settings
         $nonFileSettings = array_diff_key($validated, array_flip(['logo', 'logo_small']));
+
+        // Explicitly cast boolean fields from FormData ('1'/'0') to proper boolean
+        $nonFileSettings['show_powered_by'] = $request->boolean('show_powered_by');
+
         $this->settingService->setMany($nonFileSettings);
 
         return back()->with('success', 'Pengaturan tampilan berhasil disimpan.');
