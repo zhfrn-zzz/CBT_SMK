@@ -265,6 +265,11 @@ test('app_settings shared to frontend', function () {
         ->has('app_settings.app_name')
         ->has('app_settings.school_name')
         ->has('app_settings.logo_path')
+        ->has('app_settings.logo_small_path')
+        ->has('app_settings.primary_color')
+        ->has('app_settings.secondary_color')
+        ->has('app_settings.footer_text')
+        ->has('app_settings.show_powered_by')
     );
 });
 

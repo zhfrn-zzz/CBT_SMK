@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import {
     Card,
@@ -14,6 +15,15 @@ defineProps<{
     title?: string;
     description?: string;
 }>();
+
+const page = usePage();
+const appSettings = computed(() => (page.props as any).app_settings ?? {});
+const logoUrl = computed(() => {
+    const path = appSettings.value.logo_path;
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `/storage/${path}`;
+});
 </script>
 
 <template>
@@ -26,7 +36,9 @@ defineProps<{
                 class="flex items-center gap-2 self-center font-medium"
             >
                 <div class="flex h-9 w-9 items-center justify-center">
+                    <img v-if="logoUrl" :src="logoUrl" :alt="title" class="size-9 object-contain" />
                     <AppLogoIcon
+                        v-else
                         class="size-9 fill-current text-black dark:text-white"
                     />
                 </div>

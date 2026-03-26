@@ -19,6 +19,16 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            app_settings: {
+                app_name: string;
+                school_name: string;
+                logo_path: string;
+                logo_small_path: string;
+                primary_color: string;
+                secondary_color: string;
+                footer_text: string;
+                show_powered_by: boolean;
+            };
             [key: string]: unknown;
         };
     }

@@ -64,8 +64,13 @@ class HandleInertiaRequests extends Middleware
             ],
             'app_settings' => fn () => [
                 'app_name' => setting('app_name', config('app.name')),
-                'school_name' => setting('school_name', config('school.name')),
-                'logo_path' => setting('logo_path', config('school.logo_path')),
+                'school_name' => setting('school_name', ''),
+                'logo_path' => setting('logo_path', ''),
+                'logo_small_path' => setting('logo_small_path', ''),
+                'primary_color' => setting('primary_color', '#2563eb'),
+                'secondary_color' => setting('secondary_color', '#64748b'),
+                'footer_text' => setting('footer_text', ''),
+                'show_powered_by' => setting('show_powered_by', true),
             ],
         ];
     }

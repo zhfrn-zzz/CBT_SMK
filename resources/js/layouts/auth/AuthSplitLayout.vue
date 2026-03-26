@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { home } from '@/routes';
 
 const page = usePage();
 const name = page.props.name;
+const appSettings = computed(() => (page.props as any).app_settings ?? {});
+const logoUrl = computed(() => {
+    const path = appSettings.value.logo_path;
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `/storage/${path}`;
+});
 
 defineProps<{
     title?: string;
@@ -24,7 +32,8 @@ defineProps<{
                 :href="home()"
                 class="relative z-20 flex items-center text-lg font-medium"
             >
-                <AppLogoIcon class="mr-2 size-8 fill-current text-white" />
+                <img v-if="logoUrl" :src="logoUrl" :alt="name" class="mr-2 size-8 object-contain" />
+                <AppLogoIcon v-else class="mr-2 size-8 fill-current text-white" />
                 {{ name }}
             </Link>
         </div>

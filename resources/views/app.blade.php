@@ -31,10 +31,41 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        {{-- Dynamic brand colors from admin settings --}}
+        @php
+            $primaryColor = setting('primary_color', '#2563eb');
+            $secondaryColor = setting('secondary_color', '#64748b');
+        @endphp
+        @if ($primaryColor !== '#2563eb' || $secondaryColor !== '#64748b')
+        <style>
+            :root {
+                --primary: {{ $primaryColor }};
+                --ring: {{ $primaryColor }};
+                --sidebar-primary: {{ $primaryColor }};
+                --sidebar-ring: {{ $primaryColor }};
+                --chart-1: {{ $primaryColor }};
+            }
+            .dark {
+                --primary: {{ $primaryColor }};
+                --ring: {{ $primaryColor }};
+                --sidebar-primary: {{ $primaryColor }};
+                --sidebar-ring: {{ $primaryColor }};
+                --chart-1: {{ $primaryColor }};
+            }
+        </style>
+        @endif
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <title inertia>{{ setting('app_name', config('app.name', 'Laravel')) }}</title>
+
+        @php
+            $faviconPath = setting('logo_small_path');
+        @endphp
+        @if ($faviconPath)
+            <link rel="icon" href="/storage/{{ $faviconPath }}" type="image/png">
+        @else
+            <link rel="icon" href="/favicon.ico" sizes="any">
+            <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        @endif
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         {{-- Self-hosted DM Sans font --}}
