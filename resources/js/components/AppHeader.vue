@@ -48,6 +48,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
+const appSettings = computed(() => (page.props as any).app_settings ?? {});
+const logoUrl = computed(() => {
+    const path = appSettings.value.logo_path;
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    if (path.startsWith('images/')) return `/${path}`;
+    return `/storage/${path}`;
+});
 const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
 const activeItemStyles =
@@ -96,7 +104,9 @@ const rightNavItems: NavItem[] = [
                                 >Navigation menu</SheetTitle
                             >
                             <SheetHeader class="flex justify-start text-left">
+                                <img v-if="logoUrl" :src="logoUrl" alt="Logo" class="size-6 object-contain" />
                                 <AppLogoIcon
+                                    v-else
                                     class="size-6 fill-current text-black dark:text-white"
                                 />
                             </SheetHeader>

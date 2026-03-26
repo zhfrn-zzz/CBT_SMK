@@ -15,6 +15,7 @@ const logoUrl = computed(() => {
     const path = appSettings.value.logo_path;
     if (!path) return null;
     if (path.startsWith('http')) return path;
+    if (path.startsWith('images/')) return `/${path}`;
     return `/storage/${path}`;
 });
 </script>

@@ -31,30 +31,6 @@
             }
         </style>
 
-        {{-- Dynamic brand colors from admin settings --}}
-        @php
-            $primaryColor = setting('primary_color', '#2563eb');
-            $secondaryColor = setting('secondary_color', '#64748b');
-        @endphp
-        @if ($primaryColor !== '#2563eb' || $secondaryColor !== '#64748b')
-        <style>
-            :root {
-                --primary: {{ $primaryColor }};
-                --ring: {{ $primaryColor }};
-                --sidebar-primary: {{ $primaryColor }};
-                --sidebar-ring: {{ $primaryColor }};
-                --chart-1: {{ $primaryColor }};
-            }
-            .dark {
-                --primary: {{ $primaryColor }};
-                --ring: {{ $primaryColor }};
-                --sidebar-primary: {{ $primaryColor }};
-                --sidebar-ring: {{ $primaryColor }};
-                --chart-1: {{ $primaryColor }};
-            }
-        </style>
-        @endif
-
         <title inertia>{{ setting('app_name', config('app.name', 'Laravel')) }}</title>
 
         @php
@@ -74,6 +50,29 @@
 
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead
+
+        {{-- Dynamic brand colors from admin settings — MUST be after @vite to override app.css --}}
+        @php
+            $primaryColor = setting('primary_color', '#2563eb');
+        @endphp
+        @if ($primaryColor !== '#2563eb')
+        <style>
+            :root {
+                --primary: {{ $primaryColor }};
+                --ring: {{ $primaryColor }};
+                --sidebar-primary: {{ $primaryColor }};
+                --sidebar-ring: {{ $primaryColor }};
+                --chart-1: {{ $primaryColor }};
+            }
+            .dark {
+                --primary: {{ $primaryColor }};
+                --ring: {{ $primaryColor }};
+                --sidebar-primary: {{ $primaryColor }};
+                --sidebar-ring: {{ $primaryColor }};
+                --chart-1: {{ $primaryColor }};
+            }
+        </style>
+        @endif
     </head>
     <body class="font-sans antialiased">
         @inertia

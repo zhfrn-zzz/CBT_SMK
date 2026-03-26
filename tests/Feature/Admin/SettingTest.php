@@ -472,6 +472,62 @@ test('appearance show_powered_by boolean persists correctly', function () {
     expect(setting('show_powered_by'))->toBeTrue();
 });
 
+test('appearance handles FormData boolean submission', function () {
+    // Simulate FormData where Inertia converts true→"1", false→"0"
+    // This is how the real form submits (router.post with forceFormData: true)
+
+    // Test setting to true via FormData format "1"
+    $this->actingAs($this->admin)->call('POST', route('admin.settings.update-appearance'), [
+        '_method' => 'PUT',
+        'primary_color' => '#2563eb',
+        'secondary_color' => '#64748b',
+        'login_bg_type' => 'color',
+        'footer_text' => 'Test Footer',
+        'show_powered_by' => '1',
+    ]);
+
+    app(SettingService::class)->clearCache();
+    expect(setting('show_powered_by'))->toBeTrue();
+    expect(setting('footer_text'))->toBe('Test Footer');
+
+    // Test setting to false via FormData format "0"
+    $this->actingAs($this->admin)->call('POST', route('admin.settings.update-appearance'), [
+        '_method' => 'PUT',
+        'primary_color' => '#2563eb',
+        'secondary_color' => '#64748b',
+        'login_bg_type' => 'color',
+        'footer_text' => 'Updated Footer',
+        'show_powered_by' => '0',
+    ]);
+
+    app(SettingService::class)->clearCache();
+    expect(setting('show_powered_by'))->toBeFalse();
+    expect(setting('footer_text'))->toBe('Updated Footer');
+});
+
+test('appearance settings round-trip: save then verify index props', function () {
+    // Save with show_powered_by=true and footer_text
+    $this->actingAs($this->admin)->put(route('admin.settings.update-appearance'), [
+        'primary_color' => '#ff5500',
+        'secondary_color' => '#00aa55',
+        'login_bg_type' => 'color',
+        'footer_text' => 'Custom Footer Text',
+        'show_powered_by' => true,
+    ]);
+
+    app(SettingService::class)->clearCache();
+
+    // Now load the settings page and verify the saved values are in the response
+    $response = $this->actingAs($this->admin)->get(route('admin.settings.index'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->where('settings.appearance.primary_color', '#ff5500')
+        ->where('settings.appearance.secondary_color', '#00aa55')
+        ->where('settings.appearance.footer_text', 'Custom Footer Text')
+        ->where('settings.appearance.show_powered_by', true)
+    );
+});
+
 // ── Exam settings edge cases ─────────────────────────────────────────
 
 test('exam settings validates duration minimum', function () {

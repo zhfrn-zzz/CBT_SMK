@@ -37,6 +37,13 @@ const props = defineProps<{
     examSchedules: ExamSchedule[];
 }>();
 
+function logoUrl(path: string): string {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    if (path.startsWith('images/')) return `/${path}`;
+    return `/storage/${path}`;
+}
+
 const features = [
     { icon: Monitor, title: 'CBT Online', description: 'Ujian berbasis komputer dengan pengawasan real-time dan anti-kecurangan.' },
     { icon: Library, title: 'Bank Soal', description: 'Kelola ribuan soal terstruktur berdasarkan mata pelajaran dan kompetensi.' },
@@ -80,7 +87,7 @@ function stripHtml(html: string): string {
             <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-3">
                     <img
-                        :src="'/' + school.logo_path"
+                        :src="logoUrl(school.logo_path)"
                         :alt="school.name"
                         class="h-8 w-8 object-contain"
                         @error="($event.target as HTMLImageElement).style.display = 'none'"
@@ -112,7 +119,7 @@ function stripHtml(html: string): string {
         <section class="bg-background">
             <div class="mx-auto flex max-w-7xl flex-col items-center px-4 py-20 text-center sm:px-6 lg:px-8">
                 <img
-                    :src="'/' + school.logo_path"
+                    :src="logoUrl(school.logo_path)"
                     :alt="school.name"
                     class="mb-6 h-20 w-20 object-contain"
                     @error="($event.target as HTMLImageElement).style.display = 'none'"
