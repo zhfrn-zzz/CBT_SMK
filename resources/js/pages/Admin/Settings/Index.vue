@@ -121,10 +121,31 @@ const emailForm = useForm({
     smtp_username: (props.settings.email.smtp_username as string) ?? '',
     smtp_password: (props.settings.email.smtp_password as string) ?? '',
     smtp_encryption: (props.settings.email.smtp_encryption as string) ?? 'tls',
+    smtp_from_address: (props.settings.email.smtp_from_address as string) ?? '',
+    smtp_from_name: (props.settings.email.smtp_from_name as string) ?? '',
 });
 
 function submitEmail() {
     emailForm.put('/admin/settings/email', { preserveScroll: true });
+}
+
+const testEmailLoading = ref(false);
+const testEmailResult = ref<{ success: boolean; message: string } | null>(null);
+
+function sendTestEmail() {
+    testEmailLoading.value = true;
+    testEmailResult.value = null;
+    router.post('/admin/settings/email/test', {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            testEmailResult.value = { success: true, message: 'Email test berhasil dikirim! Cek inbox Anda.' };
+            testEmailLoading.value = false;
+        },
+        onError: (errors: Record<string, string>) => {
+            testEmailResult.value = { success: false, message: errors.email ?? 'Gagal mengirim email test.' };
+            testEmailLoading.value = false;
+        },
+    });
 }
 
 function currentLogoUrl(): string | null {
@@ -444,12 +465,44 @@ function currentLogoUrl(): string | null {
                                     <InputError :message="emailForm.errors.smtp_password" />
                                 </div>
 
+                                <Separator />
+
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div class="space-y-2">
+                                        <Label for="smtp_from_address" class="font-semibold text-sm">Email Pengirim</Label>
+                                        <Input id="smtp_from_address" v-model="emailForm.smtp_from_address" type="email" placeholder="noreply@sekolah.sch.id" class="h-11" />
+                                        <InputError :message="emailForm.errors.smtp_from_address" />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <Label for="smtp_from_name" class="font-semibold text-sm">Nama Pengirim</Label>
+                                        <Input id="smtp_from_name" v-model="emailForm.smtp_from_name" placeholder="SMK Bina Mandiri" class="h-11" />
+                                        <InputError :message="emailForm.errors.smtp_from_name" />
+                                    </div>
+                                </div>
+
                                 <div class="flex justify-end pt-4">
                                     <LoadingButton :loading="emailForm.processing" type="submit">
                                         Simpan Pengaturan Email
                                     </LoadingButton>
                                 </div>
                             </form>
+
+                            <Separator class="my-6" />
+
+                            <!-- Test Email -->
+                            <div class="space-y-3">
+                                <div>
+                                    <h4 class="text-sm font-semibold">Kirim Email Test</h4>
+                                    <p class="text-muted-foreground text-sm">Kirim email percobaan ke alamat email Anda untuk memastikan konfigurasi SMTP benar.</p>
+                                </div>
+                                <div v-if="testEmailResult" :class="['rounded-md border p-3 text-sm', testEmailResult.success ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200' : 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200']">
+                                    {{ testEmailResult.message }}
+                                </div>
+                                <Button type="button" variant="outline" :disabled="testEmailLoading" @click="sendTestEmail">
+                                    <span v-if="testEmailLoading">Mengirim...</span>
+                                    <span v-else>Kirim Email Test</span>
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>

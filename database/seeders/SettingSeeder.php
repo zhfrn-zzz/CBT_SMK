@@ -47,6 +47,8 @@ class SettingSeeder extends Seeder
             ['group' => 'email', 'key' => 'smtp_username', 'value' => '', 'type' => 'string'],
             ['group' => 'email', 'key' => 'smtp_password', 'value' => '', 'type' => 'string'],
             ['group' => 'email', 'key' => 'smtp_encryption', 'value' => 'tls', 'type' => 'string'],
+            ['group' => 'email', 'key' => 'smtp_from_address', 'value' => '', 'type' => 'string'],
+            ['group' => 'email', 'key' => 'smtp_from_name', 'value' => '', 'type' => 'string'],
         ];
 
         foreach ($settings as $setting) {

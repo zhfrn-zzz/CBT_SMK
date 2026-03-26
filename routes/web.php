@@ -128,6 +128,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('settings/appearance', [SettingController::class, 'updateAppearance'])->name('settings.update-appearance');
         Route::put('settings/exam', [SettingController::class, 'updateExam'])->name('settings.update-exam');
         Route::put('settings/email', [SettingController::class, 'updateEmail'])->name('settings.update-email');
+        Route::post('settings/email/test', [SettingController::class, 'testEmail'])->name('settings.test-email');
     });
 
     // Guru routes

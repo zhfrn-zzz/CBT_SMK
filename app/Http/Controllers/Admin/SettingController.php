@@ -11,6 +11,7 @@ use App\Http\Requests\Admin\Settings\UpdateExamSettingsRequest;
 use App\Http\Requests\Admin\Settings\UpdateGeneralSettingsRequest;
 use App\Services\SettingService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -88,5 +89,29 @@ class SettingController extends Controller
         $this->settingService->setMany($validated);
 
         return back()->with('success', 'Pengaturan email berhasil disimpan.');
+    }
+
+    public function testEmail(): RedirectResponse
+    {
+        if (! $this->settingService->isSmtpConfigured()) {
+            return back()->withErrors(['email' => 'SMTP belum dikonfigurasi. Isi SMTP Host dan Email Pengirim terlebih dahulu.']);
+        }
+
+        try {
+            /** @var \App\Models\User $user */
+            $user = request()->user();
+
+            Mail::raw(
+                "Ini adalah email test dari aplikasi ".config('app.name').".\n\nJika Anda menerima email ini, konfigurasi SMTP sudah benar.",
+                function ($message) use ($user) {
+                    $message->to($user->email)
+                        ->subject('Test Email - '.config('app.name'));
+                }
+            );
+
+            return back()->with('success', 'Email test berhasil dikirim ke '.$user->email);
+        } catch (\Exception $e) {
+            return back()->withErrors(['email' => 'Gagal mengirim email: '.$e->getMessage()]);
+        }
     }
 }

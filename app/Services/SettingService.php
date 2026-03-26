@@ -106,6 +106,14 @@ class SettingService
         }
     }
 
+    /**
+     * Check if SMTP is configured (host and from_address are set).
+     */
+    public function isSmtpConfigured(): bool
+    {
+        return ! empty($this->get('smtp_host')) && ! empty($this->get('smtp_from_address'));
+    }
+
     private function loadFromDatabase(): array
     {
         $settings = Setting::all();

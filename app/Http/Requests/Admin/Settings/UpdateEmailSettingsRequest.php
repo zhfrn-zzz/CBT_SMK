@@ -21,6 +21,8 @@ class UpdateEmailSettingsRequest extends FormRequest
             'smtp_username' => ['nullable', 'string', 'max:255'],
             'smtp_password' => ['nullable', 'string', 'max:255'],
             'smtp_encryption' => ['required', 'string', 'in:none,tls,ssl'],
+            'smtp_from_address' => ['nullable', 'email', 'max:255'],
+            'smtp_from_name' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -30,6 +32,7 @@ class UpdateEmailSettingsRequest extends FormRequest
             'smtp_port.min' => 'Port minimal 1.',
             'smtp_port.max' => 'Port maksimal 65535.',
             'smtp_encryption.in' => 'Enkripsi harus none, tls, atau ssl.',
+            'smtp_from_address.email' => 'Format email pengirim tidak valid.',
         ];
     }
 }
