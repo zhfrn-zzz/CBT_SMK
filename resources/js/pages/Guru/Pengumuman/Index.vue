@@ -47,7 +47,7 @@ function formatDate(d: string) {
 
             <PageHeader title="Pengumuman" description="Kelola pengumuman" :icon="Megaphone">
                 <template #actions>
-                    <Button size="sm" as-child>
+                    <Button v-if="announcements.data.length > 0" size="sm" as-child>
                         <Link href="/guru/pengumuman/create">
                             <Plus class="size-4" />
                             Buat Pengumuman

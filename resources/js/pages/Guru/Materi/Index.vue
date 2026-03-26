@@ -112,7 +112,7 @@ const typeLabel = (type: string) => {
 
             <PageHeader title="Materi" description="Kelola materi pembelajaran" :icon="BookOpen">
                 <template #actions>
-                    <Button size="sm" as-child>
+                    <Button v-if="!materials || materials.data.length > 0" size="sm" as-child>
                         <Link href="/guru/materi/create">
                             <Plus class="size-4" />
                             Tambah Materi

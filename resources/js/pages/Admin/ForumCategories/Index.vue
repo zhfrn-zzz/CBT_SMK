@@ -86,7 +86,7 @@ function executeDelete(id: number) {
 
             <PageHeader title="Kategori Forum" description="Kelola kategori diskusi forum" :icon="MessageSquare">
                 <template #actions>
-                    <Button @click="openCreate">
+                    <Button v-if="categories.length > 0" @click="openCreate">
                         <Plus class="mr-2 size-4" />
                         Tambah Kategori
                     </Button>

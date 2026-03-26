@@ -94,7 +94,7 @@ function timeAgo(date: string | null) {
             <FlashMessage />
             <PageHeader title="Forum Diskusi" description="Diskusi kelas" :icon="MessagesSquare">
                 <template #actions>
-                    <Dialog v-model:open="dialogOpen">
+                    <Dialog v-if="!threads || threads.data.length > 0" v-model:open="dialogOpen">
                         <DialogTrigger as-child>
                             <Button size="sm" :disabled="!subjectId || !classroomId">
                                 <Plus class="size-4" />Buat Thread

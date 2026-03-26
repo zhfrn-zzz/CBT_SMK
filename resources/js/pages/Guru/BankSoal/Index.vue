@@ -82,7 +82,7 @@ function deleteItem(id: number) {
 
             <PageHeader title="Bank Soal" description="Kelola bank soal ujian" :icon="Database">
                 <template #actions>
-                    <Button size="sm" as-child>
+                    <Button v-if="questionBanks.data.length > 0" size="sm" as-child>
                         <Link href="/guru/bank-soal/create">
                             <Plus class="size-4" />
                             Buat Bank Soal

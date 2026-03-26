@@ -90,7 +90,7 @@ function deleteItem(id: number) {
 
             <PageHeader title="Tugas" description="Kelola tugas siswa" :icon="FileText">
                 <template #actions>
-                    <Button size="sm" as-child>
+                    <Button v-if="assignments.data.length > 0" size="sm" as-child>
                         <Link href="/guru/tugas/create"><Plus class="size-4" />Buat Tugas</Link>
                     </Button>
                 </template>

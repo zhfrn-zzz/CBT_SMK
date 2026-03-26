@@ -56,7 +56,7 @@ function filterByCategory(slug: string) {
 
             <PageHeader title="Forum Diskusi" description="Diskusi dan berbagi informasi" :icon="MessagesSquare">
                 <template #actions>
-                    <Button as-child>
+                    <Button v-if="threads.data.length > 0" as-child>
                         <Link href="/forum/create">
                             <Plus class="mr-2 size-4" />
                             Buat Thread

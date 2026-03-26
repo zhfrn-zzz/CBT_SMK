@@ -81,7 +81,7 @@ const gradeLevelLabel: Record<string, string> = {
 
             <PageHeader title="Kelas" description="Kelola data kelas" :icon="School">
                 <template #actions>
-                    <Button size="sm" as-child>
+                    <Button v-if="classrooms.data.length > 0" size="sm" as-child>
                         <Link href="/admin/classrooms/create">
                             <Plus class="size-4" />
                             Tambah Kelas

@@ -49,7 +49,7 @@ function deleteItem(id: number) {
 
             <PageHeader title="Mata Pelajaran" description="Kelola data mata pelajaran" :icon="BookOpen">
                 <template #actions>
-                    <Button size="sm" as-child>
+                    <Button v-if="subjects.data.length > 0" size="sm" as-child>
                         <Link href="/admin/subjects/create">
                             <Plus class="size-4" />
                             Tambah Mapel

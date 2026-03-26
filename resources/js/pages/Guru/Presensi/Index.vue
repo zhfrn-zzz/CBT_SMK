@@ -67,17 +67,19 @@ watch([subjectId, classroomId], () => {
 
             <PageHeader title="Presensi" description="Kelola presensi siswa" :icon="ClipboardCheck">
                 <template #actions>
-                    <Button variant="outline" size="sm" as-child>
-                        <Link :href="`/guru/presensi-recap?subject_id=${subjectId}&classroom_id=${classroomId}`">
-                            Rekap Presensi
-                        </Link>
-                    </Button>
-                    <Button size="sm" as-child>
-                        <Link :href="`/guru/presensi/create?subject_id=${subjectId}&classroom_id=${classroomId}`">
-                            <Plus class="size-4" />
-                            Buka Sesi
-                        </Link>
-                    </Button>
+                    <template v-if="!sessions || sessions.data.length > 0">
+                        <Button variant="outline" size="sm" as-child>
+                            <Link :href="`/guru/presensi-recap?subject_id=${subjectId}&classroom_id=${classroomId}`">
+                                Rekap Presensi
+                            </Link>
+                        </Button>
+                        <Button size="sm" as-child>
+                            <Link :href="`/guru/presensi/create?subject_id=${subjectId}&classroom_id=${classroomId}`">
+                                <Plus class="size-4" />
+                                Buka Sesi
+                            </Link>
+                        </Button>
+                    </template>
                 </template>
             </PageHeader>
 

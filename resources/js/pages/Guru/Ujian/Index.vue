@@ -111,7 +111,7 @@ function statusLabel(status: ExamStatus) {
 
             <PageHeader title="Ujian" description="Kelola sesi ujian" :icon="ClipboardList">
                 <template #actions>
-                    <Button size="sm" as-child>
+                    <Button v-if="examSessions.data.length > 0" size="sm" as-child>
                         <Link href="/guru/ujian/create">
                             <Plus class="size-4" />
                             Buat Ujian
