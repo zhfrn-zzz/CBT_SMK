@@ -25,6 +25,11 @@ const props = defineProps<{
     questionBanks: (QuestionBank & { questions_count?: number })[];
     academicYears: AcademicYear[];
     classrooms: { id: number; name: string; department: string | null }[];
+    examDefaults?: {
+        duration_minutes: number;
+        max_tab_switches: number;
+        is_device_lock_enabled: boolean;
+    };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -38,14 +43,15 @@ const form = ref({
     subject_id: '',
     academic_year_id: '',
     question_bank_id: '',
-    duration_minutes: 60,
+    duration_minutes: props.examDefaults?.duration_minutes ?? 60,
     starts_at: '',
     ends_at: '',
     is_randomize_questions: false,
     is_randomize_options: false,
     pool_count: '',
     kkm: '',
-    max_tab_switches: '',
+    max_tab_switches: props.examDefaults?.max_tab_switches ? String(props.examDefaults.max_tab_switches) : '',
+    is_device_lock_enabled: props.examDefaults?.is_device_lock_enabled ?? true,
     classroom_ids: [] as number[],
 });
 
@@ -194,8 +200,8 @@ function submit() {
                             </div>
                         </div>
 
-                        <!-- Randomisasi -->
-                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-6">
+                        <!-- Randomisasi & Keamanan -->
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-6 flex-wrap">
                             <label class="flex items-center gap-2">
                                 <Checkbox v-model="form.is_randomize_questions" />
                                 <span class="text-sm">Acak urutan soal</span>
@@ -203,6 +209,10 @@ function submit() {
                             <label class="flex items-center gap-2">
                                 <Checkbox v-model="form.is_randomize_options" />
                                 <span class="text-sm">Acak urutan pilihan jawaban</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <Checkbox v-model="form.is_device_lock_enabled" />
+                                <span class="text-sm">Kunci perangkat (device lock)</span>
                             </label>
                         </div>
 

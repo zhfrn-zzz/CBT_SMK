@@ -70,9 +70,9 @@ class ExamResultController extends Controller
             abort(403);
         }
 
-        // Verify results are published
+        // Verify results are published or show_result_after_submit is enabled
         $examSession = $attempt->examSession;
-        if (! $examSession->is_results_published) {
+        if (! $examSession->is_results_published && ! (bool) setting('show_result_after_submit', false)) {
             abort(403, 'Hasil ujian belum dipublikasikan.');
         }
 

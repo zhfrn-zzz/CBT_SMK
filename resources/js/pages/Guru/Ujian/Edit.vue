@@ -50,6 +50,7 @@ const form = ref({
     ends_at: formatDateForInput(props.examSession.ends_at),
     is_randomize_questions: props.examSession.is_randomize_questions,
     is_randomize_options: props.examSession.is_randomize_options,
+    is_device_lock_enabled: props.examSession.is_device_lock_enabled ?? true,
     pool_count: props.examSession.pool_count ? String(props.examSession.pool_count) : '',
     kkm: props.examSession.kkm ? String(props.examSession.kkm) : '',
     max_tab_switches: props.examSession.max_tab_switches !== null ? String(props.examSession.max_tab_switches) : '',
@@ -186,7 +187,7 @@ function submit() {
                             </div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-6">
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-6 flex-wrap">
                             <label class="flex items-center gap-2">
                                 <Checkbox v-model="form.is_randomize_questions" />
                                 <span class="text-sm">Acak urutan soal</span>
@@ -194,6 +195,10 @@ function submit() {
                             <label class="flex items-center gap-2">
                                 <Checkbox v-model="form.is_randomize_options" />
                                 <span class="text-sm">Acak urutan pilihan jawaban</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <Checkbox v-model="form.is_device_lock_enabled" />
+                                <span class="text-sm">Kunci perangkat (device lock)</span>
                             </label>
                         </div>
 

@@ -82,6 +82,11 @@ class ExamSessionController extends Controller
                     'name' => $c->name,
                     'department' => $c->department?->name,
                 ]),
+            'examDefaults' => [
+                'duration_minutes' => (int) setting('default_duration_minutes', 60),
+                'max_tab_switches' => (int) setting('max_tab_switches_default', 3),
+                'is_device_lock_enabled' => (bool) setting('device_lock_default', true),
+            ],
         ]);
     }
 

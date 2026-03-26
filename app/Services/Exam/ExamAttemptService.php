@@ -209,8 +209,9 @@ class ExamAttemptService
             'server_time' => $now->timestamp,
             'remaining_seconds' => $remaining,
             'tab_switch_count' => $tabSwitchCount,
-            'security_hardening' => (bool) config('exam.security_hardening', true),
+            'security_hardening' => (bool) setting('anti_cheat_enabled', true),
             'watermark_enabled' => (bool) setting('watermark_enabled', false),
+            'auto_submit_on_timeout' => (bool) setting('auto_submit_on_timeout', true),
         ];
     }
 

@@ -254,6 +254,7 @@ export type ExamPayload = {
     tab_switch_count?: number;
     security_hardening?: boolean;
     watermark_enabled?: boolean;
+    auto_submit_on_timeout?: boolean;
 };
 
 export type SaveAnswersResponse = {

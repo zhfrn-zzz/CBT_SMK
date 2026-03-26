@@ -136,6 +136,12 @@ class ExamController extends Controller
 
         if ($existingAttempt) {
             if ($existingAttempt->status === ExamAttemptStatus::InProgress) {
+                // Block mobile devices if not allowed
+                if ($this->isMobileBlocked($request)) {
+                    return redirect()->route('siswa.ujian.index')
+                        ->with('error', 'Ujian tidak dapat diakses dari perangkat mobile. Silakan gunakan komputer/laptop.');
+                }
+
                 // Device lock check on resume
                 $lockError = $this->checkDeviceLock($ujian, $existingAttempt, $request);
                 if ($lockError) {
@@ -157,6 +163,12 @@ class ExamController extends Controller
         if (! $ujian->isActive() || ! $ujian->isWithinTimeWindow()) {
             return redirect()->route('siswa.ujian.index')
                 ->with('error', 'Ujian tidak tersedia.');
+        }
+
+        // Block mobile devices if not allowed
+        if ($this->isMobileBlocked($request)) {
+            return redirect()->route('siswa.ujian.index')
+                ->with('error', 'Ujian tidak dapat diakses dari perangkat mobile. Silakan gunakan komputer/laptop.');
         }
 
         // Create attempt
@@ -206,12 +218,22 @@ class ExamController extends Controller
                 ->with('error', 'Tidak ada ujian yang sedang berlangsung.');
         }
 
+        // Block mobile devices if not allowed
+        if ($this->isMobileBlocked($request)) {
+            return redirect()->route('siswa.ujian.index')
+                ->with('error', 'Ujian tidak dapat diakses dari perangkat mobile. Silakan gunakan komputer/laptop.');
+        }
+
         // Check if expired
         if ($attempt->isExpired()) {
-            $this->attemptService->submitExam($attempt, true);
+            if ((bool) setting('auto_submit_on_timeout', true)) {
+                $this->attemptService->submitExam($attempt, true);
 
-            return redirect()->route('siswa.ujian.index')
-                ->with('info', 'Waktu ujian telah habis. Jawaban Anda telah dikumpulkan.');
+                return redirect()->route('siswa.ujian.index')
+                    ->with('info', 'Waktu ujian telah habis. Jawaban Anda telah dikumpulkan.');
+            }
+
+            // Auto-submit disabled: still allow student to access and manually submit
         }
 
         // Device lock check
@@ -259,9 +281,21 @@ class ExamController extends Controller
 
         if ($attempt->isExpiredWithGrace()) {
             Cache::forget($cacheKey);
-            $this->attemptService->submitExam($attempt, true);
 
-            return response()->json(['error' => 'Waktu habis.', 'expired' => true], 410);
+            if ((bool) setting('auto_submit_on_timeout', true)) {
+                $this->attemptService->submitExam($attempt, true);
+
+                return response()->json(['error' => 'Waktu habis.', 'expired' => true], 410);
+            }
+
+            // Auto-submit disabled: save answers but signal expired to client
+            $this->attemptService->saveAnswersToRedis(
+                $attempt,
+                $request->input('answers'),
+                $request->input('flags', []),
+            );
+
+            return response()->json(['error' => 'Waktu habis.', 'expired' => true, 'auto_submit_disabled' => true], 410);
         }
 
         $result = $this->attemptService->saveAnswersToRedis(
@@ -310,6 +344,12 @@ class ExamController extends Controller
 
         $attempt->refresh();
         event(new StudentSubmittedExam($attempt));
+
+        // Redirect to result page if show_result_after_submit is enabled
+        if ((bool) setting('show_result_after_submit', false)) {
+            return redirect()->route('siswa.nilai.show', $attempt)
+                ->with('success', 'Jawaban berhasil dikumpulkan.');
+        }
 
         return redirect()->route('siswa.ujian.index')
             ->with('success', 'Jawaban berhasil dikumpulkan.');
@@ -443,5 +483,19 @@ class ExamController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Check if mobile device is blocked by global setting.
+     */
+    private function isMobileBlocked(Request $request): bool
+    {
+        if ((bool) setting('allow_mobile_exam', false)) {
+            return false;
+        }
+
+        $userAgent = $request->userAgent() ?? '';
+
+        return (bool) preg_match('/Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i', $userAgent);
     }
 }

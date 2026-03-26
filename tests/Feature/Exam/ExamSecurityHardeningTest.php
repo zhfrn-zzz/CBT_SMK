@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Models\ExamAttempt;
 use App\Models\User;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Redis;
 use Tests\Helpers\ExamTestHelper;
 
@@ -212,8 +211,16 @@ test('exam payload security_hardening defaults to true', function () {
     );
 });
 
-test('exam payload security_hardening can be toggled via config', function () {
-    Config::set('exam.security_hardening', false);
+test('exam payload security_hardening can be toggled via setting', function () {
+    // Mock SettingService to return anti_cheat_enabled = false
+    $settingService = Mockery::mock(\App\Services\SettingService::class)->makePartial();
+    $settingService->shouldReceive('get')
+        ->with('anti_cheat_enabled', Mockery::any())
+        ->andReturn(false);
+    $settingService->shouldReceive('get')
+        ->with(Mockery::not('anti_cheat_enabled'), Mockery::any())
+        ->passthru();
+    app()->instance(\App\Services\SettingService::class, $settingService);
 
     Redis::shouldReceive('get')->andReturn(null);
 

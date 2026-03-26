@@ -128,7 +128,9 @@ onMounted(() => {
 
     timer.onExpire(() => {
         showTimesUp.value = true;
-        handleAutoSubmit();
+        if (props.auto_submit_on_timeout !== false) {
+            handleAutoSubmit();
+        }
     });
 
     // Anti-cheat listeners
