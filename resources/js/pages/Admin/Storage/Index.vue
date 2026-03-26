@@ -149,7 +149,8 @@ const categoryColors: Record<string, string> = {
                     <CardTitle>Top 10 File Terbesar</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table v-if="topFiles.length > 0">
+                    <div v-if="topFiles.length > 0" class="overflow-x-auto">
+                    <Table class="min-w-[600px]">
                         <TableHeader>
                             <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
                                 <TableHead class="text-xs font-medium uppercase tracking-wider">Nama File</TableHead>
@@ -169,6 +170,7 @@ const categoryColors: Record<string, string> = {
                             </TableRow>
                         </TableBody>
                     </Table>
+                    </div>
                     <p v-else class="text-muted-foreground text-sm">Tidak ada file yang ditemukan.</p>
                 </CardContent>
             </Card>
@@ -212,7 +214,8 @@ const categoryColors: Record<string, string> = {
                                 Klik "Cleanup" untuk menghapus file-file ini via background job.
                             </p>
                         </div>
-                        <Table>
+                        <div class="overflow-x-auto">
+                        <Table class="min-w-[600px]">
                             <TableHeader>
                                 <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
                                     <TableHead class="text-xs font-medium uppercase tracking-wider">Path</TableHead>
@@ -228,6 +231,7 @@ const categoryColors: Record<string, string> = {
                                 </TableRow>
                             </TableBody>
                         </Table>
+                        </div>
                     </div>
                     <p v-else class="text-muted-foreground text-sm">
                     Tidak ada file orphan. Storage sudah bersih.

@@ -98,7 +98,7 @@ function discriminationVariant(label: string) {
             </Alert>
 
             <!-- Summary Cards -->
-            <div v-if="!analysis.computing" class="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+            <div v-if="!analysis.computing" class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
                 <StatsCard title="Total Soal" :value="analysis.summary.total_questions" :icon="Hash" />
                 <StatsCard title="Mudah" :value="analysis.summary.easy_count" :icon="ThumbsUp" icon-color="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" />
                 <StatsCard title="Sedang" :value="analysis.summary.medium_count" :icon="BarChart3" icon-color="bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400" />
@@ -108,8 +108,8 @@ function discriminationVariant(label: string) {
             </div>
 
             <!-- Item Table -->
-            <div v-if="!analysis.computing && analysis.items.length > 0" class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div v-if="!analysis.computing && analysis.items.length > 0" class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[700px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="w-12 text-xs font-semibold uppercase tracking-wider">No</TableHead>
@@ -159,11 +159,11 @@ function discriminationVariant(label: string) {
             </div>
 
             <!-- KD Breakdown -->
-            <div v-if="!analysis.computing && analysis.kd_breakdown.length > 0" class="overflow-hidden rounded-lg border bg-card">
+            <div v-if="!analysis.computing && analysis.kd_breakdown.length > 0" class="overflow-x-auto rounded-lg border bg-card">
                 <div class="border-b px-6 py-4">
                     <h3 class="font-semibold">Rekap per Kompetensi Dasar</h3>
                 </div>
-                <Table>
+                <Table class="min-w-[500px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Kode</TableHead>

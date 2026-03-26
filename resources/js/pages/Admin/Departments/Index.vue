@@ -56,8 +56,8 @@ function deleteItem(id: number) {
                 </template>
             </PageHeader>
 
-            <div class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[600px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Kode</TableHead>

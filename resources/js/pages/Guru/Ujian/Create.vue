@@ -195,7 +195,7 @@ function submit() {
                         </div>
 
                         <!-- Randomisasi -->
-                        <div class="flex gap-6">
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-6">
                             <label class="flex items-center gap-2">
                                 <Checkbox v-model="form.is_randomize_questions" />
                                 <span class="text-sm">Acak urutan soal</span>

@@ -150,7 +150,7 @@ function submit() {
                         <!-- Tipe Materi -->
                         <div class="space-y-2">
                             <Label class="font-semibold text-sm">Tipe Materi <span class="text-destructive">*</span></Label>
-                            <div class="flex gap-4">
+                            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                                 <label class="flex items-center gap-2 cursor-pointer">
                                     <input type="radio" v-model="form.type" value="file" class="accent-primary" />
                                     File Upload

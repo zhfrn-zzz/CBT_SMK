@@ -220,17 +220,14 @@ function submitInvalidateQuestion() {
             <PageHeader :title="'Proctor - ' + exam_session.name" :description="exam_session.subject" :icon="MonitorCheck">
                 <template #actions>
                     <Button variant="outline" size="sm" @click="openInvalidateDialog">
-                        <XCircle class="mr-1 size-4" />
-                        Batalkan Soal
+                        <XCircle class="size-4 sm:mr-1" /><span class="hidden sm:inline">Batalkan Soal</span>
                     </Button>
                     <Button variant="outline" size="sm" @click="copyToken">
-                        <Copy class="mr-1 size-4" />
-                        <code class="font-mono">{{ exam_session.token }}</code>
+                        <Copy class="size-4 sm:mr-1" /><code class="font-mono hidden sm:inline">{{ exam_session.token }}</code>
                     </Button>
                     <Button variant="ghost" size="sm" as-child>
                         <a :href="`/guru/ujian/${exam_session.id}`">
-                            <ArrowLeft class="mr-1 size-4" />
-                            Kembali
+                            <ArrowLeft class="size-4 sm:mr-1" /><span class="hidden sm:inline">Kembali</span>
                         </a>
                     </Button>
                 </template>
@@ -245,12 +242,12 @@ function submitInvalidateQuestion() {
             </div>
 
             <!-- Filters -->
-            <div class="flex items-center gap-3">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div class="relative flex-1 max-w-sm">
                     <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                     <Input v-model="searchQuery" placeholder="Cari siswa..." class="pl-9" />
                 </div>
-                <div class="flex gap-1">
+                <div class="flex gap-1 overflow-x-auto flex-nowrap">
                     <Button
                         v-for="filter in [
                             { value: 'all', label: 'Semua' },
@@ -269,8 +266,8 @@ function submitInvalidateQuestion() {
             </div>
 
             <!-- Student Table -->
-            <div class="overflow-hidden rounded-lg border bg-card">
-                    <Table>
+            <div class="overflow-x-auto rounded-lg border bg-card">
+                    <Table class="min-w-[700px]">
                         <TableHeader>
                             <TableRow class="bg-slate-50 dark:bg-slate-800/50">
                                 <TableHead class="w-[40px] text-xs font-semibold uppercase tracking-wider">#</TableHead>

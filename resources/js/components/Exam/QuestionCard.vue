@@ -203,7 +203,7 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-    <div class="bg-white rounded-lg border p-6 sm:p-8">
+    <div class="bg-white rounded-lg border p-4 sm:p-6 md:p-8">
         <!-- Question Header -->
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -217,7 +217,7 @@ const typeLabel = computed(() => {
         <Separator class="my-4" />
 
         <!-- Question Content -->
-        <div class="prose prose-lg dark:prose-invert max-w-none leading-relaxed" v-html="question.content" />
+        <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none leading-relaxed" v-html="question.content" />
 
         <!-- Media -->
         <img
@@ -237,7 +237,7 @@ const typeLabel = computed(() => {
                         <label
                             v-for="option in question.options"
                             :key="option.id"
-                            class="flex w-full cursor-pointer items-center gap-4 rounded-lg border p-4 transition-all min-h-[52px]"
+                            class="flex w-full cursor-pointer items-center gap-3 sm:gap-4 rounded-lg border p-3 sm:p-4 transition-all min-h-[48px]"
                             :class="currentAnswer === option.label
                                 ? 'bg-primary/5 border-primary ring-2 ring-primary/20'
                                 : 'hover:bg-slate-50 hover:border-primary/30'"
@@ -252,12 +252,12 @@ const typeLabel = computed(() => {
 
             <!-- Benar / Salah (B/S) — Two big buttons -->
             <template v-else-if="question.type === 'benar_salah'">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
                     <button
                         v-for="option in question.options"
                         :key="option.id"
                         type="button"
-                        class="h-16 rounded-lg border-2 text-lg font-semibold transition-all"
+                        class="h-14 sm:h-16 rounded-lg border-2 text-base sm:text-lg font-semibold transition-all"
                         :class="option.label === 'A'
                             ? (currentAnswer === option.label
                                 ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
@@ -280,7 +280,7 @@ const typeLabel = computed(() => {
                         v-for="option in question.options"
                         :key="option.id"
                         type="button"
-                        class="flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-all min-h-[52px]"
+                        class="flex w-full items-center gap-3 sm:gap-4 rounded-lg border p-3 sm:p-4 text-left transition-all min-h-[48px]"
                         :class="isMultipleSelected(option.label)
                             ? 'bg-primary/5 border-primary ring-2 ring-primary/20'
                             : 'hover:bg-slate-50 hover:border-primary/30'"
@@ -303,7 +303,7 @@ const typeLabel = computed(() => {
                 <Textarea
                     v-model="currentAnswer"
                     placeholder="Tulis jawaban Anda di sini..."
-                    class="min-h-[200px] text-base p-4 rounded-lg resize-y"
+                    class="min-h-[150px] sm:min-h-[200px] text-base p-4 rounded-lg resize-y"
                 />
                 <div class="text-right">
                     <span class="text-xs text-muted-foreground">{{ wordCount }} kata</span>
@@ -327,14 +327,14 @@ const typeLabel = computed(() => {
                     <div
                         v-for="(premise, idx) in question.matching_premises"
                         :key="premise.id"
-                        class="flex items-center gap-4 rounded-lg p-3"
+                        class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 rounded-lg p-3"
                         :class="getMatchingAnswer(premise.id) ? 'bg-primary/5 border border-primary/30' : 'bg-slate-50 border border-slate-200'"
                     >
                         <div class="flex-1">
                             <span class="text-xs font-medium text-muted-foreground">{{ idx + 1 }}.</span>
                             <span class="ml-1 text-base" v-html="premise.content" />
                         </div>
-                        <div class="w-52">
+                        <div class="w-full sm:w-52">
                             <Select
                                 :model-value="getMatchingAnswer(premise.id)"
                                 @update:model-value="(v: any) => setMatchingAnswer(premise.id, v === '__clear__' ? '' : String(v ?? ''))"
@@ -367,7 +367,7 @@ const typeLabel = computed(() => {
                         v-for="(item, index) in orderingItems"
                         :key="item.id"
                         draggable="true"
-                        class="flex items-center gap-3 rounded-lg border bg-white p-4 transition-all"
+                        class="flex items-center gap-2 sm:gap-3 rounded-lg border bg-white p-3 sm:p-4 transition-all touch-manipulation"
                         :class="draggedIndex === index
                             ? 'shadow-lg ring-2 ring-primary/30 opacity-80'
                             : 'cursor-grab hover:bg-muted'"
@@ -375,8 +375,9 @@ const typeLabel = computed(() => {
                         @dragover="onDragOver"
                         @drop="onDrop(index)"
                         @dragend="onDragEnd"
+                        @touchstart.passive="onDragStart(index)"
                     >
-                        <GripVertical class="size-5 text-muted-foreground shrink-0" />
+                        <GripVertical class="size-6 sm:size-5 text-muted-foreground shrink-0 w-10 sm:w-auto" />
                         <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-muted-foreground">
                             {{ index + 1 }}
                         </span>

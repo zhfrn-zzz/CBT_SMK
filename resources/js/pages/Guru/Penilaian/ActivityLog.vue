@@ -144,7 +144,7 @@ function getEventBadgeVariant(type: string): 'default' | 'secondary' | 'destruct
             </Card>
 
             <!-- Summary Cards -->
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
                 <StatsCard title="Total Pelanggaran" :value="summary.total" :icon="AlertTriangle" icon-color="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" />
                 <StatsCard title="Pindah Tab" :value="summary.tab_switches" :icon="AlertTriangle" icon-color="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" :trend="examSession.max_tab_switches !== null ? `/ ${examSession.max_tab_switches}` : undefined" />
                 <StatsCard title="Keluar Fullscreen" :value="summary.fullscreen_exits" :icon="Maximize" />
@@ -153,8 +153,8 @@ function getEventBadgeVariant(type: string): 'default' | 'secondary' | 'destruct
             </div>
 
             <!-- Activity Log Table -->
-            <div class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[500px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="w-12 text-xs font-semibold uppercase tracking-wider">#</TableHead>

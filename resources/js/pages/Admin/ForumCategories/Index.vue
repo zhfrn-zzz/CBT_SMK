@@ -107,8 +107,8 @@ function executeDelete(id: number) {
                 </template>
             </EmptyState>
 
-            <div v-else class="rounded-lg border">
-            <Table>
+            <div v-else class="overflow-x-auto rounded-lg border">
+            <Table class="min-w-[700px]">
                 <TableHeader>
                     <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
                         <TableHead class="text-xs font-medium uppercase tracking-wider">Warna</TableHead>
@@ -172,7 +172,7 @@ function executeDelete(id: number) {
                             <Label for="description">Deskripsi</Label>
                             <Textarea id="description" v-model="form.description" rows="3" />
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div class="space-y-2">
                                 <Label for="color">Warna</Label>
                                 <Input id="color" v-model="form.color" type="color" class="h-10" />

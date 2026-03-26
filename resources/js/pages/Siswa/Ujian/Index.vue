@@ -69,22 +69,24 @@ function isExamActive(exam: SiswaExamListItem): boolean {
             <PageHeader title="Ujian" description="Daftar ujian Anda" :icon="ClipboardList" />
 
             <Tabs default-value="upcoming">
-                <TabsList>
-                    <TabsTrigger value="upcoming">
-                        Tersedia ({{ upcoming.length }})
-                    </TabsTrigger>
-                    <TabsTrigger value="in_progress">
-                        Berlangsung ({{ inProgress.length }})
-                    </TabsTrigger>
-                    <TabsTrigger value="completed">
-                        Selesai ({{ completed.length }})
-                    </TabsTrigger>
-                </TabsList>
+                <div class="overflow-x-auto">
+                    <TabsList>
+                        <TabsTrigger value="upcoming">
+                            Tersedia ({{ upcoming.length }})
+                        </TabsTrigger>
+                        <TabsTrigger value="in_progress">
+                            Berlangsung ({{ inProgress.length }})
+                        </TabsTrigger>
+                        <TabsTrigger value="completed">
+                            Selesai ({{ completed.length }})
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <!-- Upcoming -->
                 <TabsContent value="upcoming" class="mt-4">
                     <EmptyState v-if="upcoming.length === 0" :icon="ClipboardList" title="Tidak ada ujian tersedia" description="Belum ada ujian yang dijadwalkan untuk Anda saat ini." />
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <Card v-for="exam in upcoming" :key="exam.id">
                             <CardHeader class="pb-3">
                                 <div class="flex items-start justify-between">
@@ -111,7 +113,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
                                 </div>
                                 <Button
                                     v-if="isExamActive(exam)"
-                                    class="w-full"
+                                    class="h-12 w-full"
                                     as-child
                                 >
                                     <Link :href="`/siswa/ujian/${exam.id}/verify-token`">
@@ -119,7 +121,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
                                         Mulai Ujian
                                     </Link>
                                 </Button>
-                                <Button v-else variant="outline" class="w-full" disabled>
+                                <Button v-else variant="outline" class="h-12 w-full" disabled>
                                     Belum Dimulai
                                 </Button>
                             </CardContent>
@@ -130,7 +132,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
                 <!-- In Progress -->
                 <TabsContent value="in_progress" class="mt-4">
                     <EmptyState v-if="inProgress.length === 0" :icon="ClipboardList" title="Tidak ada ujian berlangsung" description="Tidak ada ujian yang sedang Anda kerjakan." />
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <Card v-for="exam in inProgress" :key="exam.id" class="border-primary">
                             <CardHeader class="pb-3">
                                 <div class="flex items-start justify-between">
@@ -143,7 +145,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
                                     <BookOpen class="size-4" />
                                     {{ exam.subject }}
                                 </div>
-                                <Button class="w-full" as-child>
+                                <Button class="h-12 w-full" as-child>
                                     <Link :href="`/siswa/ujian/${exam.id}/exam`">
                                         Lanjutkan Ujian
                                     </Link>
@@ -156,7 +158,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
                 <!-- Completed -->
                 <TabsContent value="completed" class="mt-4">
                     <EmptyState v-if="completed.length === 0" :icon="ClipboardList" title="Belum ada riwayat ujian" description="Belum ada ujian yang telah Anda selesaikan." />
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <Card v-for="exam in completed" :key="exam.id">
                             <CardHeader class="pb-3">
                                 <div class="flex items-start justify-between">

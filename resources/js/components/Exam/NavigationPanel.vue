@@ -45,12 +45,12 @@ function statusClass(questionId: number, index: number): string {
         <h3 class="text-sm font-semibold text-foreground">Navigasi Soal</h3>
 
         <!-- Question Grid -->
-        <div class="grid grid-cols-5 gap-2">
+        <div class="grid grid-cols-6 gap-1.5 sm:grid-cols-5 sm:gap-2">
             <button
                 v-for="(q, i) in questions"
                 :key="q.id"
                 type="button"
-                class="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-semibold transition-all"
+                class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg text-sm font-semibold transition-all"
                 :class="statusClass(q.id, i)"
                 @click="$emit('go-to', i)"
             >

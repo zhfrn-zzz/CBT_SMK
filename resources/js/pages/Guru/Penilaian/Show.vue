@@ -65,15 +65,13 @@ const progressPercent = props.progress.total_attempts > 0
                 <template #actions>
                     <Button variant="outline" size="sm" as-child>
                         <Link :href="`/guru/grading/${examSession.id}/item-analysis`">
-                            <BarChart3 class="mr-1 size-4" />
-                            Analisis Soal
+                            <BarChart3 class="size-4 sm:mr-1" /><span class="hidden sm:inline">Analisis Soal</span>
                         </Link>
                     </Button>
 
                     <Button variant="outline" size="sm" as-child>
                         <a :href="`/guru/grading/${examSession.id}/export`">
-                            <Download class="mr-1 size-4" />
-                            Export CSV
+                            <Download class="size-4 sm:mr-1" /><span class="hidden sm:inline">Export CSV</span>
                         </a>
                     </Button>
 
@@ -94,7 +92,7 @@ const progressPercent = props.progress.total_attempts > 0
             </PageHeader>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatsCard title="Total Peserta" :value="statistics.total_students" :icon="Users" />
                 <StatsCard title="Rata-rata" :value="statistics.average" :icon="BarChart3" :trend="`Tertinggi: ${statistics.highest} | Terendah: ${statistics.lowest}`" />
                 <StatsCard v-if="examSession.kkm" :title="`Lulus (KKM ${examSession.kkm})`" :value="statistics.passed" :icon="CheckCircle" icon-color="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" />
@@ -121,8 +119,8 @@ const progressPercent = props.progress.total_attempts > 0
             </Card>
 
             <!-- Student Results Table -->
-            <div class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[700px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">No</TableHead>

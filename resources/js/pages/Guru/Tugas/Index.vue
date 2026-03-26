@@ -115,8 +115,8 @@ function deleteItem(id: number) {
                 </template>
             </DataTableToolbar>
 
-            <div class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[700px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Judul</TableHead>

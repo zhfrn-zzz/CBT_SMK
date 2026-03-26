@@ -159,7 +159,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
             <PageHeader :title="`Halo, ${user.name}`" :description="userSubtitle" />
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatsCard title="Ujian Mendatang" :value="stats.upcoming_exams" :icon="Calendar" icon-color="bg-blue-50 text-blue-600" />
                 <StatsCard title="Ujian Selesai" :value="stats.completed_exams" :icon="CheckCircle" icon-color="bg-emerald-50 text-emerald-600" />
                 <StatsCard
@@ -379,7 +379,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                 </div>
 
                 <!-- Right Column -->
-                <div class="space-y-6">
+                <div class="hidden space-y-6 sm:block">
                     <!-- Profil Mini -->
                     <Card>
                         <CardHeader>

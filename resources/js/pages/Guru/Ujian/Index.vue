@@ -140,8 +140,8 @@ function statusLabel(status: ExamStatus) {
                 </template>
             </DataTableToolbar>
 
-            <div v-if="examSessions.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div v-if="examSessions.data.length > 0" class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[800px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Ujian</TableHead>

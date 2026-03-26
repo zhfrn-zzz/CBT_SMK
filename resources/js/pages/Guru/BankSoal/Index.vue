@@ -114,8 +114,8 @@ function deleteItem(id: number) {
                 </template>
             </DataTableToolbar>
 
-            <div v-if="questionBanks.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div v-if="questionBanks.data.length > 0" class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[600px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Bank Soal</TableHead>

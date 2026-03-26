@@ -99,7 +99,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
             />
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatsCard title="Kelas Saya" :value="stats.class_count" :icon="School" icon-color="bg-blue-50 text-blue-600" />
                 <StatsCard title="Ujian Mendatang" :value="stats.upcoming_exams" :icon="Calendar" icon-color="bg-amber-50 text-amber-600" />
                 <StatsCard

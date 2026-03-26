@@ -103,8 +103,8 @@ watch([subjectId, classroomId], () => {
             </div>
 
             <template v-else-if="sessions">
-                <div v-if="sessions.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
-                    <Table>
+                <div v-if="sessions.data.length > 0" class="overflow-x-auto rounded-lg border bg-card">
+                    <Table class="min-w-[600px]">
                         <TableHeader>
                             <TableRow class="bg-slate-50">
                                 <TableHead class="text-xs font-semibold uppercase tracking-wider">Pertemuan Ke-</TableHead>

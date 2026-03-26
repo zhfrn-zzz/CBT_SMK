@@ -113,7 +113,7 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
             <!-- Header with student info & navigation -->
             <PageHeader title="Penilaian Manual" :description="`${attempt.user.name} — ${examSession.name} (${examSession.subject})`" :icon="PenLine">
                 <template #actions>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                         <span class="text-sm text-muted-foreground">Nilai saat ini:</span>
                         <span class="text-lg font-bold">
                             {{ attempt.score !== null ? attempt.score.toFixed(2) : '-' }}
@@ -126,10 +126,10 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
             </PageHeader>
 
             <!-- Student switcher -->
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                 <Label class="text-sm">Pindah siswa:</Label>
                 <Select :model-value="String(attempt.id)" @update:model-value="navigateToAttempt">
-                    <SelectTrigger class="w-64">
+                    <SelectTrigger class="w-full sm:w-64">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -149,13 +149,13 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
 
             <div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
                 <!-- Question Navigation Sidebar -->
-                <div class="lg:col-span-1">
+                <div class="order-2 lg:order-1 lg:col-span-1">
                     <Card>
                         <CardHeader class="pb-2">
                             <CardTitle class="text-sm">Navigasi Soal</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div class="grid grid-cols-5 gap-2">
+                            <div class="grid grid-cols-8 sm:grid-cols-5 gap-2">
                                 <button
                                     v-for="(answer, i) in answers"
                                     :key="answer.id"
@@ -186,7 +186,7 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
                 </div>
 
                 <!-- Question Content & Grading -->
-                <div class="lg:col-span-3 space-y-4">
+                <div class="order-1 lg:order-2 lg:col-span-3 space-y-4">
                     <Card v-if="currentAnswer">
                         <CardHeader>
                             <div class="flex items-center justify-between">
@@ -248,8 +248,8 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
 
                             <!-- Grading Input -->
                             <div class="space-y-3">
-                                <div class="flex items-end gap-4">
-                                    <div class="w-32">
+                                <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+                                    <div class="w-full sm:w-32">
                                         <Label>Nilai (maks {{ currentAnswer.question.points }})</Label>
                                         <Input
                                             v-model="gradeInputs[currentAnswer.id].score"

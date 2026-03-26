@@ -86,7 +86,7 @@ const rightNavItems: NavItem[] = [
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                class="mr-2 h-9 w-9"
+                                class="mr-2 h-10 w-10 sm:h-9 sm:w-9"
                             >
                                 <Menu class="h-5 w-5" />
                             </Button>
@@ -193,7 +193,7 @@ const rightNavItems: NavItem[] = [
                         <Button
                             variant="ghost"
                             size="icon"
-                            class="group h-9 w-9 cursor-pointer"
+                            class="group h-10 w-10 sm:h-9 sm:w-9 cursor-pointer"
                         >
                             <Search
                                 class="size-5 opacity-80 group-hover:opacity-100"
@@ -212,7 +212,7 @@ const rightNavItems: NavItem[] = [
                                                 variant="ghost"
                                                 size="icon"
                                                 as-child
-                                                class="group h-9 w-9 cursor-pointer"
+                                                class="group h-10 w-10 cursor-pointer sm:h-9 sm:w-9"
                                             >
                                                 <a
                                                     :href="toUrl(item.href)"
@@ -274,7 +274,7 @@ const rightNavItems: NavItem[] = [
             class="flex w-full border-b border-sidebar-border/70"
         >
             <div
-                class="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl"
+                class="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl overflow-x-auto"
             >
                 <Breadcrumbs :breadcrumbs="breadcrumbs" />
             </div>

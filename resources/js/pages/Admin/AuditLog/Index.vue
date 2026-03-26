@@ -149,8 +149,8 @@ function formatDate(dateStr: string): string {
             </DataTableToolbar>
 
             <!-- Table -->
-            <div class="rounded-md border">
-                <Table>
+            <div class="overflow-x-auto rounded-md border">
+                <Table class="min-w-[800px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
                             <TableHead class="text-xs font-medium uppercase tracking-wider">Waktu</TableHead>
@@ -209,12 +209,12 @@ function formatDate(dateStr: string): string {
 
         <!-- Detail Dialog -->
         <Dialog v-model:open="detailOpen">
-            <DialogContent class="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent class="max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Detail Log Audit #{{ selectedLog?.id }}</DialogTitle>
                 </DialogHeader>
                 <div v-if="selectedLog" class="space-y-4 text-sm">
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <p class="font-medium text-muted-foreground">Waktu</p>
                             <p>{{ formatDate(selectedLog.created_at) }}</p>

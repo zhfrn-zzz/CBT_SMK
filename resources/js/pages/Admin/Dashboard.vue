@@ -89,7 +89,7 @@ function getInitials(name: string): string {
             <PageHeader title="Dashboard Admin" :description="todayDateString" :icon="LayoutDashboard" />
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <StatsCard title="Total Siswa" :value="stats.total_siswa" :icon="Users" icon-color="bg-blue-50 text-blue-600" />
                 <StatsCard title="Total Guru" :value="stats.total_guru" :icon="GraduationCap" icon-color="bg-emerald-50 text-emerald-600" />
                 <StatsCard

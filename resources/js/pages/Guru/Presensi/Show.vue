@@ -103,17 +103,17 @@ const statusColor = (status: string) => {
 
             <!-- Kode Akses -->
             <div v-if="attendance.is_open" class="rounded-lg border bg-muted/30 p-4 space-y-3">
-                <div class="flex items-center gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div>
                         <p class="text-sm text-muted-foreground">Kode Presensi</p>
-                        <p class="text-5xl font-bold tracking-widest font-mono text-primary">{{ attendance.access_code }}</p>
+                        <p class="text-3xl sm:text-5xl font-bold tracking-widest font-mono text-primary">{{ attendance.access_code }}</p>
                         <p v-if="attendance.code_expires_at" class="text-xs text-muted-foreground mt-1">
                             Berlaku hingga {{ new Date(attendance.code_expires_at).toLocaleTimeString('id-ID') }}
                         </p>
                         <p v-else class="text-xs text-muted-foreground mt-1">Berlaku sampai sesi ditutup</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                     <Select v-model.number="(regenerateForm.duration_minutes as any)" class="w-40">
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -137,8 +137,8 @@ const statusColor = (status: string) => {
             </div>
 
             <!-- Students table -->
-            <div class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[600px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>
@@ -174,7 +174,7 @@ const statusColor = (status: string) => {
                 </Table>
             </div>
 
-            <div v-if="attendance.is_open" class="flex items-center justify-end">
+            <div v-if="attendance.is_open" class="sticky bottom-0 z-10 flex items-center justify-end bg-background py-2">
                 <LoadingButton size="sm" @click="saveAllStatuses">Simpan Semua</LoadingButton>
             </div>
         </div>

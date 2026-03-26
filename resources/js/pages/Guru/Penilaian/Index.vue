@@ -48,8 +48,8 @@ function formatDate(date: string) {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <PageHeader title="Penilaian" description="Kelola penilaian ujian" :icon="Award" />
 
-            <div class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[800px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Ujian</TableHead>

@@ -45,7 +45,7 @@ function formatDate(date: string | null) {
             <PageHeader title="Nilai" description="Rekap nilai ujian" :icon="Trophy" />
 
             <EmptyState v-if="results.length === 0" :icon="Trophy" title="Belum ada nilai" description="Belum ada hasil ujian yang dipublikasikan." />
-            <div v-else class="overflow-hidden rounded-lg border bg-card">
+            <div v-else class="overflow-x-auto rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

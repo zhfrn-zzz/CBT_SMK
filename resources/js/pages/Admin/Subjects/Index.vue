@@ -60,8 +60,8 @@ function deleteItem(id: number) {
 
             <DataTableToolbar />
 
-            <div v-if="subjects.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div v-if="subjects.data.length > 0" class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[500px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Kode</TableHead>

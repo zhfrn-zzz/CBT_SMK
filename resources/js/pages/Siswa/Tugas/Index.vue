@@ -55,7 +55,7 @@ function countdown(deadline: string) {
 
             <EmptyState v-if="assignments.length === 0" :icon="FileText" title="Tidak ada tugas" description="Tidak ada tugas saat ini." />
 
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <Link
                     v-for="a in assignments" :key="a.id"
                     :href="`/siswa/tugas/${a.id}`"

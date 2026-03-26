@@ -117,7 +117,7 @@ const sortOptions = [
             <PageHeader title="File Manager" description="Kelola file Anda" :icon="FolderOpen" />
 
             <!-- Summary -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-2 gap-4">
                 <StatsCard title="Total File" :value="totalFiles" :icon="File" />
                 <StatsCard title="Total Ukuran" :value="formatBytes(totalSize)" :icon="FolderOpen" />
             </div>
@@ -153,8 +153,8 @@ const sortOptions = [
                 </Button>
             </div>
 
-            <div v-if="files.length > 0" class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div v-if="files.length > 0" class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[650px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama File</TableHead>

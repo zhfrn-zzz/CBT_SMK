@@ -95,7 +95,7 @@ function exportExcel() {
                         <SelectItem v-for="c in filteredClassrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
                     </SelectContent>
                 </Select>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <Label class="shrink-0 text-sm">Dari</Label>
                     <Input v-model="startDate" type="date" class="w-36" @change="applyFilters" />
                     <Label class="shrink-0 text-sm">s/d</Label>
@@ -107,8 +107,8 @@ function exportExcel() {
                 Pilih mata pelajaran dan kelas untuk melihat rekap.
             </div>
 
-            <div v-else-if="recap && recap.length > 0" class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div v-else-if="recap && recap.length > 0" class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[600px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>

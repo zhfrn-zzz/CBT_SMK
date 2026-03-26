@@ -48,7 +48,7 @@ function handleConfirm() {
         <AlertDialogTrigger as-child>
             <slot />
         </AlertDialogTrigger>
-        <AlertDialogContent>
+        <AlertDialogContent class="max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <AlertDialogHeader>
                 <div class="flex items-center gap-3">
                     <div

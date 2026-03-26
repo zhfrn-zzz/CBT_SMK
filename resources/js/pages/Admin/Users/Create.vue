@@ -258,7 +258,7 @@ function handleFileChange(e: Event) {
                                 </div>
 
                                 <!-- Filter helpers for guru -->
-                                <div v-if="form.teachings.length > 0" class="grid grid-cols-2 gap-2">
+                                <div v-if="form.teachings.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                     <div class="space-y-1">
                                         <Label class="text-xs text-muted-foreground">Filter Tahun Ajaran</Label>
                                         <Select v-model="guruSelectedAcademicYearId">

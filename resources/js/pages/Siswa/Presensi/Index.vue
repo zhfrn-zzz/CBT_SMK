@@ -99,7 +99,7 @@ function handleKeyDown(index: number, e: KeyboardEvent) {
             <PageHeader title="Presensi" description="Riwayat kehadiran" :icon="ClipboardCheck" />
 
             <!-- Check-in form -->
-            <Card class="max-w-sm">
+            <Card class="w-full sm:max-w-sm">
                 <CardContent class="p-4 space-y-3">
                     <p class="font-medium text-sm">Input Kode Presensi</p>
                     <form @submit.prevent="checkIn" class="space-y-3">
@@ -135,7 +135,7 @@ function handleKeyDown(index: number, e: KeyboardEvent) {
 
             <!-- Records table -->
             <EmptyState v-if="records.data.length === 0" :icon="ClipboardCheck" title="Belum ada data presensi" description="Belum ada data presensi saat ini." />
-            <div v-else class="overflow-hidden rounded-lg border bg-card">
+            <div v-else class="overflow-x-auto rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

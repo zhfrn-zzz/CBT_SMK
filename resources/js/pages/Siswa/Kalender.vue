@@ -33,7 +33,7 @@ async function fetchEvents(year: number, month: number) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Kalender Akademik" />
 
-        <div class="mx-auto max-w-5xl space-y-6 p-6">
+        <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
             <PageHeader title="Kalender" description="Jadwal kegiatan" :icon="CalendarDays" />
 
             <Card>

@@ -177,7 +177,7 @@ function deleteClassroom() {
                         <Separator />
 
                         <!-- Student list -->
-                        <div class="overflow-hidden rounded-lg border bg-card">
+                        <div class="overflow-x-auto rounded-lg border bg-card">
                             <Table>
                                 <TableHeader>
                                     <TableRow class="bg-slate-50">
@@ -269,7 +269,7 @@ function deleteClassroom() {
                         <Separator />
 
                         <!-- Teaching assignments list -->
-                        <div class="overflow-hidden rounded-lg border bg-card">
+                        <div class="overflow-x-auto rounded-lg border bg-card">
                             <Table>
                                 <TableHeader>
                                     <TableRow class="bg-slate-50">

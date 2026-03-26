@@ -74,13 +74,13 @@ function submit() {
                                 id="token"
                                 v-model="token"
                                 placeholder="Contoh: AB12CD"
-                                class="text-center text-lg font-mono tracking-widest uppercase"
+                                class="text-center text-2xl font-mono tracking-widest uppercase"
                                 maxlength="10"
                                 autofocus
                             />
                             <InputError :message="errors.token" />
                         </div>
-                        <LoadingButton type="submit" class="w-full" :loading="processing" :disabled="!token">Mulai Ujian</LoadingButton>
+                        <LoadingButton type="submit" class="h-12 w-full" :loading="processing" :disabled="!token">Mulai Ujian</LoadingButton>
                     </form>
                 </CardContent>
             </Card>

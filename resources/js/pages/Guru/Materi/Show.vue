@@ -62,13 +62,13 @@ function deleteMaterial() {
                     <Button variant="outline" size="sm" as-child v-if="material.type === 'file'">
                         <a :href="`/guru/materi/${material.id}/download`">
                             <Download class="size-4" />
-                            Download
+                            <span class="hidden sm:inline">Download</span>
                         </a>
                     </Button>
                     <Button variant="outline" size="sm" as-child>
                         <Link :href="`/guru/materi/${material.id}/edit`">
                             <Pencil class="size-4" />
-                            Edit
+                            <span class="hidden sm:inline">Edit</span>
                         </Link>
                     </Button>
                     <ConfirmDialog
@@ -79,7 +79,7 @@ function deleteMaterial() {
                     >
                         <Button variant="destructive" size="sm">
                             <Trash2 class="size-4" />
-                            Hapus
+                            <span class="hidden sm:inline">Hapus</span>
                         </Button>
                     </ConfirmDialog>
                 </template>
@@ -150,8 +150,8 @@ function deleteMaterial() {
                     </CardContent>
                 </Card>
 
-                <div class="overflow-hidden rounded-lg border bg-card">
-                    <Table>
+                <div class="overflow-x-auto rounded-lg border bg-card">
+                    <Table class="min-w-[500px]">
                         <TableHeader>
                             <TableRow class="bg-slate-50">
                                 <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Siswa</TableHead>

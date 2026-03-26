@@ -86,7 +86,7 @@ function stripHtml(html: string): string {
                     <Button variant="outline" size="sm" as-child>
                         <Link :href="`/guru/bank-soal/${questionBank.id}/edit`">
                             <Pencil class="size-4" />
-                            Edit
+                            <span class="hidden sm:inline">Edit</span>
                         </Link>
                     </Button>
 
@@ -95,7 +95,7 @@ function stripHtml(html: string): string {
                         <DialogTrigger as-child>
                             <Button variant="outline" size="sm">
                                 <FileUp class="size-4" />
-                                Import Soal
+                                <span class="hidden sm:inline">Import Soal</span>
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
@@ -142,7 +142,7 @@ function stripHtml(html: string): string {
                     <Button size="sm" as-child>
                         <Link :href="`/guru/bank-soal/${questionBank.id}/soal/create`">
                             <Plus class="size-4" />
-                            Tambah Soal
+                            <span class="hidden sm:inline">Tambah Soal</span>
                         </Link>
                     </Button>
                 </template>

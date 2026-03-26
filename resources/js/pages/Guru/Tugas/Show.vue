@@ -101,10 +101,10 @@ function getFinalScore(submission: AssignmentSubmission) {
             <PageHeader :title="assignment.title" :description="`${assignment.subject?.name} · ${assignment.classroom?.name} · Deadline: ${formatDate(assignment.deadline_at)}`" :icon="FileText">
                 <template #actions>
                     <Button variant="outline" size="sm" as-child v-if="assignment.file_path">
-                        <a :href="`/guru/tugas/${assignment.id}/download`"><Download class="size-4" />Lampiran</a>
+                        <a :href="`/guru/tugas/${assignment.id}/download`"><Download class="size-4" /><span class="hidden sm:inline">Lampiran</span></a>
                     </Button>
                     <Button variant="outline" size="sm" as-child>
-                        <Link :href="`/guru/tugas/${assignment.id}/edit`"><Pencil class="size-4" />Edit</Link>
+                        <Link :href="`/guru/tugas/${assignment.id}/edit`"><Pencil class="size-4" /><span class="hidden sm:inline">Edit</span></Link>
                     </Button>
                     <ConfirmDialog
                         title="Hapus Tugas?"
@@ -114,7 +114,7 @@ function getFinalScore(submission: AssignmentSubmission) {
                     >
                         <Button variant="destructive" size="sm">
                             <Trash2 class="size-4" />
-                            Hapus
+                            <span class="hidden sm:inline">Hapus</span>
                         </Button>
                     </ConfirmDialog>
                 </template>
@@ -129,8 +129,8 @@ function getFinalScore(submission: AssignmentSubmission) {
             </div>
 
             <!-- Submissions table -->
-            <div class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[650px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Siswa</TableHead>
@@ -189,7 +189,7 @@ function getFinalScore(submission: AssignmentSubmission) {
                                             <p class="font-medium mb-1">Jawaban Teks:</p>
                                             <p class="text-muted-foreground whitespace-pre-wrap">{{ submissions.find(s => s.user_id === student.id)?.content }}</p>
                                         </div>
-                                        <div class="flex gap-3 items-end">
+                                        <div class="flex flex-col sm:flex-row gap-3 sm:items-end">
                                             <div class="space-y-1">
                                                 <Label class="font-semibold text-sm">Nilai (0 - {{ assignment.max_score }})</Label>
                                                 <Input v-model.number="gradeForm.score" type="number" :min="0" :max="assignment.max_score" class="w-24 h-11" />

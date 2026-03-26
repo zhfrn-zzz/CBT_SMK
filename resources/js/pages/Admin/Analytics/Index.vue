@@ -100,7 +100,8 @@ function applyFilter(key: string, value: string | null) {
                         title="Belum ada data"
                         description="Belum ada data untuk filter yang dipilih."
                     />
-                    <Table v-else>
+                    <div v-else class="overflow-x-auto">
+                    <Table class="min-w-[700px]">
                         <TableHeader>
                             <TableRow class="bg-slate-50 hover:bg-slate-50 dark:bg-slate-800/50">
                                 <TableHead class="text-xs font-medium uppercase tracking-wider">Kelas</TableHead>
@@ -129,6 +130,7 @@ function applyFilter(key: string, value: string | null) {
                             </TableRow>
                         </TableBody>
                     </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>

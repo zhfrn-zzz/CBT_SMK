@@ -126,8 +126,8 @@ const gradeLevelLabel: Record<string, string> = {
                 </template>
             </DataTableToolbar>
 
-            <div v-if="classrooms.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
-                <Table>
+            <div v-if="classrooms.data.length > 0" class="overflow-x-auto rounded-lg border bg-card">
+                <Table class="min-w-[600px]">
                     <TableHeader>
                         <TableRow class="bg-slate-50">
                             <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama Kelas</TableHead>

@@ -95,7 +95,7 @@ function markComplete() {
             </Card>
 
             <!-- Mark complete -->
-            <div class="flex items-center justify-between border-t pt-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-t pt-4">
                 <div class="flex gap-2">
                     <Button v-if="prev" variant="outline" size="sm" as-child>
                         <Link :href="`/siswa/materi/${prev.id}`">

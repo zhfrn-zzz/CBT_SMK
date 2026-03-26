@@ -93,20 +93,17 @@ function copyToken() {
 
                     <Button variant="outline" size="sm" as-child>
                         <a :href="`/guru/ujian/${examSession.id}/edit`">
-                            <Pencil class="size-4" />
-                            Edit
+                            <Pencil class="size-4" /><span class="hidden sm:inline">Edit</span>
                         </a>
                     </Button>
                     <Button v-if="examSession.status === 'active'" size="sm" as-child>
                         <a :href="`/guru/ujian/${examSession.id}/proctor`">
-                            <MonitorCheck class="size-4" />
-                            Proctor
+                            <MonitorCheck class="size-4" /><span class="hidden sm:inline">Proctor</span>
                         </a>
                     </Button>
                     <Button variant="outline" size="sm" as-child>
                         <a :href="`/guru/ujian/${examSession.id}/print-pdf`" target="_blank">
-                            <Printer class="size-4 mr-1" />
-                            Cetak Soal
+                            <Printer class="size-4 sm:mr-1" /><span class="hidden sm:inline">Cetak Soal</span>
                         </a>
                     </Button>
                     <!-- Status actions -->
@@ -127,7 +124,7 @@ function copyToken() {
             </PageHeader>
 
             <!-- Info Cards -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader class="pb-2">
                         <CardTitle class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -225,8 +222,8 @@ function copyToken() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div class="overflow-hidden rounded-lg border bg-card">
-                        <Table>
+                    <div class="overflow-x-auto rounded-lg border bg-card">
+                        <Table class="min-w-[600px]">
                             <TableHeader>
                                 <TableRow class="bg-slate-50">
                                     <TableHead class="text-xs font-semibold uppercase tracking-wider">Nama</TableHead>

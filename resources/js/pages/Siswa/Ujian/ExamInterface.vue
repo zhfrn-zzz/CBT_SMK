@@ -28,6 +28,12 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import QuestionCard from '@/components/Exam/QuestionCard.vue';
 import NavigationPanel from '@/components/Exam/NavigationPanel.vue';
 import { useExamState } from '@/composables/useExamState';
@@ -155,9 +161,9 @@ onUnmounted(() => {
 
 // Timer styling
 const timerClass = computed(() => {
-    if (timer.isDanger.value) return 'text-2xl font-bold text-red-600 bg-red-50 px-4 py-1 rounded-lg animate-pulse';
-    if (timer.isWarning.value) return 'text-2xl font-bold text-amber-600 bg-amber-50 px-4 py-1 rounded-lg animate-pulse';
-    return 'text-2xl font-bold text-foreground';
+    if (timer.isDanger.value) return 'text-xl sm:text-2xl font-bold text-red-600 bg-red-50 px-3 sm:px-4 py-1 rounded-lg animate-pulse';
+    if (timer.isWarning.value) return 'text-xl sm:text-2xl font-bold text-amber-600 bg-amber-50 px-3 sm:px-4 py-1 rounded-lg animate-pulse';
+    return 'text-xl sm:text-2xl font-bold text-foreground';
 });
 
 // Keyboard navigation
@@ -184,7 +190,9 @@ function handleVisibilityChange() {
 }
 
 function handleFullscreenChange() {
-    if (!document.fullscreenElement) {
+    // Don't force fullscreen on mobile — often unsupported
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+    if (!document.fullscreenElement && !isMobile) {
         showFullscreenWarning.value = true;
         logActivity('fullscreen_exit', 'Keluar dari fullscreen');
     }
@@ -232,6 +240,10 @@ function logActivity(eventType: string, description: string) {
 }
 
 function requestFullscreen() {
+    // Don't force fullscreen on mobile — API often unsupported, just log
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+    if (isMobile) return;
+
     try {
         document.documentElement.requestFullscreen?.();
     } catch {
@@ -302,41 +314,60 @@ const isFlagged = computed(() =>
 
     <div class="flex min-h-screen flex-col bg-slate-50">
         <!-- Header Bar -->
-        <header class="h-14 bg-white border-b shadow-sm sticky top-0 z-50 px-4 flex items-center">
+        <header class="h-12 sm:h-14 bg-white border-b shadow-sm sticky top-0 z-50 px-3 sm:px-4 flex items-center">
             <!-- Left: Exam name -->
             <div class="flex items-center gap-2 flex-1 min-w-0">
-                <h1 class="text-base font-semibold truncate max-w-xs">{{ exam.name }}</h1>
+                <h1 class="text-sm sm:text-base font-semibold truncate max-w-[120px] sm:max-w-xs">{{ exam.name }}</h1>
                 <Badge variant="outline" class="hidden sm:inline-flex shrink-0">{{ exam.subject }}</Badge>
             </div>
 
             <!-- Center: Timer -->
             <div class="flex items-center justify-center flex-1">
-                <div class="tabular-nums flex items-center gap-2" :class="timerClass">
-                    <Clock class="size-5 shrink-0" />
+                <div class="tabular-nums flex items-center gap-1.5 sm:gap-2" :class="timerClass">
+                    <Clock class="size-4 sm:size-5 shrink-0" />
                     {{ timer.displayTime.value }}
                 </div>
             </div>
 
             <!-- Right: Actions -->
-            <div class="flex items-center gap-2 flex-1 justify-end">
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-1 justify-end">
                 <!-- Flag Button -->
-                <Button
-                    variant="outline"
-                    size="sm"
-                    :class="isFlagged ? 'border-amber-400 bg-amber-50 text-amber-700' : ''"
-                    @click="handleToggleFlag"
-                >
-                    <Flag class="size-4" />
-                    <span class="hidden sm:inline">{{ isFlagged ? 'Ditandai' : 'Tandai' }}</span>
-                </Button>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                class="size-10 p-0 sm:size-auto sm:h-8 sm:px-3"
+                                :class="isFlagged ? 'border-amber-400 bg-amber-50 text-amber-700' : ''"
+                                @click="handleToggleFlag"
+                            >
+                                <Flag class="size-4" />
+                                <span class="hidden sm:inline">{{ isFlagged ? 'Ditandai' : 'Tandai' }}</span>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" class="sm:hidden">
+                            <p>{{ isFlagged ? 'Ditandai' : 'Tandai Soal' }}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
 
                 <!-- Submit Button -->
                 <AlertDialog>
                     <AlertDialogTrigger as-child>
-                        <Button size="sm" :disabled="isSubmitting">
-                            <CheckCircle class="size-4" />
-                            <span class="hidden sm:inline">Selesai</span>
-                        </Button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <Button size="sm" :disabled="isSubmitting" class="size-10 p-0 sm:size-auto sm:h-8 sm:px-3">
+                                        <CheckCircle class="size-4" />
+                                        <span class="hidden sm:inline">Selesai</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" class="sm:hidden">
+                                    <p>Selesai</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader>
@@ -385,7 +416,7 @@ const isFlagged = computed(() =>
         <!-- Main Content -->
         <div class="flex flex-1 overflow-hidden">
             <!-- Question Area -->
-            <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+            <main class="flex-1 overflow-y-auto p-4 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] sm:p-6 sm:pb-6">
                 <div class="max-w-3xl mx-auto">
                     <QuestionCard
                         v-if="currentQuestion"
@@ -398,8 +429,8 @@ const isFlagged = computed(() =>
                         @toggle-flag="handleToggleFlag"
                     />
 
-                    <!-- Navigation Buttons -->
-                    <div class="flex items-center justify-between mt-8">
+                    <!-- Navigation Buttons (Desktop only) -->
+                    <div class="hidden sm:flex items-center justify-between mt-8">
                         <Button
                             variant="outline"
                             class="h-11"
@@ -423,7 +454,7 @@ const isFlagged = computed(() =>
             </main>
 
             <!-- Sidebar: Navigation Panel (Desktop) -->
-            <aside class="hidden lg:block w-72 bg-white border-l overflow-y-auto p-4 sticky top-14">
+            <aside class="hidden lg:block w-72 bg-white border-l overflow-y-auto p-4 sticky top-12 sm:top-14">
                 <NavigationPanel
                     :questions="state.questions"
                     :current-index="state.currentQuestionIndex"
@@ -437,8 +468,8 @@ const isFlagged = computed(() =>
             </aside>
         </div>
 
-        <!-- Footer Bar -->
-        <footer class="h-10 bg-white border-t px-4 flex items-center justify-between text-sm">
+        <!-- Footer Bar (Desktop only) -->
+        <footer class="hidden sm:flex h-10 bg-white border-t px-4 items-center justify-between text-sm">
             <!-- Left: Auto-save indicator -->
             <div class="flex items-center gap-1.5">
                 <template v-if="autoSave.isSaving.value">
@@ -463,35 +494,81 @@ const isFlagged = computed(() =>
                 <span class="text-muted-foreground">
                     Soal {{ state.currentQuestionIndex + 1 }} dari {{ state.totalQuestions }}
                 </span>
-
-                <!-- Mobile Nav Trigger -->
-                <Sheet>
-                    <SheetTrigger as-child>
-                        <Button variant="outline" size="sm" class="lg:hidden gap-1">
-                            <ListChecks class="size-4" />
-                            {{ answeredCount }}/{{ state.totalQuestions }}
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="bottom" class="max-h-[70vh] overflow-y-auto">
-                        <SheetHeader>
-                            <SheetTitle>Navigasi Soal</SheetTitle>
-                        </SheetHeader>
-                        <div class="mt-4">
-                            <NavigationPanel
-                                :questions="state.questions"
-                                :current-index="state.currentQuestionIndex"
-                                :get-status="getQuestionStatus"
-                                :answered-count="answeredCount"
-                                :flagged-count="flaggedCount"
-                                :unanswered-count="unansweredCount"
-                                :total-questions="state.totalQuestions"
-                                @go-to="goToQuestion"
-                            />
-                        </div>
-                    </SheetContent>
-                </Sheet>
             </div>
         </footer>
+
+        <!-- Mobile Bottom Bar -->
+        <div class="fixed bottom-0 inset-x-0 z-40 bg-white border-t sm:hidden" style="padding-bottom: env(safe-area-inset-bottom, 0px)">
+            <!-- Auto-save status -->
+            <div class="flex items-center justify-center gap-1.5 px-3 py-1 text-xs">
+                <template v-if="autoSave.isSaving.value">
+                    <Loader2 class="size-3 animate-spin text-muted-foreground" />
+                    <span class="text-muted-foreground">Menyimpan...</span>
+                </template>
+                <template v-else-if="autoSave.saveError.value">
+                    <X class="size-3 text-red-500" />
+                    <span class="text-red-500">Gagal menyimpan</span>
+                </template>
+                <template v-else-if="lastSavedSecondsAgo !== null">
+                    <Check class="size-3 text-emerald-600" />
+                    <span class="text-emerald-600">Tersimpan {{ lastSavedSecondsAgo }}s lalu</span>
+                </template>
+                <template v-else>
+                    <span class="text-muted-foreground">Belum disimpan</span>
+                </template>
+            </div>
+            <!-- Prev/Next buttons -->
+            <div class="grid grid-cols-2 gap-2 px-3 pb-3">
+                <Button
+                    variant="outline"
+                    class="h-14"
+                    :disabled="state.currentQuestionIndex === 0"
+                    @click="prevQuestion"
+                >
+                    <ChevronLeft class="size-5" />
+                    Sebelumnya
+                </Button>
+                <Button
+                    class="h-14"
+                    :disabled="state.currentQuestionIndex === state.questions.length - 1"
+                    @click="nextQuestion"
+                >
+                    Berikutnya
+                    <ChevronRight class="size-5" />
+                </Button>
+            </div>
+        </div>
+
+        <!-- Mobile Floating Nav Trigger -->
+        <Sheet>
+            <SheetTrigger as-child>
+                <Button
+                    variant="default"
+                    class="fixed z-40 rounded-full shadow-lg sm:hidden"
+                    style="bottom: calc(6rem + env(safe-area-inset-bottom, 0px)); right: 1rem;"
+                >
+                    <ListChecks class="size-4" />
+                    {{ answeredCount }}/{{ state.totalQuestions }}
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" class="max-h-[50vh] overflow-y-auto">
+                <SheetHeader>
+                    <SheetTitle>Navigasi Soal</SheetTitle>
+                </SheetHeader>
+                <div class="mt-4">
+                    <NavigationPanel
+                        :questions="state.questions"
+                        :current-index="state.currentQuestionIndex"
+                        :get-status="getQuestionStatus"
+                        :answered-count="answeredCount"
+                        :flagged-count="flaggedCount"
+                        :unanswered-count="unansweredCount"
+                        :total-questions="state.totalQuestions"
+                        @go-to="goToQuestion"
+                    />
+                </div>
+            </SheetContent>
+        </Sheet>
 
         <!-- Tab Switch Warning Dialog -->
         <AlertDialog :open="showTabWarning" @update:open="showTabWarning = $event">

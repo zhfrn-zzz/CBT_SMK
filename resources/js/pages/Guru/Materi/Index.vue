@@ -168,8 +168,8 @@ const typeLabel = (type: string) => {
 
             <!-- Materials Table -->
             <template v-else-if="materials && materials.data.length > 0">
-                <div class="overflow-hidden rounded-lg border bg-card">
-                    <Table>
+                <div class="overflow-x-auto rounded-lg border bg-card">
+                    <Table class="min-w-[600px]">
                         <TableHeader>
                             <TableRow class="bg-slate-50">
                                 <TableHead class="text-xs font-semibold uppercase tracking-wider">Judul</TableHead>

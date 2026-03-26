@@ -129,7 +129,7 @@ function submit() {
 
                         <div class="space-y-2">
                             <Label class="font-semibold text-sm">Tipe Submission</Label>
-                            <div class="flex gap-4">
+                            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                                 <label class="flex items-center gap-2 cursor-pointer">
                                     <input type="radio" v-model="form.submission_type" value="file" class="accent-primary" /> Upload File
                                 </label>

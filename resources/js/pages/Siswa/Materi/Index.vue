@@ -69,13 +69,13 @@ const typeLabel = (type: string) => ({ file: 'File', video_link: 'Video', text: 
             <DataTableToolbar>
                 <template #filters>
                     <Select v-model="classroomId">
-                        <SelectTrigger class="w-[180px]"><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
+                        <SelectTrigger class="w-full sm:w-[180px]"><SelectValue placeholder="Pilih Kelas" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="c in classrooms" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
                         </SelectContent>
                     </Select>
                     <Select v-model="subjectId" :disabled="!classroomId">
-                        <SelectTrigger class="w-[220px]"><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
+                        <SelectTrigger class="w-full sm:w-[220px]"><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="s in currentClassroom?.subjects ?? []" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
                         </SelectContent>

@@ -220,3 +220,27 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Mobile responsive utilities */
+@layer utilities {
+    .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .safe-area-top {
+        padding-top: env(safe-area-inset-top, 0px);
+    }
+}
+
+/* Ensure touch targets and prevent horizontal overflow */
+@layer base {
+    @media (max-width: 639px) {
+        .prose {
+            font-size: 1rem;
+            line-height: 1.625;
+        }
+        .prose img {
+            max-width: 100%;
+            height: auto;
+        }
+    }
+}
