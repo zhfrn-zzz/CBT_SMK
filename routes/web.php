@@ -7,9 +7,11 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\ClassroomController;
+use App\Http\Controllers\Admin\CredentialController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DataExchangeController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StorageController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserController;
@@ -64,6 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // User management
         Route::resource('users', UserController::class)->except(['show']);
         Route::post('users/import', [UserImportController::class, 'import'])->middleware('throttle:bulk-import')->name('users.import');
+        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+
+        // Credential downloads
+        Route::get('credentials/{key}/pdf', [CredentialController::class, 'downloadPdf'])->name('credentials.pdf');
+        Route::get('credentials/{key}/excel', [CredentialController::class, 'downloadExcel'])->name('credentials.excel');
 
         // Academic structure
         Route::resource('academic-years', AcademicYearController::class)->except(['show']);
@@ -105,6 +112,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('storage', [StorageController::class, 'index'])->name('storage.index');
         Route::get('storage/scan', [StorageController::class, 'scan'])->name('storage.scan');
         Route::post('storage/cleanup', [StorageController::class, 'cleanup'])->name('storage.cleanup');
+
+        // System Settings
+        Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::put('settings/general', [SettingController::class, 'updateGeneral'])->name('settings.update-general');
+        Route::put('settings/appearance', [SettingController::class, 'updateAppearance'])->name('settings.update-appearance');
+        Route::put('settings/exam', [SettingController::class, 'updateExam'])->name('settings.update-exam');
+        Route::put('settings/email', [SettingController::class, 'updateEmail'])->name('settings.update-email');
     });
 
     // Guru routes

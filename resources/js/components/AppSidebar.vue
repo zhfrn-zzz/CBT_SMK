@@ -19,6 +19,7 @@ import {
     MessageSquare,
     Monitor,
     School,
+    Settings,
     UserCheck,
     Users,
 } from 'lucide-vue-next';
@@ -65,6 +66,7 @@ const adminNavGroups: NavGroup[] = [
             { title: 'Pertukaran Data', href: '/admin/data-exchange/export-students', icon: ArrowLeftRight },
             { title: 'Audit Log', href: '/admin/audit-log', icon: FileText },
             { title: 'Analitik', href: '/admin/analytics', icon: BarChart3 },
+            { title: 'Pengaturan', href: '/admin/settings', icon: Settings },
         ],
     },
 ];

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import Pagination from '@/components/Pagination.vue';
@@ -30,8 +30,17 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Pencil, Plus, Trash2, Upload, Users } from 'lucide-vue-next';
+import { MoreHorizontal, Pencil, Plus, Trash2, Upload, Users, KeyRound, Copy, Check, Download, FileSpreadsheet, FileText, AlertTriangle } from 'lucide-vue-next';
 import type { BreadcrumbItem, Classroom, Department, PaginatedData, User } from '@/types';
 
 const props = defineProps<{
@@ -117,6 +126,77 @@ const colSpan = computed(() => {
     if (isGuruView.value) base += 1; // Mengajar
     return base;
 });
+
+// ── Reset Password ──────────────────────────────────────────────────
+const showResetModal = ref(false);
+const resetResult = ref<{ name: string; username: string; password: string } | null>(null);
+const resetLoading = ref(false);
+const resetCopied = ref(false);
+const confirmResetUserId = ref<number | null>(null);
+const confirmResetUserName = ref('');
+
+function confirmResetPassword(user: User) {
+    confirmResetUserId.value = user.id;
+    confirmResetUserName.value = user.name;
+}
+
+function doResetPassword() {
+    if (!confirmResetUserId.value) return;
+    resetLoading.value = true;
+
+    fetch(`/admin/users/${confirmResetUserId.value}/reset-password`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+        .then(res => res.json())
+        .then(data => {
+            resetResult.value = data;
+            showResetModal.value = true;
+            confirmResetUserId.value = null;
+        })
+        .finally(() => { resetLoading.value = false; });
+}
+
+function copyResetPassword() {
+    if (resetResult.value) {
+        navigator.clipboard.writeText(resetResult.value.password);
+        resetCopied.value = true;
+        setTimeout(() => { resetCopied.value = false; }, 2000);
+    }
+}
+
+// ── Credential Download Banner ──────────────────────────────────────
+const page = usePage();
+const flash = computed(() => page.props.flash as Record<string, string | number | null>);
+const credentialKey = computed(() => flash.value?.credential_key as string | null);
+const credentialCount = computed(() => flash.value?.credential_count as number | null);
+const countdown = ref(30 * 60); // 30 minutes
+let countdownInterval: ReturnType<typeof setInterval> | null = null;
+
+onMounted(() => {
+    if (credentialKey.value) {
+        countdownInterval = setInterval(() => {
+            countdown.value--;
+            if (countdown.value <= 0 && countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+    }
+});
+
+onUnmounted(() => {
+    if (countdownInterval) clearInterval(countdownInterval);
+});
+
+const countdownDisplay = computed(() => {
+    const m = Math.floor(countdown.value / 60);
+    const s = countdown.value % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+});
 </script>
 
 <template>
@@ -125,6 +205,31 @@ const colSpan = computed(() => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
+
+            <!-- Credential Download Banner -->
+            <Alert v-if="credentialKey && countdown > 0" class="border-blue-200 bg-blue-50">
+                <Download class="size-4 text-blue-600" />
+                <AlertTitle class="text-blue-800">Import Berhasil — Download Kredensial</AlertTitle>
+                <AlertDescription class="text-blue-700">
+                    <p class="mb-3">{{ credentialCount }} siswa berhasil diimport. Download kredensial sebelum expired.</p>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <Button variant="default" size="sm" as-child>
+                            <a :href="`/admin/credentials/${credentialKey}/pdf`" target="_blank">
+                                <FileText class="mr-1 size-4" />Download PDF
+                            </a>
+                        </Button>
+                        <Button variant="outline" size="sm" as-child>
+                            <a :href="`/admin/credentials/${credentialKey}/excel`" target="_blank">
+                                <FileSpreadsheet class="mr-1 size-4" />Download Excel
+                            </a>
+                        </Button>
+                        <Badge variant="secondary" class="text-xs">
+                            <AlertTriangle class="mr-1 size-3" />
+                            Expired dalam {{ countdownDisplay }}
+                        </Badge>
+                    </div>
+                </AlertDescription>
+            </Alert>
 
             <PageHeader title="Manajemen Pengguna" description="Kelola data pengguna sistem" :icon="Users">
                 <template #actions>
@@ -254,6 +359,12 @@ const colSpan = computed(() => {
                                                 <Pencil class="mr-2 size-4" />Edit
                                             </Link>
                                         </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            v-if="user.role === 'siswa'"
+                                            @select.prevent="confirmResetPassword(user)"
+                                        >
+                                            <KeyRound class="mr-2 size-4" />Reset Password
+                                        </DropdownMenuItem>
                                         <ConfirmDialog
                                             @confirm="deleteUser(user.id)"
                                             :description="`Apakah Anda yakin ingin menghapus ${user.name}? Tindakan ini tidak dapat dibatalkan.`"
@@ -282,5 +393,49 @@ const colSpan = computed(() => {
                 :total="users.total"
             />
         </div>
+
+        <!-- Reset Password Confirm Dialog -->
+        <ConfirmDialog
+            :open="!!confirmResetUserId"
+            :description="`Reset password untuk ${confirmResetUserName}? Password baru akan di-generate otomatis.`"
+            @confirm="doResetPassword"
+            @cancel="confirmResetUserId = null"
+        />
+
+        <!-- Reset Password Result Modal -->
+        <Dialog v-model:open="showResetModal">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Password Berhasil Direset</DialogTitle>
+                    <DialogDescription>Catat password baru berikut. Hanya ditampilkan sekali.</DialogDescription>
+                </DialogHeader>
+                <div v-if="resetResult" class="space-y-3">
+                    <div class="rounded-lg border p-4 space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-muted-foreground">Nama</span>
+                            <span class="text-sm font-medium">{{ resetResult.name }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-muted-foreground">NIS</span>
+                            <span class="text-sm font-medium">{{ resetResult.username }}</span>
+                        </div>
+                        <div class="flex items-center justify-between border-t pt-2">
+                            <span class="text-sm text-muted-foreground">Password Baru</span>
+                            <span class="text-lg font-bold font-mono select-all">{{ resetResult.password }}</span>
+                        </div>
+                    </div>
+                    <Alert variant="destructive">
+                        <AlertDescription>Password ini hanya ditampilkan sekali. Pastikan sudah dicatat.</AlertDescription>
+                    </Alert>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" @click="copyResetPassword">
+                        <component :is="resetCopied ? Check : Copy" class="mr-2 size-4" />
+                        {{ resetCopied ? 'Tersalin!' : 'Salin Password' }}
+                    </Button>
+                    <Button @click="showResetModal = false">Tutup</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>

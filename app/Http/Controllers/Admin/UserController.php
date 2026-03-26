@@ -13,9 +13,12 @@ use App\Models\Department;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\User;
+use App\Services\AuditService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -149,11 +152,20 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
+        // Auto-generate password for siswa if empty
+        $generatedPassword = null;
+        $password = $validated['password'] ?? null;
+
+        if ($validated['role'] === UserRole::Siswa->value && empty($password)) {
+            $password = Str::random(8);
+            $generatedPassword = $password;
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'] ?? null,
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($password),
             'role' => $validated['role'],
             'is_active' => $validated['is_active'] ?? true,
         ]);
@@ -174,8 +186,16 @@ class UserController extends Controller
             }
         }
 
-        return redirect()->route('admin.users.index')
+        $redirect = redirect()->route('admin.users.index')
             ->with('success', 'Pengguna berhasil ditambahkan.');
+
+        if ($generatedPassword) {
+            $redirect->with('generated_password', $generatedPassword)
+                ->with('generated_user_name', $user->name)
+                ->with('generated_user_username', $user->username);
+        }
+
+        return $redirect;
     }
 
     public function edit(User $user): Response
@@ -217,5 +237,27 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', 'Pengguna berhasil dihapus.');
+    }
+
+    public function resetPassword(User $user, AuditService $auditService): JsonResponse
+    {
+        abort_unless($user->isSiswa(), 403, 'Hanya password siswa yang dapat direset.');
+
+        $password = Str::random(8);
+        $user->update(['password' => Hash::make($password)]);
+
+        $auditService->log(
+            'password_reset',
+            User::class,
+            $user->id,
+            ['target_user' => $user->name],
+            "Password reset untuk {$user->name} oleh " . auth()->user()->name,
+        );
+
+        return response()->json([
+            'password' => $password,
+            'name' => $user->name,
+            'username' => $user->username,
+        ]);
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
@@ -20,7 +20,16 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, UserPlus } from 'lucide-vue-next';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Plus, Trash2, UserPlus, Copy, Check } from 'lucide-vue-next';
 import type { AcademicYear, Classroom, Department, Subject, BreadcrumbItem } from '@/types';
 
 const props = defineProps<{
@@ -124,6 +133,30 @@ function handleFileChange(e: Event) {
     const target = e.target as HTMLInputElement;
     importForm.file = target.files?.[0] ?? null;
 }
+
+// Generated password modal
+const page = usePage();
+const showPasswordModal = ref(false);
+const copied = ref(false);
+
+const flashPassword = computed(() => (page.props.flash as Record<string, string | null>)?.generated_password);
+const flashUserName = computed(() => (page.props.flash as Record<string, string | null>)?.generated_user_name);
+const flashUserUsername = computed(() => (page.props.flash as Record<string, string | null>)?.generated_user_username);
+
+watch(flashPassword, (val) => {
+    if (val) showPasswordModal.value = true;
+}, { immediate: true });
+
+function copyPassword() {
+    if (flashPassword.value) {
+        navigator.clipboard.writeText(flashPassword.value);
+        copied.value = true;
+        setTimeout(() => { copied.value = false; }, 2000);
+    }
+}
+
+const isSiswaRole = computed(() => form.role === 'siswa');
+
 </script>
 
 <template>
@@ -159,8 +192,12 @@ function handleFileChange(e: Event) {
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="password" class="font-semibold text-sm">Password <span class="text-destructive">*</span></Label>
-                                <Input id="password" v-model="form.password" type="password" placeholder="Minimal 8 karakter" class="h-11" />
+                                <Label for="password" class="font-semibold text-sm">
+                                    Password
+                                    <span v-if="!isSiswaRole" class="text-destructive">*</span>
+                                </Label>
+                                <Input id="password" v-model="form.password" type="password" :placeholder="isSiswaRole ? 'Kosongkan untuk auto-generate' : 'Minimal 8 karakter'" class="h-11" />
+                                <p v-if="isSiswaRole" class="text-xs text-muted-foreground">Jika dikosongkan, password akan di-generate otomatis.</p>
                                 <InputError :message="form.errors.password" />
                             </div>
 
@@ -404,5 +441,44 @@ function handleFileChange(e: Event) {
                 </Card>
             </div>
         </div>
+
+        <!-- Generated Password Modal -->
+        <Dialog v-model:open="showPasswordModal">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Siswa Berhasil Dibuat</DialogTitle>
+                    <DialogDescription>
+                        Catat kredensial berikut. Password hanya ditampilkan sekali.
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="space-y-3">
+                    <div class="rounded-lg border p-4 space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-muted-foreground">Nama</span>
+                            <span class="text-sm font-medium">{{ flashUserName }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-muted-foreground">NIS</span>
+                            <span class="text-sm font-medium">{{ flashUserUsername }}</span>
+                        </div>
+                        <Separator />
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-muted-foreground">Password</span>
+                            <span class="text-lg font-bold font-mono select-all">{{ flashPassword }}</span>
+                        </div>
+                    </div>
+                    <Alert variant="destructive">
+                        <AlertDescription>Password ini hanya ditampilkan sekali. Pastikan sudah dicatat.</AlertDescription>
+                    </Alert>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" @click="copyPassword">
+                        <component :is="copied ? Check : Copy" class="mr-2 size-4" />
+                        {{ copied ? 'Tersalin!' : 'Salin Password' }}
+                    </Button>
+                    <Button @click="showPasswordModal = false">Tutup</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>

@@ -38,7 +38,7 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            'name' => config('app.name'),
+            'name' => fn () => setting('app_name', config('app.name')),
             'auth' => [
                 'user' => $request->user() ? array_merge(
                     $request->user()->toArray(),
@@ -56,6 +56,16 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
+                'generated_password' => fn () => $request->session()->get('generated_password'),
+                'generated_user_name' => fn () => $request->session()->get('generated_user_name'),
+                'generated_user_username' => fn () => $request->session()->get('generated_user_username'),
+                'credential_key' => fn () => $request->session()->get('credential_key'),
+                'credential_count' => fn () => $request->session()->get('credential_count'),
+            ],
+            'app_settings' => fn () => [
+                'app_name' => setting('app_name', config('app.name')),
+                'school_name' => setting('school_name', config('school.name')),
+                'logo_path' => setting('logo_path', config('school.logo_path')),
             ],
         ];
     }

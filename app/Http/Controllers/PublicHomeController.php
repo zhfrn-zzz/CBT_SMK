@@ -33,10 +33,10 @@ class PublicHomeController extends Controller
             'announcements' => $announcements,
             'examSchedules' => $examSchedules,
             'school' => [
-                'name' => config('school.name'),
-                'address' => config('school.address'),
-                'logo_path' => config('school.logo_path'),
-                'tagline' => config('school.tagline'),
+                'name' => setting('school_name', config('school.name')),
+                'address' => setting('school_address', config('school.address')),
+                'logo_path' => setting('logo_path', config('school.logo_path')),
+                'tagline' => setting('school_tagline', config('school.tagline')),
             ],
         ]);
     }

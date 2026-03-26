@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Imports\StudentImport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
@@ -27,10 +29,17 @@ class UserImportController extends Controller
             $import = new StudentImport();
             Excel::import($import, $request->file('file'));
 
-            $count = count($import->getResults());
+            $results = $import->getResults();
+            $count = count($results);
+
+            // Store credentials in cache for download (TTL 30 minutes)
+            $credentialKey = Str::uuid()->toString();
+            Cache::put("credentials:{$credentialKey}", $results, 1800);
 
             return redirect()->route('admin.users.index')
-                ->with('success', "{$count} siswa berhasil diimport.");
+                ->with('success', "{$count} siswa berhasil diimport.")
+                ->with('credential_key', $credentialKey)
+                ->with('credential_count', $count);
         } catch (ValidationException $e) {
             $failures = $e->failures();
             $errors = [];

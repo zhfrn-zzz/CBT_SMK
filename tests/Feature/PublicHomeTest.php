@@ -131,8 +131,18 @@ it('shows dashboard button when authenticated', function () {
 });
 
 it('loads school config values correctly', function () {
-    config(['school.name' => 'SMK Test']);
-    config(['school.tagline' => 'Tagline Test']);
+    // Seed settings for the test
+    \App\Models\Setting::updateOrCreate(
+        ['key' => 'school_name'],
+        ['group' => 'general', 'value' => 'SMK Test', 'type' => 'string'],
+    );
+    \App\Models\Setting::updateOrCreate(
+        ['key' => 'school_tagline'],
+        ['group' => 'general', 'value' => 'Tagline Test', 'type' => 'string'],
+    );
+
+    // Clear cache to ensure fresh values
+    app(\App\Services\SettingService::class)->clearCache();
 
     $response = $this->get('/');
 

@@ -29,7 +29,13 @@ class UserRequest extends FormRequest
         ];
 
         if ($this->isMethod('POST')) {
-            $rules['password'] = ['required', 'string', Password::defaults()];
+            // Password required for non-siswa, optional for siswa (auto-generate)
+            $role = $this->input('role');
+            if ($role === UserRole::Siswa->value) {
+                $rules['password'] = ['nullable', 'string', Password::defaults()];
+            } else {
+                $rules['password'] = ['required', 'string', Password::defaults()];
+            }
         } else {
             $rules['password'] = ['nullable', 'string', Password::defaults()];
         }

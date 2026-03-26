@@ -10,3 +10,4 @@ export * from './audit';
 export * from './forum';
 export * from './calendar';
 export * from './storage';
+export * from './settings';

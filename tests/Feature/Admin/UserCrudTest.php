@@ -170,14 +170,31 @@ test('create user requires unique username', function () {
     $response->assertSessionHasErrors('username');
 });
 
-test('create user requires password', function () {
+test('create user requires password for non-siswa', function () {
     $response = $this->actingAs($this->admin)->post(route('admin.users.store'), [
         'name' => 'No Password',
         'username' => '10005',
-        'role' => UserRole::Siswa->value,
+        'role' => UserRole::Guru->value,
     ]);
 
     $response->assertSessionHasErrors('password');
+});
+
+test('create siswa without password auto-generates one', function () {
+    $response = $this->actingAs($this->admin)->post(route('admin.users.store'), [
+        'name' => 'Siswa Auto',
+        'username' => '10005',
+        'role' => UserRole::Siswa->value,
+        'is_active' => true,
+    ]);
+
+    $response->assertRedirect(route('admin.users.index'));
+    $response->assertSessionHas('generated_password');
+
+    $this->assertDatabaseHas('users', [
+        'username' => '10005',
+        'role' => UserRole::Siswa->value,
+    ]);
 });
 
 test('create user requires valid role', function () {
