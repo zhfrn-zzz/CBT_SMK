@@ -21,6 +21,7 @@ import {
     School,
     Settings,
     UserCheck,
+    UserCog,
     Users,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -52,6 +53,7 @@ const adminNavGroups: NavGroup[] = [
         label: 'Manajemen',
         items: [
             { title: 'Pengguna', href: '/admin/users', icon: Users },
+            { title: 'Data Guru', href: '/admin/guru', icon: UserCog },
             { title: 'Jurusan', href: '/admin/departments', icon: GraduationCap },
             { title: 'Kelas', href: '/admin/classrooms', icon: School },
             { title: 'Mata Pelajaran', href: '/admin/subjects', icon: BookOpen },

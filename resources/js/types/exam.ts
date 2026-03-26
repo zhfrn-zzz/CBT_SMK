@@ -253,6 +253,7 @@ export type ExamPayload = {
     remaining_seconds: number;
     tab_switch_count?: number;
     security_hardening?: boolean;
+    watermark_enabled?: boolean;
 };
 
 export type SaveAnswersResponse = {

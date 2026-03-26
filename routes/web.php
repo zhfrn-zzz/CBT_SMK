@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\CredentialController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DataExchangeController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\GuruController;
+use App\Http\Controllers\Admin\GuruImportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StorageController;
 use App\Http\Controllers\Admin\SubjectController;
@@ -84,6 +86,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('classrooms/{classroom}/assign-teacher', [ClassroomController::class, 'assignTeacher'])->name('classrooms.assign-teacher');
         Route::delete('classrooms/{classroom}/remove-teacher/{assignmentId}', [ClassroomController::class, 'removeTeacher'])->name('classrooms.remove-teacher');
 
+        // Guru management
+        Route::post('guru/import', [GuruImportController::class, 'import'])->middleware('throttle:bulk-import')->name('guru.import');
+        Route::get('guru/import/template', [GuruImportController::class, 'template'])->name('guru.import-template');
+        Route::resource('guru', GuruController::class)->except(['show'])
+            ->parameters(['guru' => 'guru']);
+        Route::post('guru/{guru}/reset-password', [GuruController::class, 'resetPassword'])->name('guru.reset-password');
+
         Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
         Route::post('backup', [BackupController::class, 'store'])->name('backup.store');
 
@@ -148,6 +157,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->parameters(['ujian' => 'ujian']);
         Route::patch('ujian/{ujian}/status', [ExamSessionController::class, 'updateStatus'])->name('ujian.update-status');
         Route::get('ujian/{ujian}/print-pdf', [ExamSessionController::class, 'printPdf'])->name('ujian.print-pdf');
+        Route::get('ujian/{ujian}/print-cards', [ExamSessionController::class, 'printParticipantCards'])->name('ujian.print-cards');
         Route::get('ujian/{ujian}/remedial', [ExamSessionController::class, 'createRemedial'])->name('ujian.create-remedial');
         Route::post('ujian/{ujian}/remedial', [ExamSessionController::class, 'storeRemedial'])->name('ujian.store-remedial');
 

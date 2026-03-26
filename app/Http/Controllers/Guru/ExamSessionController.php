@@ -21,6 +21,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -319,6 +320,54 @@ class ExamSessionController extends Controller
         $pdf->setPaper('A4', 'portrait');
 
         $filename = 'soal-'.str_replace(' ', '-', strtolower($ujian->name)).'.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Generate PDF of participant cards for printing.
+     */
+    public function printParticipantCards(ExamSession $ujian): \Illuminate\Http\Response
+    {
+        $this->authorize('view', $ujian);
+
+        $ujian->load(['subject', 'classrooms.students', 'classrooms.department']);
+
+        if ($ujian->classrooms->isEmpty()) {
+            abort(422, 'Belum ada kelas yang ditugaskan untuk ujian ini.');
+        }
+
+        $students = $ujian->classrooms->flatMap(function ($classroom) {
+            return $classroom->students->map(function ($student) use ($classroom) {
+                $nameParts = explode(' ', trim($student->name));
+                $initials = strtoupper(substr($nameParts[0], 0, 1) . (isset($nameParts[1]) ? substr($nameParts[1], 0, 1) : ''));
+
+                return [
+                    'name' => $student->name,
+                    'nis' => $student->username,
+                    'classroom' => $classroom->name,
+                    'department' => $classroom->department?->name,
+                    'photo_path' => $student->photo_path ?? null,
+                    'initials' => $initials,
+                ];
+            });
+        })->sortBy('name')->values();
+
+        $logoPath = setting('logo_path');
+        $schoolName = setting('school_name', config('app.name', 'SMK'));
+        $examDate = Carbon::parse($ujian->starts_at)->translatedFormat('d F Y');
+
+        $pdf = Pdf::loadView('pdf.participant-cards', [
+            'examSession' => $ujian,
+            'students' => $students,
+            'logoPath' => $logoPath,
+            'schoolName' => $schoolName,
+            'examDate' => $examDate,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = 'kartu-peserta-' . str_replace(' ', '-', strtolower($ujian->name)) . '.pdf';
 
         return $pdf->download($filename);
     }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/tooltip';
 import QuestionCard from '@/components/Exam/QuestionCard.vue';
 import NavigationPanel from '@/components/Exam/NavigationPanel.vue';
+import WatermarkOverlay from '@/components/Exam/WatermarkOverlay.vue';
 import { useExamState } from '@/composables/useExamState';
 import { useExamTimer } from '@/composables/useExamTimer';
 import { useAutoSave } from '@/composables/useAutoSave';
@@ -645,5 +646,10 @@ const isFlagged = computed(() =>
                 </div>
             </DialogContent>
         </Dialog>
+
+        <WatermarkOverlay
+            :enabled="props.watermark_enabled ?? false"
+            :student-name="(usePage().props.auth as { user: { name: string } }).user.name"
+        />
     </div>
 </template>

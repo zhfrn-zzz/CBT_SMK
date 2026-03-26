@@ -210,6 +210,7 @@ class ExamAttemptService
             'remaining_seconds' => $remaining,
             'tab_switch_count' => $tabSwitchCount,
             'security_hardening' => (bool) config('exam.security_hardening', true),
+            'watermark_enabled' => (bool) setting('watermark_enabled', false),
         ];
     }
 

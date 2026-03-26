@@ -22,7 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { BookOpen, Calendar, ClipboardList, Clock, Copy, Hash, MonitorCheck, Pencil, Printer, Users } from 'lucide-vue-next';
+import { BookOpen, Calendar, ClipboardList, Clock, Copy, Hash, IdCard, MonitorCheck, Pencil, Printer, Users } from 'lucide-vue-next';
 import type { BreadcrumbItem, ExamSession, ExamStatus } from '@/types';
 
 const props = defineProps<{
@@ -104,6 +104,20 @@ function copyToken() {
                     <Button variant="outline" size="sm" as-child>
                         <a :href="`/guru/ujian/${examSession.id}/print-pdf`" target="_blank">
                             <Printer class="size-4 sm:mr-1" /><span class="hidden sm:inline">Cetak Soal</span>
+                        </a>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        as-child
+                        :disabled="!examSession.classrooms?.length"
+                    >
+                        <a
+                            :href="`/guru/ujian/${examSession.id}/print-cards`"
+                            target="_blank"
+                            :class="{ 'pointer-events-none opacity-50': !examSession.classrooms?.length }"
+                        >
+                            <IdCard class="size-4 sm:mr-1" /><span class="hidden sm:inline">Cetak Kartu Peserta</span>
                         </a>
                     </Button>
                     <!-- Status actions -->
