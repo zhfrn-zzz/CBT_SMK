@@ -51,28 +51,17 @@
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead
 
-        {{-- Dynamic brand colors from admin settings — MUST be after @vite to override app.css --}}
+        {{-- Dynamic brand colors from admin settings — applied via JS to guarantee override even in Vite dev mode --}}
         @php
             $primaryColor = setting('primary_color', '#2563eb');
+            $secondaryColor = setting('secondary_color', '#64748b');
         @endphp
-        @if ($primaryColor !== '#2563eb')
-        <style>
-            :root {
-                --primary: {{ $primaryColor }};
-                --ring: {{ $primaryColor }};
-                --sidebar-primary: {{ $primaryColor }};
-                --sidebar-ring: {{ $primaryColor }};
-                --chart-1: {{ $primaryColor }};
-            }
-            .dark {
-                --primary: {{ $primaryColor }};
-                --ring: {{ $primaryColor }};
-                --sidebar-primary: {{ $primaryColor }};
-                --sidebar-ring: {{ $primaryColor }};
-                --chart-1: {{ $primaryColor }};
-            }
-        </style>
-        @endif
+        <script>
+            window.__BRAND_COLORS__ = {
+                primary: @json($primaryColor),
+                secondary: @json($secondaryColor),
+            };
+        </script>
     </head>
     <body class="font-sans antialiased">
         @inertia

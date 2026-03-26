@@ -37,6 +37,9 @@ class PublicHomeController extends Controller
                 'address' => setting('school_address', config('school.address')),
                 'logo_path' => setting('logo_path', config('school.logo_path')),
                 'tagline' => setting('school_tagline', config('school.tagline')),
+                'footer_text' => setting('footer_text', ''),
+                'show_powered_by' => setting('show_powered_by', true),
+                'app_name' => setting('app_name', config('app.name')),
             ],
         ]);
     }

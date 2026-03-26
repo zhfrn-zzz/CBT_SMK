@@ -5,6 +5,7 @@ import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import { Toaster } from '@/components/ui/sonner';
+import { useBrandColors } from '@/composables/useBrandColors';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -14,6 +15,8 @@ type Props = {
 withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
+
+useBrandColors();
 </script>
 
 <template>

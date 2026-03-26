@@ -125,7 +125,7 @@ class SettingService
         }
 
         return match ($type) {
-            'boolean' => $value ? 'true' : 'false',
+            'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
             'json' => is_string($value) ? $value : json_encode($value),
             default => (string) $value,
         };

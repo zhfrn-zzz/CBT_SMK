@@ -81,9 +81,13 @@ function handleLogoSmallChange(e: Event) {
 }
 
 function submitAppearance() {
+    const data = appearanceForm.data();
+
     router.post('/admin/settings/appearance', {
         _method: 'PUT',
-        ...appearanceForm.data(),
+        ...data,
+        // Explicitly convert boolean so FormData sends '1'/'0' reliably
+        show_powered_by: data.show_powered_by ? '1' : '0',
     }, {
         preserveScroll: true,
         forceFormData: true,

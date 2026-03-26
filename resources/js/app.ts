@@ -4,11 +4,15 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import '../css/app.css';
 import { initializeTheme } from '@/composables/useAppearance';
+import { initializeBrandColors } from '@/composables/useBrandColors';
 import { configureEcho } from '@laravel/echo-vue';
 
 configureEcho({
     broadcaster: 'reverb',
 });
+
+// Apply brand colors immediately (before Vue mounts) to avoid color flash
+initializeBrandColors();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

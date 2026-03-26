@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
 import { AlertCircle, Lock, User } from 'lucide-vue-next';
+import { computed } from 'vue';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -16,6 +18,17 @@ defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
+
+const page = usePage();
+const appSettings = computed(() => (page.props as any).app_settings ?? {});
+const schoolName = computed(() => appSettings.value.school_name || appSettings.value.app_name || 'SMK LMS');
+const logoUrl = computed(() => {
+    const path = appSettings.value.logo_path;
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    if (path.startsWith('images/')) return `/${path}`;
+    return `/storage/${path}`;
+});
 </script>
 
 <template>
@@ -26,12 +39,14 @@ defineProps<{
             <!-- Logo & School Name -->
             <div class="flex flex-col items-center">
                 <img
-                    src="/images/logo-smk-bm.png"
-                    alt="Logo SMK Bina Mandiri"
+                    v-if="logoUrl"
+                    :src="logoUrl"
+                    :alt="schoolName"
                     class="mb-3 h-16 w-16 object-contain"
                     @error="($event.target as HTMLImageElement).style.display = 'none'"
                 />
-                <h1 class="text-lg font-semibold text-foreground">SMK Bina Mandiri</h1>
+                <AppLogoIcon v-else class="mb-3 h-16 w-16 fill-current text-foreground" />
+                <h1 class="text-lg font-semibold text-foreground">{{ schoolName }}</h1>
             </div>
 
             <!-- Login Card -->

@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { dashboard, login } from '@/routes';
+import { useBrandColors } from '@/composables/useBrandColors';
 import {
     Monitor, Library, Users, BarChart3,
     CalendarDays, LogIn, Megaphone, Clock,
     BookOpen, LayoutDashboard,
 } from 'lucide-vue-next';
 
+useBrandColors();
+
 interface SchoolInfo {
     name: string;
     address: string;
     logo_path: string;
     tagline: string;
+    footer_text: string;
+    show_powered_by: boolean;
+    app_name: string;
 }
 
 interface PublicAnnouncement {
@@ -245,9 +251,10 @@ function stripHtml(html: string): string {
         </main>
 
         <!-- Footer -->
-        <footer class="border-t border-border bg-background py-8">
+        <footer v-if="school.footer_text || school.show_powered_by" class="border-t border-border bg-background py-8">
             <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-                <p class="text-sm text-muted-foreground">&copy; {{ new Date().getFullYear() }} {{ school.name }}. Sistem CBT &amp; LMS.</p>
+                <p v-if="school.footer_text" class="text-sm text-muted-foreground">{{ school.footer_text }}</p>
+                <p v-if="school.show_powered_by" class="text-sm text-muted-foreground" :class="{ 'mt-1': school.footer_text }">Powered by {{ school.app_name || 'SMK LMS' }}</p>
             </div>
         </footer>
     </div>
