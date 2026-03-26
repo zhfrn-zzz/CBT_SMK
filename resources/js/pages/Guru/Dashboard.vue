@@ -131,7 +131,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <MonitorPlay class="h-5 w-5 text-muted-foreground" />
+                                <MonitorPlay class="h-4 w-4 text-muted-foreground" />
                                 Ujian Aktif Real-time
                             </CardTitle>
                         </CardHeader>
@@ -175,7 +175,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <PenLine class="h-5 w-5 text-muted-foreground" />
+                                <PenLine class="h-4 w-4 text-muted-foreground" />
                                 Penilaian Pending
                             </CardTitle>
                             <CardAction>
@@ -218,7 +218,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <UserCheck class="h-5 w-5 text-muted-foreground" />
+                                <UserCheck class="h-4 w-4 text-muted-foreground" />
                                 Presensi Hari Ini
                             </CardTitle>
                             <CardAction>
@@ -291,7 +291,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <Calendar class="h-5 w-5 text-muted-foreground" />
+                                <Calendar class="h-4 w-4 text-muted-foreground" />
                                 Jadwal Mendatang
                             </CardTitle>
                         </CardHeader>
@@ -326,7 +326,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <Megaphone class="h-5 w-5 text-muted-foreground" />
+                                <Megaphone class="h-4 w-4 text-muted-foreground" />
                                 Pengumuman
                             </CardTitle>
                             <CardAction>

@@ -65,7 +65,7 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
     <Head :title="`Nilai - ${examSession.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <!-- Header -->
             <PageHeader :title="examSession.name" :icon="Trophy" :description="`${examSession.subject} — ${formatDate(attempt.submitted_at)}`" />
 

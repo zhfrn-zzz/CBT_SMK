@@ -130,7 +130,7 @@ function handleFileChange(e: Event) {
     <Head title="Tambah Pengguna" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-6 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Tambah Pengguna" :icon="UserPlus" />

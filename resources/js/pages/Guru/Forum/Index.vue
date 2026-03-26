@@ -91,7 +91,7 @@ function timeAgo(date: string | null) {
 <template>
     <Head title="Forum Diskusi" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Forum Diskusi" description="Diskusi dengan siswa" :icon="MessagesSquare">
@@ -153,7 +153,7 @@ function timeAgo(date: string | null) {
                 <Link
                     v-for="t in threads.data" :key="t.id"
                     :href="`/guru/forum/${t.id}`"
-                    class="block rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm"
+                    class="block rounded-lg border bg-card p-4 transition-colors hover:bg-muted"
                     :class="{ 'border-blue-100 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/30': t.is_pinned }"
                 >
                     <div class="flex items-start gap-3">

@@ -107,7 +107,7 @@ const typeLabel = (type: string) => {
 <template>
     <Head title="Materi Pembelajaran" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Materi" description="Kelola materi pembelajaran" :icon="BookOpen">
@@ -168,7 +168,7 @@ const typeLabel = (type: string) => {
 
             <!-- Materials Table -->
             <template v-else-if="materials && materials.data.length > 0">
-                <div class="overflow-hidden rounded-xl border bg-card">
+                <div class="overflow-hidden rounded-lg border bg-card">
                     <Table>
                         <TableHeader>
                             <TableRow class="bg-slate-50">

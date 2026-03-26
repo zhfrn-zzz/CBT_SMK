@@ -63,7 +63,7 @@ function isExamActive(exam: SiswaExamListItem): boolean {
     <Head title="Ujian" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Ujian" description="Daftar ujian Anda" :icon="ClipboardList" />

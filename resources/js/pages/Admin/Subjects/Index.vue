@@ -44,7 +44,7 @@ function deleteItem(id: number) {
     <Head title="Mata Pelajaran" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Mata Pelajaran" description="Kelola data mata pelajaran" :icon="BookOpen">
@@ -60,7 +60,7 @@ function deleteItem(id: number) {
 
             <DataTableToolbar />
 
-            <div v-if="subjects.data.length > 0" class="overflow-hidden rounded-xl border bg-card">
+            <div v-if="subjects.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

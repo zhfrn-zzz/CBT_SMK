@@ -41,11 +41,11 @@ function formatDate(date: string | null) {
     <Head title="Nilai Ujian" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <PageHeader title="Nilai" description="Rekap nilai ujian" :icon="Trophy" />
 
             <EmptyState v-if="results.length === 0" :icon="Trophy" title="Belum ada nilai" description="Belum ada hasil ujian yang dipublikasikan." />
-            <div v-else class="overflow-hidden rounded-xl border bg-card">
+            <div v-else class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

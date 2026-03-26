@@ -125,7 +125,7 @@ function getInitials(name: string): string {
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <Megaphone class="h-5 w-5 text-muted-foreground" />
+                                <Megaphone class="h-4 w-4 text-muted-foreground" />
                                 Pengumuman Terbaru
                             </CardTitle>
                             <CardAction>
@@ -172,7 +172,7 @@ function getInitials(name: string): string {
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <ScrollText class="h-5 w-5 text-muted-foreground" />
+                                <ScrollText class="h-4 w-4 text-muted-foreground" />
                                 Aktivitas Terbaru
                             </CardTitle>
                             <CardAction>

@@ -49,7 +49,7 @@ function countdown(deadline: string) {
 <template>
     <Head title="Tugas" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
             <PageHeader title="Tugas" description="Daftar tugas Anda" :icon="FileText" />
 
@@ -59,7 +59,7 @@ function countdown(deadline: string) {
                 <Link
                     v-for="a in assignments" :key="a.id"
                     :href="`/siswa/tugas/${a.id}`"
-                    class="block rounded-xl border bg-card p-4 shadow-sm hover:bg-slate-50/50 transition-colors space-y-2"
+                    class="block rounded-lg border bg-card p-4 space-y-2 transition-colors hover:bg-muted"
                     :class="a.is_overdue && !a.my_submission ? 'border-red-300 bg-red-50/50 dark:bg-red-950/10' : ''"
                 >
                     <div class="flex items-start justify-between gap-2">

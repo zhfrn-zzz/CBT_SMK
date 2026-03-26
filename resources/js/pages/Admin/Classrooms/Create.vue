@@ -46,7 +46,7 @@ function submit() {
     <Head title="Tambah Kelas" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <PageHeader title="Tambah Kelas" :icon="School" />
 
             <Card class="max-w-2xl">

@@ -95,7 +95,7 @@ function submit() {
     <Head title="Edit Sesi Ujian" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <PageHeader title="Edit Ujian" :icon="ClipboardList" />
 
             <Card class="max-w-2xl">

@@ -77,7 +77,7 @@ function deleteItem(id: number) {
     <Head title="Bank Soal" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Bank Soal" description="Kelola bank soal ujian" :icon="Database">
@@ -114,7 +114,7 @@ function deleteItem(id: number) {
                 </template>
             </DataTableToolbar>
 
-            <div v-if="questionBanks.data.length > 0" class="overflow-hidden rounded-xl border bg-card">
+            <div v-if="questionBanks.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

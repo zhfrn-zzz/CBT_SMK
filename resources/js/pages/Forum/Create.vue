@@ -38,7 +38,7 @@ function submit() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Buat Thread Baru" />
 
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <PageHeader title="Buat Thread Baru" description="Mulai diskusi baru di forum" :icon="MessagesSquare" />
 
             <Card class="mx-auto w-full max-w-2xl">

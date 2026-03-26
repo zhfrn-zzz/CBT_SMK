@@ -42,7 +42,7 @@ function deleteItem(id: number) {
     <Head title="Jurusan" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Jurusan" description="Kelola data jurusan" :icon="Building2">
@@ -56,7 +56,7 @@ function deleteItem(id: number) {
                 </template>
             </PageHeader>
 
-            <div class="overflow-hidden rounded-xl border bg-card">
+            <div class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

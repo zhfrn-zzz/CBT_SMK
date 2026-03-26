@@ -230,7 +230,7 @@ const categoryColors: Record<string, string> = {
                         </Table>
                     </div>
                     <p v-else class="text-muted-foreground text-sm">
-                        ✅ Tidak ada file orphan. Storage sudah bersih.
+                    Tidak ada file orphan. Storage sudah bersih.
                     </p>
                 </CardContent>
             </Card>

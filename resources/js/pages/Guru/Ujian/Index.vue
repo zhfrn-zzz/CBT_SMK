@@ -106,7 +106,7 @@ function statusLabel(status: ExamStatus) {
     <Head title="Sesi Ujian" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Ujian" description="Kelola sesi ujian" :icon="ClipboardList">
@@ -140,7 +140,7 @@ function statusLabel(status: ExamStatus) {
                 </template>
             </DataTableToolbar>
 
-            <div v-if="examSessions.data.length > 0" class="overflow-hidden rounded-xl border bg-card">
+            <div v-if="examSessions.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

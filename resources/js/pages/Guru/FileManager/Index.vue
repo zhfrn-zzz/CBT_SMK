@@ -113,7 +113,7 @@ const sortOptions = [
     <Head title="File Manager" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <PageHeader title="File Manager" description="Kelola file Anda" :icon="FolderOpen" />
 
             <!-- Summary -->
@@ -153,7 +153,7 @@ const sortOptions = [
                 </Button>
             </div>
 
-            <div v-if="files.length > 0" class="overflow-hidden rounded-xl border bg-card">
+            <div v-if="files.length > 0" class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

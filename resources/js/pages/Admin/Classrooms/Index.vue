@@ -76,7 +76,7 @@ const gradeLevelLabel: Record<string, string> = {
     <Head title="Kelas" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Kelas" description="Kelola data kelas" :icon="School">
@@ -126,7 +126,7 @@ const gradeLevelLabel: Record<string, string> = {
                 </template>
             </DataTableToolbar>
 
-            <div v-if="classrooms.data.length > 0" class="overflow-hidden rounded-xl border bg-card">
+            <div v-if="classrooms.data.length > 0" class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

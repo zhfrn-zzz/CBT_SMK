@@ -83,7 +83,7 @@ const statusColor = (status: string) => {
 <template>
     <Head :title="`Presensi Pertemuan ${attendance.meeting_number}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Sesi Presensi" :description="`${attendance.subject?.name} · ${attendance.classroom?.name} · ${new Date(attendance.meeting_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`" :icon="ClipboardCheck">
@@ -137,7 +137,7 @@ const statusColor = (status: string) => {
             </div>
 
             <!-- Students table -->
-            <div class="overflow-hidden rounded-xl border bg-card">
+            <div class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

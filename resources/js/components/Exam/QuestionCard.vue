@@ -203,7 +203,7 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-    <div class="bg-white rounded-xl shadow-sm border p-6 sm:p-8">
+    <div class="bg-white rounded-lg border p-6 sm:p-8">
         <!-- Question Header -->
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -257,7 +257,7 @@ const typeLabel = computed(() => {
                         v-for="option in question.options"
                         :key="option.id"
                         type="button"
-                        class="h-16 rounded-xl border-2 text-lg font-semibold transition-all"
+                        class="h-16 rounded-lg border-2 text-lg font-semibold transition-all"
                         :class="option.label === 'A'
                             ? (currentAnswer === option.label
                                 ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
@@ -370,7 +370,7 @@ const typeLabel = computed(() => {
                         class="flex items-center gap-3 rounded-lg border bg-white p-4 transition-all"
                         :class="draggedIndex === index
                             ? 'shadow-lg ring-2 ring-primary/30 opacity-80'
-                            : 'cursor-grab hover:shadow-md'"
+                            : 'cursor-grab hover:bg-muted'"
                         @dragstart="onDragStart(index)"
                         @dragover="onDragOver"
                         @drop="onDrop(index)"

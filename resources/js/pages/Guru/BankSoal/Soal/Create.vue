@@ -52,7 +52,7 @@ function submit() {
     <Head title="Tambah Soal" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-6 rounded-lg p-4">
             <PageHeader title="Tambah Soal" :icon="FileQuestion" />
             <Card class="max-w-3xl">
                 <CardContent class="p-6">

@@ -156,7 +156,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-            <PageHeader :title="`Halo, ${user.name}! 👋`" :description="userSubtitle" />
+            <PageHeader :title="`Halo, ${user.name}`" :description="userSubtitle" />
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -196,7 +196,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <Calendar class="h-5 w-5 text-muted-foreground" />
+                                <Calendar class="h-4 w-4 text-muted-foreground" />
                                 Jadwal Ujian
                             </CardTitle>
                             <CardAction>
@@ -246,7 +246,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <Clock class="h-5 w-5 text-muted-foreground" />
+                                <Clock class="h-4 w-4 text-muted-foreground" />
                                 Deadline Tugas
                             </CardTitle>
                         </CardHeader>
@@ -282,7 +282,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <BookOpen class="h-5 w-5 text-muted-foreground" />
+                                <BookOpen class="h-4 w-4 text-muted-foreground" />
                                 Materi Baru
                             </CardTitle>
                             <CardAction>
@@ -326,7 +326,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <Award class="h-5 w-5 text-muted-foreground" />
+                                <Award class="h-4 w-4 text-muted-foreground" />
                                 Nilai Terakhir
                             </CardTitle>
                             <CardAction>
@@ -463,7 +463,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <Megaphone class="h-5 w-5 text-muted-foreground" />
+                                <Megaphone class="h-4 w-4 text-muted-foreground" />
                                 Pengumuman
                             </CardTitle>
                         </CardHeader>

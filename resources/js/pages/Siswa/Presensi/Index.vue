@@ -94,7 +94,7 @@ function handleKeyDown(index: number, e: KeyboardEvent) {
 <template>
     <Head title="Presensi Saya" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
             <PageHeader title="Presensi" description="Riwayat kehadiran" :icon="ClipboardCheck" />
 
@@ -135,7 +135,7 @@ function handleKeyDown(index: number, e: KeyboardEvent) {
 
             <!-- Records table -->
             <EmptyState v-if="records.data.length === 0" :icon="ClipboardCheck" title="Belum ada data presensi" description="Belum ada data presensi saat ini." />
-            <div v-else class="overflow-hidden rounded-xl border bg-card">
+            <div v-else class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">

@@ -107,7 +107,7 @@ function questionTypeColor(type: string): 'default' | 'secondary' | 'destructive
     <Head :title="`Penilaian - ${attempt.user.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <!-- Header with student info & navigation -->

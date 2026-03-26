@@ -35,7 +35,7 @@ function roleLabel(role: string): string {
 <template>
     <Link
         :href="`/forum/${thread.id}`"
-        class="block rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm"
+        class="block rounded-lg border bg-card p-4 transition-colors hover:bg-muted"
         :class="{
             'border-blue-100 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/30': thread.is_pinned,
         }"

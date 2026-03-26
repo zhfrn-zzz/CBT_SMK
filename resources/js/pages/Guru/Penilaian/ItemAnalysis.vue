@@ -108,7 +108,7 @@ function discriminationVariant(label: string) {
             </div>
 
             <!-- Item Table -->
-            <div v-if="!analysis.computing && analysis.items.length > 0" class="overflow-hidden rounded-xl border bg-card">
+            <div v-if="!analysis.computing && analysis.items.length > 0" class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">
@@ -159,7 +159,7 @@ function discriminationVariant(label: string) {
             </div>
 
             <!-- KD Breakdown -->
-            <div v-if="!analysis.computing && analysis.kd_breakdown.length > 0" class="overflow-hidden rounded-xl border bg-card">
+            <div v-if="!analysis.computing && analysis.kd_breakdown.length > 0" class="overflow-hidden rounded-lg border bg-card">
                 <div class="border-b px-6 py-4">
                     <h3 class="font-semibold">Rekap per Kompetensi Dasar</h3>
                 </div>

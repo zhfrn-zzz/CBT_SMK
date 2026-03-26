@@ -90,7 +90,7 @@ function timeAgo(dateStr: string): string {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Notifikasi" />
 
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader title="Notifikasi" description="Semua notifikasi Anda" :icon="Bell">
@@ -124,7 +124,7 @@ function timeAgo(dateStr: string): string {
                 <div
                     v-for="notif in filteredNotifications"
                     :key="notif.id"
-                    class="flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors hover:bg-muted/50"
+                    class="flex cursor-pointer items-start gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
                     :class="{
                         'border-l-2 border-l-primary bg-primary/5': !notif.read_at,
                     }"

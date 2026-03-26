@@ -109,7 +109,7 @@ function deleteClassroom() {
     <Head :title="`Kelas ${classroom.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-6 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader :title="classroom.name" description="Detail kelas" :icon="School">
@@ -177,7 +177,7 @@ function deleteClassroom() {
                         <Separator />
 
                         <!-- Student list -->
-                        <div class="overflow-hidden rounded-xl border bg-card">
+                        <div class="overflow-hidden rounded-lg border bg-card">
                             <Table>
                                 <TableHeader>
                                     <TableRow class="bg-slate-50">
@@ -269,7 +269,7 @@ function deleteClassroom() {
                         <Separator />
 
                         <!-- Teaching assignments list -->
-                        <div class="overflow-hidden rounded-xl border bg-card">
+                        <div class="overflow-hidden rounded-lg border bg-card">
                             <Table>
                                 <TableHeader>
                                     <TableRow class="bg-slate-50">

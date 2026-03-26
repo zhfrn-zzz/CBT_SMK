@@ -25,7 +25,7 @@ function formatDate(d: string) {
 <template>
     <Head title="Pengumuman" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <PageHeader title="Pengumuman" description="Pengumuman terbaru" :icon="Megaphone" />
 
             <EmptyState v-if="announcements.data.length === 0" :icon="Megaphone" title="Belum ada pengumuman" description="Belum ada pengumuman saat ini." />
@@ -34,7 +34,7 @@ function formatDate(d: string) {
                 <Link
                     v-for="a in announcements.data" :key="a.id"
                     :href="`/siswa/pengumuman/${a.id}`"
-                    class="flex items-start gap-3 rounded-xl border bg-card p-4 shadow-sm hover:bg-slate-50/50 transition-colors"
+                    class="flex items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-muted"
                     :class="a.is_pinned ? 'border-primary/30 bg-primary/5' : ''"
                 >
                     <Pin v-if="a.is_pinned" class="size-4 text-primary mt-0.5 shrink-0" />

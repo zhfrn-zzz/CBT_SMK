@@ -214,7 +214,7 @@ function submitInvalidateQuestion() {
     <Head :title="`Proctor - ${exam_session.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <FlashMessage />
 
             <PageHeader :title="'Proctor - ' + exam_session.name" :description="exam_session.subject" :icon="MonitorCheck">
@@ -269,7 +269,7 @@ function submitInvalidateQuestion() {
             </div>
 
             <!-- Student Table -->
-            <div class="overflow-hidden rounded-xl border bg-card">
+            <div class="overflow-hidden rounded-lg border bg-card">
                     <Table>
                         <TableHeader>
                             <TableRow class="bg-slate-50 dark:bg-slate-800/50">

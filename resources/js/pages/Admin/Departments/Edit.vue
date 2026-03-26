@@ -35,7 +35,7 @@ function submit() {
     <Head title="Edit Jurusan" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-6 rounded-lg p-4">
             <PageHeader title="Edit Jurusan" :icon="Building2" />
 
             <Card class="max-w-2xl">

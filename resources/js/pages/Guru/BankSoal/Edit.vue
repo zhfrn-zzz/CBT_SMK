@@ -45,7 +45,7 @@ function submit() {
     <Head title="Edit Bank Soal" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-6 rounded-lg p-4">
             <PageHeader title="Edit Bank Soal" :icon="Database" />
 
             <Card class="max-w-2xl">

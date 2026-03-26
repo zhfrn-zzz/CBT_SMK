@@ -37,9 +37,9 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-        {{-- Self-hosted Inter font --}}
-        <link rel="preload" href="/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-        <link rel="stylesheet" href="/fonts/inter.css">
+        {{-- Self-hosted DM Sans font --}}
+        <link rel="preload" href="/fonts/dm-sans/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+        <link rel="stylesheet" href="/fonts/dm-sans/dm-sans.css">
 
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead

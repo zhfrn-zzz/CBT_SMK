@@ -72,7 +72,7 @@ function exportExcel() {
 <template>
     <Head title="Rekap Presensi" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-lg p-4">
             <PageHeader title="Rekap Presensi" description="Ringkasan kehadiran siswa" :icon="CalendarCheck">
                 <template #actions>
                     <LoadingButton variant="outline" size="sm" :disabled="!subjectId || !classroomId" @click="exportExcel">
@@ -107,7 +107,7 @@ function exportExcel() {
                 Pilih mata pelajaran dan kelas untuk melihat rekap.
             </div>
 
-            <div v-else-if="recap && recap.length > 0" class="overflow-hidden rounded-xl border bg-card">
+            <div v-else-if="recap && recap.length > 0" class="overflow-hidden rounded-lg border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow class="bg-slate-50">
