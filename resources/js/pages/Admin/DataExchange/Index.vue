@@ -12,6 +12,7 @@ import {
 import { ArrowLeftRight, Download, Upload, FileText } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import { ref } from 'vue';
+import { useExportPolling } from '@/composables/useExportPolling';
 
 const props = defineProps<{
     classrooms: Array<{ id: number; name: string }>;
@@ -39,6 +40,8 @@ const importForm = useForm({
 
 const fileInput = ref<HTMLInputElement | null>(null);
 
+const { startPolling } = useExportPolling(5000);
+
 function submitExport() {
     const params = new URLSearchParams();
     if (exportForm.classroom_id && exportForm.classroom_id !== 'all') params.append('classroom_id', exportForm.classroom_id);
@@ -47,7 +50,9 @@ function submitExport() {
 }
 
 function submitRapor() {
-    raporForm.post('/admin/analytics/export-rapor');
+    raporForm.post('/admin/analytics/export-rapor', {
+        onSuccess: () => startPolling(),
+    });
 }
 
 function submitImport() {

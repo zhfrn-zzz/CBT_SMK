@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Award, Bell, Calendar, ClipboardList, Info, Megaphone, MessageCircle, UserCheck } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
-import { Badge } from '@/components/ui/badge';
+import { Award, Bell, Calendar, ClipboardList, Download, Info, Megaphone, MessageCircle, UserCheck } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -16,33 +15,23 @@ import {
 import type { NotificationItem } from '@/types/notification';
 
 const page = usePage();
-const unreadCount = computed(() => (page.props.auth as Record<string, unknown>).unread_notifications_count as number ?? 0);
+const auth = computed(() => page.props.auth as Record<string, unknown>);
+const unreadCount = computed(() => (auth.value.unread_notifications_count as number) ?? 0);
+const notifications = computed(() => (auth.value.recent_notifications as NotificationItem[]) ?? []);
 
-const notifications = ref<NotificationItem[]>([]);
-const isLoading = ref(false);
-const isOpen = ref(false);
-
-async function fetchNotifications() {
-    if (isLoading.value) return;
-    isLoading.value = true;
-    try {
-        const { data } = await axios.get('/notifications');
-        notifications.value = data.notifications.data.slice(0, 10);
-    } finally {
-        isLoading.value = false;
-    }
-}
-
-function onOpenChange(open: boolean) {
-    isOpen.value = open;
-    if (open) fetchNotifications();
+function isDownloadType(type: string): boolean {
+    return type === 'export_ready';
 }
 
 async function markAsRead(notification: NotificationItem) {
     if (!notification.read_at) {
         await axios.post(`/notifications/${notification.id}/read`);
     }
-    router.visit(notification.data.action_url);
+    if (isDownloadType(notification.data.type)) {
+        window.location.href = notification.data.action_url;
+    } else {
+        router.visit(notification.data.action_url);
+    }
 }
 
 function markAllAsRead() {
@@ -67,6 +56,8 @@ const typeIcons: Record<string, typeof Calendar> = {
     pengumuman_baru: Megaphone,
     forum_reply: MessageCircle,
     presensi: UserCheck,
+    export_ready: Download,
+    cleanup_completed: ClipboardList,
 };
 
 const typeColors: Record<string, string> = {
@@ -77,11 +68,13 @@ const typeColors: Record<string, string> = {
     pengumuman_baru: 'text-purple-500',
     forum_reply: 'text-blue-500',
     presensi: 'text-emerald-500',
+    export_ready: 'text-emerald-500',
+    cleanup_completed: 'text-blue-500',
 };
 </script>
 
 <template>
-    <DropdownMenu @update:open="onOpenChange">
+    <DropdownMenu>
         <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="icon" class="relative rounded-lg p-2 hover:bg-accent">
                 <Bell class="h-5 w-5" />
@@ -109,11 +102,7 @@ const typeColors: Record<string, string> = {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            <div v-if="isLoading" class="py-6 text-center text-sm text-muted-foreground">
-                Memuat...
-            </div>
-
-            <div v-else-if="notifications.length === 0" class="py-6 text-center text-sm text-muted-foreground">
+            <div v-if="notifications.length === 0" class="py-6 text-center text-sm text-muted-foreground">
                 Tidak ada notifikasi
             </div>
 

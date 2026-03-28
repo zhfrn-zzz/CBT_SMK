@@ -10,7 +10,7 @@ import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Award, Bell, Calendar, ClipboardList, Info, Megaphone, MessageCircle, Trash2, UserCheck } from 'lucide-vue-next';
+import { Award, Bell, Calendar, ClipboardList, Download, Info, Megaphone, MessageCircle, Trash2, UserCheck } from 'lucide-vue-next';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
 import type { NotificationItem } from '@/types/notification';
 
@@ -40,6 +40,8 @@ const typeIcons: Record<string, typeof Calendar> = {
     pengumuman_baru: Megaphone,
     forum_reply: MessageCircle,
     presensi: UserCheck,
+    export_ready: Download,
+    cleanup_completed: ClipboardList,
 };
 
 const typeColors: Record<string, string> = {
@@ -50,6 +52,8 @@ const typeColors: Record<string, string> = {
     pengumuman_baru: 'text-purple-500',
     forum_reply: 'text-blue-500',
     presensi: 'text-emerald-500',
+    export_ready: 'text-emerald-500',
+    cleanup_completed: 'text-blue-500',
 };
 
 const typeBadgeVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -58,6 +62,8 @@ const typeBadgeVariant: Record<string, 'default' | 'secondary' | 'destructive' |
     nilai_dipublikasi: 'secondary',
     materi_baru: 'outline',
     pengumuman_baru: 'outline',
+    export_ready: 'secondary',
+    cleanup_completed: 'outline',
 };
 
 function markAllAsRead() {
@@ -68,7 +74,11 @@ function openNotification(notif: NotificationItem) {
     if (!notif.read_at) {
         axios.post(`/notifications/${notif.id}/read`).catch(() => {});
     }
-    router.visit(notif.data.action_url);
+    if (notif.data.type === 'export_ready') {
+        window.location.href = notif.data.action_url;
+    } else {
+        router.visit(notif.data.action_url);
+    }
 }
 
 function deleteNotification(id: string) {

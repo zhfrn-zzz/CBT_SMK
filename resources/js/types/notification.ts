@@ -3,13 +3,18 @@ export type NotificationType =
     | 'deadline_tugas'
     | 'nilai_dipublikasi'
     | 'materi_baru'
-    | 'pengumuman_baru';
+    | 'pengumuman_baru'
+    | 'export_ready'
+    | 'cleanup_completed'
+    | 'forum_reply'
+    | 'presensi';
 
 export type NotificationData = {
     type: NotificationType;
     title: string;
     message: string;
     action_url: string;
+    filename?: string;
 };
 
 export type NotificationItem = {
