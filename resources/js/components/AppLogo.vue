@@ -5,7 +5,14 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 
 const page = usePage();
 const appSettings = computed(() => (page.props as any).app_settings ?? {});
-const appName = computed(() => appSettings.value.app_name || 'SMK LMS');
+const appName = computed(() => {
+    const name = appSettings.value.app_name;
+    const school = appSettings.value.school_name;
+    // Prefer school_name; skip app_name if it's the Laravel default
+    if (school) return school;
+    if (name && name !== 'Laravel') return name;
+    return 'SMK LMS';
+});
 const logoPath = computed(() => {
     const path = appSettings.value.logo_path;
     if (!path) return null;

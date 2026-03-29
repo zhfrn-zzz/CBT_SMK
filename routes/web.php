@@ -293,6 +293,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Notification routes (shared across all roles)
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
         Route::get('/list', [NotificationController::class, 'list'])->name('list');
         Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
         Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');

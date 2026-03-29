@@ -2,7 +2,7 @@
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Award, Bell, Calendar, ClipboardList, Download, Info, Megaphone, MessageCircle, UserCheck } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -18,6 +18,22 @@ const page = usePage();
 const auth = computed(() => page.props.auth as Record<string, unknown>);
 const unreadCount = computed(() => (auth.value.unread_notifications_count as number) ?? 0);
 const notifications = computed(() => (auth.value.recent_notifications as NotificationItem[]) ?? []);
+
+// Poll every 30 seconds — reload only 'auth' shared props (unread count + recent notifications)
+let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+onMounted(() => {
+    pollTimer = setInterval(() => {
+        router.reload({ only: ['auth'] });
+    }, 30000);
+});
+
+onUnmounted(() => {
+    if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+    }
+});
 
 function isDownloadType(type: string): boolean {
     return type === 'export_ready';

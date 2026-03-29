@@ -35,6 +35,16 @@ class NotificationController extends Controller
     }
 
     /**
+     * Lightweight JSON endpoint: just unread count (for polling).
+     */
+    public function unreadCount(Request $request): JsonResponse
+    {
+        $count = $request->user()->unreadNotifications()->count();
+
+        return response()->json(['unread_count' => $count]);
+    }
+
+    /**
      * Inertia full-page: paginated notification list.
      */
     public function list(Request $request): Response

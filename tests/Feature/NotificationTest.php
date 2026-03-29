@@ -60,6 +60,37 @@ test('unauthenticated user cannot fetch notifications', function () {
         ->assertUnauthorized();
 });
 
+// ── GET /notifications/unread-count (lightweight polling endpoint) ───
+
+test('unread count endpoint returns correct count', function () {
+    foreach (range(1, 3) as $i) {
+        DatabaseNotification::create([
+            'id' => fake()->uuid(),
+            'type' => 'App\\Notifications\\MateriBaruNotification',
+            'notifiable_type' => 'App\\Models\\User',
+            'notifiable_id' => $this->admin->id,
+            'data' => [
+                'type' => 'materi_baru',
+                'title' => "Materi $i",
+                'message' => 'Test',
+                'action_url' => '/test',
+            ],
+        ]);
+    }
+
+    $this->actingAs($this->admin)
+        ->getJson('/notifications/unread-count')
+        ->assertOk()
+        ->assertJsonPath('unread_count', 3);
+});
+
+test('unread count endpoint returns zero when all read', function () {
+    $this->actingAs($this->admin)
+        ->getJson('/notifications/unread-count')
+        ->assertOk()
+        ->assertJsonPath('unread_count', 0);
+});
+
 // ── GET /notifications/list (Inertia page) ──────────────────────────
 
 test('authenticated user can view notification list page', function () {
